@@ -235,7 +235,7 @@ public class Account {
             this.addPermission("*");
         }
 
-        // Set account default language as fserver default language
+        // Set account default language to server default language
         if (!document.containsKey("locale")) {
             this.locale = LANGUAGE;
         }
