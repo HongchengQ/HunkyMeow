@@ -52,8 +52,8 @@ public class WorldDataSystem extends BaseGameSystem {
         var investigationMonsterData =
                 GameData.getInvestigationMonsterDataMap().values().parallelStream()
                         .filter(imd -> imd.getMonsterIdList() != null && !imd.getMonsterIdList().isEmpty())
-                        .filter(imd -> imd.getMonsterIdList().get(0) == monsterId)
-                        .findFirst();
+                        .filter(imd -> imd.getMonsterIdList().contains(monsterId))
+                        .findAny();
 
         return investigationMonsterData
                 .map(
