@@ -42,6 +42,15 @@ public class HandlerGetPlayerTokenReq extends PacketHandler {
         // Set account
         session.setAccount(account);
 
+        // Checks if the player is banned
+        if (session.getAccount().isBanned()) {
+            session.setState(SessionState.ACCOUNT_BANNED);
+            session.send(
+                new PacketGetPlayerTokenRsp(
+                    session, 21, "FORBID_CHEATING_PLUGINS", session.getAccount().getBanEndTime()));
+            return;
+        }
+
         // Check if player object exists in server
         // NOTE: CHECKING MUST SITUATED HERE (BEFORE getPlayerByUid)! because to save firstly ,to load
         // secondly !!!
@@ -92,15 +101,6 @@ public class HandlerGetPlayerTokenReq extends PacketHandler {
 
         // Set player object for session
         session.setPlayer(player);
-
-        // Checks if the player is banned
-        if (session.getAccount().isBanned()) {
-            session.setState(SessionState.ACCOUNT_BANNED);
-            session.send(
-                    new PacketGetPlayerTokenRsp(
-                            session, 21, "FORBID_CHEATING_PLUGINS", session.getAccount().getBanEndTime()));
-            return;
-        }
 
         // Load player from database
         player.loadFromDatabase();
