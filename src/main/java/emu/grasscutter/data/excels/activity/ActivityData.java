@@ -1,12 +1,8 @@
 package emu.grasscutter.data.excels.activity;
 
-import emu.grasscutter.data.GameData;
-import emu.grasscutter.data.GameResource;
-import emu.grasscutter.data.ResourceType;
-import java.util.List;
-import java.util.Objects;
-import lombok.AccessLevel;
-import lombok.Getter;
+import emu.grasscutter.data.*;
+import java.util.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @ResourceType(

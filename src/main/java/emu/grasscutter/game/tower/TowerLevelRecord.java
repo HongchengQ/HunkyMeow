@@ -1,8 +1,7 @@
 package emu.grasscutter.game.tower;
 
 import dev.morphia.annotations.Entity;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 public class TowerLevelRecord {
@@ -24,6 +23,10 @@ public class TowerLevelRecord {
     public TowerLevelRecord setLevelStars(int levelId, int stars) {
         passedLevelMap.put(levelId, stars);
         return this;
+    }
+
+    public int getLevelStars(int levelId) {
+        return passedLevelMap.get(levelId);
     }
 
     public int getStarCount() {

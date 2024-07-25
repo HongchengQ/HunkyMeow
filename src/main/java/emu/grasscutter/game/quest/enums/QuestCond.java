@@ -1,9 +1,7 @@
 package emu.grasscutter.game.quest.enums;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.*;
+import java.util.*;
 import java.util.stream.Stream;
 
 public enum QuestCond implements QuestTrigger {
@@ -27,7 +25,7 @@ public enum QuestCond implements QuestTrigger {
     QUEST_COND_PLAYER_LEVEL_EQUAL_GREATER(17),
     QUEST_COND_SCENE_AREA_UNLOCKED(18), // missing, only NPC groups/talks
     QUEST_COND_ITEM_GIVING_ACTIVED(19), // missing
-    QUEST_COND_ITEM_GIVING_FINISHED(20), // missing
+    QUEST_COND_ITEM_GIVING_FINISHED(20),
     QUEST_COND_IS_DAYTIME(21), // only NPC groups
     QUEST_COND_CURRENT_AVATAR(22), // missing
     QUEST_COND_CURRENT_AREA(23), // missing
@@ -56,7 +54,7 @@ public enum QuestCond implements QuestTrigger {
     QUEST_COND_QUEST_GLOBAL_VAR_LESS(46),
     QUEST_COND_PERSONAL_LINE_UNLOCK(47),
     QUEST_COND_CITY_REPUTATION_REQUEST(48), // missing
-    QUEST_COND_MAIN_COOP_START(49), // missing
+    QUEST_COND_MAIN_COOP_START(49),
     QUEST_COND_MAIN_COOP_ENTER_SAVE_POINT(50), // missing
     QUEST_COND_CITY_REPUTATION_LEVEL(51), // missing, only NPC groups
     QUEST_COND_CITY_REPUTATION_UNLOCK(52), // missing, currently unused

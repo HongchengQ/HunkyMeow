@@ -1,7 +1,6 @@
 package emu.grasscutter.data.binout.config.fields;
 
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
@@ -9,4 +8,5 @@ import lombok.experimental.FieldDefaults;
 public class ConfigCombat {
     // There are more values that can be added that might be useful in the json
     ConfigCombatProperty property;
+    ConfigCombatSummon summon;
 }

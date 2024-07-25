@@ -1,13 +1,10 @@
 package emu.grasscutter.game.entity.gadget.platform;
 
 import emu.grasscutter.game.world.Position;
-import emu.grasscutter.net.proto.MovingPlatformTypeOuterClass;
-import emu.grasscutter.net.proto.PlatformInfoOuterClass;
+import emu.grasscutter.net.proto.*;
 import emu.grasscutter.scripts.data.SceneGadget;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.*;
+import lombok.*;
 
 public class ConfigRoute extends BaseRoute {
 

@@ -1,8 +1,6 @@
 package emu.grasscutter.game.gacha;
 
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Indexed;
+import dev.morphia.annotations.*;
 import java.util.Date;
 import org.bson.types.ObjectId;
 

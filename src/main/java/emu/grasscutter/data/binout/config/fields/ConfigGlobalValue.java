@@ -1,7 +1,6 @@
 package emu.grasscutter.data.binout.config.fields;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import lombok.Data;
 
 /** Contains information about the entities SGVs */

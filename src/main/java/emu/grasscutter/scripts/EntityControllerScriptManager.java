@@ -30,7 +30,7 @@ public class EntityControllerScriptManager {
                         if (cs == null) return;
 
                         try {
-                            cs.eval(bindings);
+                            ScriptLoader.eval(cs, bindings);
                             gadgetController.put(controllerName, new EntityController(cs, bindings));
                         } catch (Throwable e) {
                             Grasscutter.getLogger().error("Error while loading gadget controller: {}.", fileName);

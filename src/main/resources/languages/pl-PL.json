@@ -324,6 +324,9 @@
     "setProp": {
       "description": "Ustaw pewne własności konta, takie jak tryb nieśmiertelności (godmode) czy też zmiana postępu Battle Pass.\n\tMożliwe nazwy własności: godmode | nostamina | unlimitedenergy | abyss | worldlevel | bplevel | ...\n\tTa komenda ma więcej nazw własności, które może otrzymać. Możesz je wszystkie zobaczyć w pliku \"game/props/PlayerProperty.java\".\n\tW tym pliku, przyjmują one formę \"PROP_XXX_YYY_ZZZ\", ale powinieneś je zapisywać jako \"xxx_yyy_zzz\" jeśli chcesz je użyć w tej komendzie."
     },
+    "setSceneTag": {
+      "description": "Ustawia znaczniki sceny specyficzne dla konta. Kontroluje to takie rzeczy jak skały blokujące drzwi, widoczne budynki i inne (zwykle związane z zadaniami) rzeczy, które wpływają na to, co jest widoczne w twoim świecie."
+    },
     "setStats": {
       "description": "Ustaw statystykę walki dla obecnie wybranej postaci wybranego gracza.\n\tMożliwe nazwy statystyki: hp | maxhp | def | atk | em | er | crate | cdmg | cdr | heal | heali | shield | defi\n\tDodatkowe obrażenia od żywiołu: epyro | ecryo | ehydro | egeo | edendro | eelectro | ephys\n\tOdporność na żywioł: respyro | rescryo | reshydro | resgeo | resdendro | reselectro | resphys",
       "locked_to": "%s zablokowano dla %s.",
@@ -407,8 +410,11 @@
       "failure": "Gracz o podanym ID nie istnieje.",
       "description": "Odbanuj podanego gracza."
     },
-    "troubleshoot": {
-      "description": "🇺🇸Generate debugging information for troubleshooting."
+    "info": {
+      "description": "🇺🇸Provides the sender information about the server."
+    },
+    "debug": {
+      "description": "🇺🇸Useful debugging commands for developers."
     }
   },
   "gacha": {

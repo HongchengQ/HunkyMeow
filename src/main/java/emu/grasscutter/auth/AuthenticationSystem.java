@@ -5,9 +5,7 @@ import emu.grasscutter.server.http.objects.*;
 import emu.grasscutter.utils.DispatchUtils;
 import io.javalin.http.Context;
 import javax.annotation.Nullable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 /** Defines an authenticator for the server. Can be changed by plugins. */
 public interface AuthenticationSystem {

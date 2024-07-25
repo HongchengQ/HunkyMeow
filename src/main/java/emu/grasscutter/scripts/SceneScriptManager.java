@@ -17,6 +17,7 @@ import emu.grasscutter.net.proto.VisionTypeOuterClass;
 import emu.grasscutter.scripts.constants.EventType;
 import emu.grasscutter.scripts.data.*;
 import emu.grasscutter.scripts.service.*;
+import emu.grasscutter.server.event.game.SceneMetaLoadEvent;
 import emu.grasscutter.server.packet.send.PacketGroupSuiteNotify;
 import emu.grasscutter.utils.*;
 import io.netty.util.concurrent.FastThreadLocalThread;
@@ -38,10 +39,14 @@ public class SceneScriptManager {
     private final Map<String, Integer> variables;
     private SceneMeta meta;
     private boolean isInit;
+    private boolean noCacheGroupGridsToDisk;
+
+    private final Map<String, SceneTimeAxis> timeAxis = new ConcurrentHashMap<>();
 
     /** current triggers controlled by RefreshGroup */
     private final Map<Integer, Set<SceneTrigger>> currentTriggers;
 
+    private final Set<SceneTrigger> ongoingTriggers;
     private final Map<String, Set<SceneTrigger>> triggersByGroupScene;
     private final Map<Integer, Set<Pair<String, Integer>>> activeGroupTimers;
     private final Map<String, AtomicInteger> triggerInvocations;
@@ -72,6 +77,7 @@ public class SceneScriptManager {
     public SceneScriptManager(Scene scene) {
         this.scene = scene;
         this.currentTriggers = new ConcurrentHashMap<>();
+        this.ongoingTriggers = ConcurrentHashMap.newKeySet();
         this.triggersByGroupScene = new ConcurrentHashMap<>();
         this.activeGroupTimers = new ConcurrentHashMap<>();
         this.triggerInvocations = new ConcurrentHashMap<>();
@@ -132,7 +138,9 @@ public class SceneScriptManager {
     public void registerTrigger(SceneTrigger trigger) {
         this.triggerInvocations.put(trigger.getName(), new AtomicInteger(0));
         this.getTriggersByEvent(trigger.getEvent()).add(trigger);
-        Grasscutter.getLogger().trace("Registered trigger {}", trigger.getName());
+        Grasscutter.getLogger()
+                .trace(
+                        "Registered trigger {} from group {}", trigger.getName(), trigger.getCurrentGroup().id);
     }
 
     public void deregisterTrigger(List<SceneTrigger> triggers) {
@@ -141,7 +149,11 @@ public class SceneScriptManager {
 
     public void deregisterTrigger(SceneTrigger trigger) {
         this.getTriggersByEvent(trigger.getEvent()).remove(trigger);
-        Grasscutter.getLogger().trace("deregistered trigger {}", trigger.getName());
+        Grasscutter.getLogger()
+                .trace(
+                        "deregistered trigger {} from group {}",
+                        trigger.getName(),
+                        trigger.getCurrentGroup().id);
     }
 
     public void resetTriggers(int eventId) {
@@ -254,6 +266,15 @@ public class SceneScriptManager {
 
         this.addGroupSuite(groupInstance, suiteData, entitiesAdded);
 
+        // refreshGroup may be called by a trigger.
+        // If that trigger has been refreshed, ensure it does not get
+        // deregistered anyway when the trigger completes its invocation.
+        for (var triggerSet : currentTriggers.values()) {
+            var toSave = new HashSet<SceneTrigger>(triggerSet);
+            toSave.retainAll(ongoingTriggers);
+            toSave.forEach(t -> t.setPreserved(true));
+        }
+
         // Refesh variables here
         group.variables.forEach(
                 variable -> {
@@ -263,6 +284,10 @@ public class SceneScriptManager {
 
         groupInstance.setActiveSuiteId(suiteIndex);
         groupInstance.setLastTimeRefreshed(getScene().getWorld().getGameTime());
+
+        // Call EVENT_GROUP_REFRESH for any action trigger waiting for it
+        callEvent(new ScriptArgs(groupInstance.getGroupId(), EventType.EVENT_GROUP_REFRESH));
+
         return suiteIndex;
     }
 
@@ -321,7 +346,7 @@ public class SceneScriptManager {
                 group.monsters.values().stream()
                         .filter(
                                 m -> {
-                                    var entity = scene.getEntityByConfigId(m.config_id);
+                                    var entity = scene.getEntityByConfigId(m.config_id, groupId);
                                     return (entity == null
                                             || entity.getGroupId()
                                                     != group
@@ -395,7 +420,11 @@ public class SceneScriptManager {
         var instance = cachedSceneGroupsInstances.getOrDefault(groupId, null);
         if (instance == null) {
             instance = DatabaseHelper.loadGroupInstance(groupId, scene.getWorld().getHost());
-            if (instance != null) cachedSceneGroupsInstances.put(groupId, instance);
+            if (instance != null) {
+                cachedSceneGroupsInstances.put(groupId, instance);
+                this.cachedSceneGroupsInstances.get(groupId).setCached(false);
+                this.cachedSceneGroupsInstances.get(groupId).setLuaGroup(getGroupById(groupId));
+            }
         }
 
         return instance;
@@ -428,6 +457,17 @@ public class SceneScriptManager {
     }
 
     private void init() {
+        var event = new SceneMetaLoadEvent(getScene());
+        event.call();
+
+        if (event.isOverride()) {
+            // Group grids should not be cached to disk when a scene
+            // group override is in effect. Otherwise, when the server
+            // next runs without that override, the cached content
+            // will not make sense.
+            noCacheGroupGridsToDisk = true;
+        }
+
         var meta = ScriptLoader.getSceneMeta(getScene().getId());
         if (meta == null) {
             return;
@@ -445,7 +485,9 @@ public class SceneScriptManager {
             return groupGridsCache.get(sceneId);
         } else {
             var path = FileUtils.getCachePath("scene" + sceneId + "_grid.json");
-            if (path.toFile().isFile() && !Grasscutter.config.server.game.cacheSceneEntitiesEveryRun) {
+            if (path.toFile().isFile()
+                    && !Grasscutter.config.server.game.cacheSceneEntitiesEveryRun
+                    && !noCacheGroupGridsToDisk) {
                 try {
                     var groupGrids = JsonUtils.loadToList(path, Grid.class);
                     groupGridsCache.put(sceneId, groupGrids);
@@ -575,15 +617,18 @@ public class SceneScriptManager {
             }
             groupGridsCache.put(scene.getId(), groupGrids);
 
-            try {
-                Files.createDirectories(path.getParent());
-            } catch (IOException ignored) {
-            }
-            try (var file = new FileWriter(path.toFile())) {
-                file.write(JsonUtils.encode(groupGrids));
-                Grasscutter.getLogger().info("Scene {} saved grid file.", getScene().getId());
-            } catch (Exception e) {
-                Grasscutter.getLogger().error("Scene {} unable to save grid file.", getScene().getId(), e);
+            if (!noCacheGroupGridsToDisk) {
+                try {
+                    Files.createDirectories(path.getParent());
+                } catch (IOException ignored) {
+                }
+                try (var file = new FileWriter(path.toFile())) {
+                    file.write(JsonUtils.encode(groupGrids));
+                    Grasscutter.getLogger().info("Scene {} saved grid file.", getScene().getId());
+                } catch (Exception e) {
+                    Grasscutter.getLogger()
+                            .error("Scene {} unable to save grid file.", getScene().getId(), e);
+                }
             }
             return groupGrids;
         }
@@ -609,6 +654,8 @@ public class SceneScriptManager {
             var instance = new SceneGroupInstance(group, getScene().getWorld().getHost());
             this.sceneGroupsInstances.put(group.id, instance);
             this.cachedSceneGroupsInstances.put(group.id, instance);
+            this.cachedSceneGroupsInstances.get(group.id).setCached(false);
+            this.cachedSceneGroupsInstances.get(group.id).setLuaGroup(group);
             instance.save(); // Save the instance
         }
 
@@ -652,6 +699,7 @@ public class SceneScriptManager {
             entities.forEach(region::addEntity);
 
             for (var targetId : enterEntities) {
+                if (EntityIdType.toEntityType(targetId >> 24).getValue() == 19) continue;
                 Grasscutter.getLogger()
                         .trace("Call EVENT_ENTER_REGION_{}", region.getMetaRegion().config_id);
                 this.callEvent(
@@ -669,6 +717,7 @@ public class SceneScriptManager {
             }
 
             for (var targetId : leaveEntities) {
+                if (EntityIdType.toEntityType(targetId >> 24).getValue() == 19) continue;
                 this.callEvent(
                         new ScriptArgs(region.getGroupId(), EventType.EVENT_LEAVE_REGION, region.getConfigId())
                                 .setEventSource(EntityIdType.toEntityType(targetId >> 24).getValue())
@@ -684,7 +733,7 @@ public class SceneScriptManager {
         return suite.sceneGadgets.stream()
                 .filter(
                         m -> {
-                            var entity = scene.getEntityByConfigId(m.config_id);
+                            var entity = scene.getEntityByConfigId(m.config_id, group.id);
                             return (entity == null || entity.getGroupId() != group.id)
                                     && (!m.isOneoff
                                             || !m.persistent
@@ -702,7 +751,7 @@ public class SceneScriptManager {
         return suite.sceneMonsters.stream()
                 .filter(
                         m -> {
-                            var entity = scene.getEntityByConfigId(m.config_id);
+                            var entity = scene.getEntityByConfigId(m.config_id, group.id);
                             return (entity == null
                                     || entity.getGroupId()
                                             != group
@@ -764,9 +813,9 @@ public class SceneScriptManager {
     }
 
     public void startMonsterTideInGroup(
-            SceneGroup group, Integer[] ordersConfigId, int tideCount, int sceneLimit) {
+            String source, SceneGroup group, Integer[] ordersConfigId, int tideCount, int sceneLimit) {
         this.scriptMonsterTideService =
-                new ScriptMonsterTideService(this, group, tideCount, sceneLimit, ordersConfigId);
+                new ScriptMonsterTideService(this, source, group, tideCount, sceneLimit, ordersConfigId);
     }
 
     public void unloadCurrentMonsterTide() {
@@ -778,7 +827,7 @@ public class SceneScriptManager {
 
     public void spawnMonstersByConfigId(SceneGroup group, int configId, int delayTime) {
         // TODO delay
-        var entity = scene.getEntityByConfigId(configId);
+        var entity = scene.getEntityByConfigId(configId, group.id);
         if (entity != null && entity.getGroupId() == group.id) {
             Grasscutter.getLogger()
                     .debug("entity already exists failed in group {} with config {}", group.id, configId);
@@ -793,11 +842,11 @@ public class SceneScriptManager {
         }
     }
     // Events
-    public void callEvent(int groupId, int eventType) {
-        callEvent(new ScriptArgs(groupId, eventType));
+    public Future<?> callEvent(int groupId, int eventType) {
+        return callEvent(new ScriptArgs(groupId, eventType));
     }
 
-    public void callEvent(@Nonnull ScriptArgs params) {
+    public Future<?> callEvent(@Nonnull ScriptArgs params) {
         /**
          * We use ThreadLocal to trans SceneScriptManager context to ScriptLib, to avoid eval script for
          * every groups' trigger in every scene instances. But when callEvent is called in a ScriptLib
@@ -805,7 +854,7 @@ public class SceneScriptManager {
          * not get it. e.g. CallEvent -> set -> ScriptLib.xxx -> CallEvent -> set -> remove -> NPE ->
          * (remove) So we use thread pool to clean the stack to avoid this new issue.
          */
-        eventExecutor.submit(() -> this.realCallEvent(params));
+        return eventExecutor.submit(() -> this.realCallEvent(params));
     }
 
     private void realCallEvent(@Nonnull ScriptArgs params) {
@@ -820,7 +869,8 @@ public class SceneScriptManager {
                                 .stream()
                                 .filter(
                                         t ->
-                                                t.getName().substring(13).equals(String.valueOf(params.param1))
+                                                (t.getName().length() <= 12
+                                                                || t.getName().substring(13).equals(String.valueOf(params.param1)))
                                                         && (t.getSource().isEmpty()
                                                                 || t.getSource().equals(params.getEventSource())))
                                 .collect(Collectors.toSet());
@@ -873,9 +923,11 @@ public class SceneScriptManager {
     private boolean evaluateTriggerCondition(SceneTrigger trigger, ScriptArgs params) {
         Grasscutter.getLogger()
                 .trace(
-                        "Call Condition Trigger {}, [{},{},{}]",
+                        "Call Condition Trigger {}, [{},{},{}], source_eid {}, target_eid {}",
                         trigger.getCondition(),
                         params.param1,
+                        params.param2,
+                        params.param3,
                         params.source_eid,
                         params.target_eid);
         LuaValue ret = this.callScriptFunc(trigger.getCondition(), trigger.currentGroup, params);
@@ -884,6 +936,7 @@ public class SceneScriptManager {
 
     private void callTrigger(SceneTrigger trigger, ScriptArgs params) {
         // the SetGroupVariableValueByGroup in tower need the param to record the first stage time
+        ongoingTriggers.add(trigger);
         var ret = this.callScriptFunc(trigger.getAction(), trigger.currentGroup, params);
         var invocationsCounter = triggerInvocations.get(trigger.getName());
         var invocations = invocationsCounter.incrementAndGet();
@@ -915,11 +968,15 @@ public class SceneScriptManager {
         }
 
         // always deregister on error, otherwise only if the count is reached
-        if (ret.isboolean() && !ret.checkboolean()
+        // or the trigger should be preserved after a RefreshGroup call
+        if (trigger.isPreserved()) {
+            trigger.setPreserved(false);
+        } else if (ret.isboolean() && !ret.checkboolean()
                 || ret.isint() && ret.checkint() != 0
                 || trigger.getTrigger_count() > 0 && invocations >= trigger.getTrigger_count()) {
             deregisterTrigger(trigger);
         }
+        ongoingTriggers.remove(trigger);
     }
 
     private LuaValue callScriptFunc(String funcName, SceneGroup group, ScriptArgs params) {
@@ -1012,22 +1069,10 @@ public class SceneScriptManager {
         }
 
         // Calculate level
-        int level = monster.level;
-
-        if (getScene().getDungeonManager() != null) {
-            level = getScene().getDungeonManager().getLevelForMonster(monster.config_id);
-        } else if (getScene().getWorld().getWorldLevel() > 0) {
-            var worldLevelData =
-                    GameData.getWorldLevelDataMap().get(getScene().getWorld().getWorldLevel());
-
-            if (worldLevelData != null) {
-                level = worldLevelData.getMonsterLevel();
-            }
-        }
+        int level = getScene().getLevelForMonster(monster.config_id, monster.level);
 
         // Spawn mob
-        EntityMonster entity = new EntityMonster(getScene(), data, monster.pos, level);
-        entity.getRotation().set(monster.rot);
+        EntityMonster entity = new EntityMonster(getScene(), data, monster.pos, monster.rot, level);
         entity.setGroupId(groupId);
         entity.setBlockId(blockId);
         entity.setConfigId(monster.config_id);
@@ -1062,6 +1107,19 @@ public class SceneScriptManager {
 
     public RTree<SceneBlock, Geometry> getBlocksIndex() {
         return meta.sceneBlockIndex;
+    }
+
+    public void removeMonstersInGroup(SceneGroup group) {
+        var configSet =
+                group.monsters.values().stream().map(m -> m.config_id).collect(Collectors.toSet());
+        var toRemove =
+                getScene().getEntities().values().stream()
+                        .filter(e -> e instanceof EntityMonster)
+                        .filter(e -> e.getGroupId() == group.id)
+                        .filter(e -> configSet.contains(e.getConfigId()))
+                        .toList();
+
+        getScene().removeEntities(toRemove, VisionTypeOuterClass.VisionType.VISION_TYPE_MISS);
     }
 
     public void removeMonstersInGroup(SceneGroup group, SceneSuite suite) {
@@ -1169,7 +1227,7 @@ public class SceneScriptManager {
 
         Grasscutter.getLogger()
                 .warn("trying to cancel a timer that's not active {} {}", groupID, source);
-        return 1;
+        return 0;
     }
 
     // todo use killed monsters instead of spawned entites for check?
@@ -1184,9 +1242,30 @@ public class SceneScriptManager {
         return monsters.values().stream()
                 .noneMatch(
                         m -> {
-                            val entity = scene.getEntityByConfigId(m.config_id);
+                            val entity = scene.getEntityByConfigId(m.config_id, groupId);
                             return entity != null && entity.getGroupId() == groupId;
                         });
+    }
+
+    /**
+     * Registers a new time axis for this scene. Starts the time axis after.
+     *
+     * @param timeAxis The time axis.
+     */
+    public void initTimeAxis(SceneTimeAxis timeAxis) {
+        this.timeAxis.put(timeAxis.getIdentifier(), timeAxis);
+    }
+
+    /**
+     * Terminates a time axis.
+     *
+     * @param identifier The identifier of the time axis.
+     */
+    public void stopTimeAxis(String identifier) {
+        var timeAxis = this.timeAxis.get(identifier);
+        if (timeAxis != null) {
+            timeAxis.stop();
+        }
     }
 
     public void onDestroy() {

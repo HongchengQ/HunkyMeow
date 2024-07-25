@@ -15,7 +15,7 @@ import emu.grasscutter.game.world.Position;
 import emu.grasscutter.net.proto.ChildQuestOuterClass.ChildQuest;
 import emu.grasscutter.net.proto.ParentQuestOuterClass.ParentQuest;
 import emu.grasscutter.server.packet.send.*;
-import emu.grasscutter.utils.ConversionUtils;
+import emu.grasscutter.utils.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.*;
@@ -120,6 +120,15 @@ public class GameMainQuest {
         this.triggerQuestVarAction(i, this.questVars[i]);
     }
 
+    public void randomQuestVar(int i, int low, int high) {
+        int previousValue = this.questVars[i];
+        this.questVars[i] = Utils.random.nextInt(low, high);
+        Grasscutter.getLogger()
+                .debug("questVar {} value randomized from {} to {}", i, previousValue, this.questVars[i]);
+
+        this.triggerQuestVarAction(i, this.questVars[i]);
+    }
+
     public void triggerQuestVarAction(int index, int value) {
         var questManager = this.getQuestManager();
         questManager.queueEvent(QuestCond.QUEST_COND_QUEST_VAR_EQUAL, index, value);
@@ -159,23 +168,6 @@ public class GameMainQuest {
             this.isFinished = true;
             this.state = ParentQuestState.PARENT_QUEST_STATE_FINISHED;
         }
-
-        /*
-         * We also need to check for unfinished childQuests in this MainQuest
-         * force them to complete and send a packet about this to the user,
-         * because at some points there are special "invisible" child quests that control
-         * some situations.
-         *
-         * For example, subQuest 35312 is responsible for the event of leaving the territory
-         * of the island with a statue and automatically returns the character back,
-         * quest 35311 completes the main quest line 353 and starts 35501 from
-         * new MainQuest 355 but if 35312 is not completed after the completion
-         * of the main quest 353 - the character will not be able to leave place
-         * (return again and again)
-         */
-        // this.getChildQuests().values().stream()
-        //         .filter(p -> p.state != QuestState.QUEST_STATE_FINISHED)
-        //         .forEach(GameQuest::finish);
 
         this.getOwner().getSession().send(new PacketFinishedParentQuestUpdateNotify(this));
         this.getOwner().getSession().send(new PacketCodexDataUpdateNotify(this));
@@ -319,11 +311,12 @@ public class GameMainQuest {
     }
 
     /**
-     * Checks if the quest has a teleport position. Returns true if it does & adds the target position
-     * & rotation to the list.
+     * Checks if the quest has a teleport position. Returns true if it does and adds the target
+     * position and rotation to the list.
      *
      * @param subId The sub-quest ID.
-     * @param posAndRot A list which will contain the position & rotation if the quest has a teleport.
+     * @param posAndRot A list which will contain the position and rotation if the quest has a
+     *     teleport.
      * @return True if the quest has a teleport position. False otherwise.
      */
     public boolean hasTeleportPosition(int subId, List<Position> posAndRot) {
@@ -331,7 +324,7 @@ public class GameMainQuest {
         if (questTransmit == null) return false;
 
         TeleportData.TransmitPoint transmitPoint =
-                questTransmit.getTransmit_points().size() > 0
+                !questTransmit.getTransmit_points().isEmpty()
                         ? questTransmit.getTransmit_points().get(0)
                         : null;
         if (transmitPoint == null) return false;
@@ -373,46 +366,6 @@ public class GameMainQuest {
         }
     }
 
-    public void tryAcceptSubQuests(QuestCond condType, String paramStr, int... params) {
-        try {
-            List<GameQuest> subQuestsWithCond =
-                    getChildQuests().values().stream()
-                            .filter(
-                                    p ->
-                                            p.getState() == QuestState.QUEST_STATE_UNSTARTED
-                                                    || p.getState() == QuestState.UNFINISHED)
-                            .filter(
-                                    p ->
-                                            p.getQuestData().getAcceptCond().stream()
-                                                    .anyMatch(
-                                                            q ->
-                                                                    condType == QuestCond.QUEST_COND_NONE || q.getType() == condType))
-                            .toList();
-            var questSystem = owner.getServer().getQuestSystem();
-
-            for (GameQuest subQuestWithCond : subQuestsWithCond) {
-                var acceptCond = subQuestWithCond.getQuestData().getAcceptCond();
-                int[] accept = new int[acceptCond.size()];
-
-                for (int i = 0; i < subQuestWithCond.getQuestData().getAcceptCond().size(); i++) {
-                    var condition = acceptCond.get(i);
-                    boolean result =
-                            questSystem.triggerCondition(
-                                    getOwner(), subQuestWithCond.getQuestData(), condition, paramStr, params);
-                    accept[i] = result ? 1 : 0;
-                }
-
-                boolean shouldAccept =
-                        LogicType.calculate(subQuestWithCond.getQuestData().getAcceptCondComb(), accept);
-
-                if (shouldAccept) subQuestWithCond.start();
-            }
-            this.save();
-        } catch (Exception e) {
-            Grasscutter.getLogger().error("An error occurred while trying to accept quest.", e);
-        }
-    }
-
     public void tryFailSubQuests(QuestContent condType, String paramStr, int... params) {
         try {
             List<GameQuest> subQuestsWithCond =
@@ -427,7 +380,7 @@ public class GameMainQuest {
             for (GameQuest subQuestWithCond : subQuestsWithCond) {
                 val failCond = subQuestWithCond.getQuestData().getFailCond();
 
-                for (int i = 0; i < subQuestWithCond.getQuestData().getFailCond().size(); i++) {
+                for (int i = 0; i < failCond.size(); i++) {
                     val condition = failCond.get(i);
                     if (condition.getType() == condType) {
                         boolean result =
@@ -435,7 +388,7 @@ public class GameMainQuest {
                                         .getServer()
                                         .getQuestSystem()
                                         .triggerContent(subQuestWithCond, condition, paramStr, params);
-                        subQuestWithCond.getFailProgressList()[i] = result ? 1 : 0;
+                        subQuestWithCond.setFailProgress(i, result ? 1 : 0);
                         if (result) {
                             getOwner().getSession().send(new PacketQuestProgressUpdateNotify(subQuestWithCond));
                         }

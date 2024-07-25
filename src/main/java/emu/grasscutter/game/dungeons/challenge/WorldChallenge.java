@@ -3,20 +3,16 @@ package emu.grasscutter.game.dungeons.challenge;
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.game.dungeons.challenge.trigger.ChallengeTrigger;
 import emu.grasscutter.game.dungeons.enums.DungeonPassConditionType;
-import emu.grasscutter.game.entity.EntityGadget;
-import emu.grasscutter.game.entity.EntityMonster;
+import emu.grasscutter.game.entity.*;
+import emu.grasscutter.game.props.FightProperty;
 import emu.grasscutter.game.props.WatcherTriggerType;
 import emu.grasscutter.game.world.Scene;
 import emu.grasscutter.scripts.constants.EventType;
-import emu.grasscutter.scripts.data.SceneGroup;
-import emu.grasscutter.scripts.data.SceneTrigger;
-import emu.grasscutter.scripts.data.ScriptArgs;
-import emu.grasscutter.server.packet.send.PacketDungeonChallengeBeginNotify;
-import emu.grasscutter.server.packet.send.PacketDungeonChallengeFinishNotify;
+import emu.grasscutter.scripts.data.*;
+import emu.grasscutter.server.packet.send.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
@@ -27,12 +23,13 @@ public class WorldChallenge {
     private final int challengeIndex;
     private final List<Integer> paramList;
     private int timeLimit;
+    private GameEntity guardEntity;
     private final List<ChallengeTrigger> challengeTriggers;
     private final int goal;
     private final AtomicInteger score;
     private boolean progress;
     private boolean success;
-    private long startedAt;
+    private int startedAt;
     private int finishedTime;
 
     /**
@@ -63,6 +60,7 @@ public class WorldChallenge {
         this.challengeTriggers = challengeTriggers;
         this.goal = goal;
         this.score = new AtomicInteger(0);
+        this.guardEntity = null;
     }
 
     public boolean inProgress() {
@@ -81,13 +79,20 @@ public class WorldChallenge {
 
     public void start() {
         if (inProgress()) {
-            Grasscutter.getLogger().info("Could not start a in progress challenge.");
+            Grasscutter.getLogger().debug("Could not start a in progress challenge.");
             return;
         }
         this.progress = true;
-        this.startedAt = System.currentTimeMillis();
+        this.startedAt = getScene().getSceneTimeSeconds();
         getScene().broadcastPacket(new PacketDungeonChallengeBeginNotify(this));
         challengeTriggers.forEach(t -> t.onBegin(this));
+
+        var player = scene.getPlayers().get(0);
+        var dungeonManager = scene.getDungeonManager();
+        var towerManager = player.getTowerManager();
+        if (dungeonManager != null && dungeonManager.isTowerDungeon() && towerManager != null) {
+            towerManager.onBegin();
+        }
     }
 
     public void done() {
@@ -141,11 +146,29 @@ public class WorldChallenge {
         this.progress = false;
         this.success = success;
         this.finishedTime = (int) ((this.scene.getSceneTimeSeconds() - this.startedAt));
+
+        // Despawn all leftover mobs in this challenge's SceneGroup
+        getScene().getScriptManager().removeMonstersInGroup(group);
+
         getScene().broadcastPacket(new PacketDungeonChallengeFinishNotify(this));
     }
 
     public int increaseScore() {
         return score.incrementAndGet();
+    }
+
+    public int getGuardEntityHpPercent() {
+        if (guardEntity == null) {
+            Grasscutter.getLogger()
+                    .warn(
+                            "getGuardEntityHpPercent: Could not find guardEntity for this challenge = {}", this);
+            return 100;
+        }
+
+        var curHp = guardEntity.getFightProperties().get(FightProperty.FIGHT_PROP_CUR_HP.getId());
+        var maxHp = guardEntity.getFightProperties().get(FightProperty.FIGHT_PROP_BASE_HP.getId());
+        int percent = (int) (curHp * 100 / maxHp);
+        return percent;
     }
 
     public void onMonsterDeath(EntityMonster monster) {

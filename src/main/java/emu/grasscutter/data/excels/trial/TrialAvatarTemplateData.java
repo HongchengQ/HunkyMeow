@@ -1,7 +1,6 @@
 package emu.grasscutter.data.excels.trial;
 
-import emu.grasscutter.data.GameResource;
-import emu.grasscutter.data.ResourceType;
+import emu.grasscutter.data.*;
 import java.util.List;
 import lombok.*;
 

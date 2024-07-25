@@ -1,9 +1,6 @@
 package emu.grasscutter.game.friends;
 
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Indexed;
-import dev.morphia.annotations.Transient;
+import dev.morphia.annotations.*;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.net.proto.FriendBriefOuterClass.FriendBrief;
@@ -90,27 +87,28 @@ public class Friendship {
     }
 
     public FriendBrief toProto() {
-        FriendBrief proto =
-                FriendBrief.newBuilder()
-                        .setUid(getFriendProfile().getUid())
-                        .setNickname(getFriendProfile().getName())
-                        .setLevel(getFriendProfile().getPlayerLevel())
-                        .setProfilePicture(
-                                ProfilePicture.newBuilder().setAvatarId(getFriendProfile().getAvatarId()))
-                        .setWorldLevel(getFriendProfile().getWorldLevel())
-                        .setSignature(getFriendProfile().getSignature())
-                        .setOnlineState(
-                                getFriendProfile().isOnline()
-                                        ? FriendOnlineState.FRIEND_ONLINE_STATE_ONLINE
-                                        : FriendOnlineState.FRIEND_ONLINE_STATE_DISCONNECT)
-                        .setIsMpModeAvailable(true)
-                        .setLastActiveTime(getFriendProfile().getLastActiveTime())
-                        .setNameCardId(getFriendProfile().getNameCard())
-                        .setParam(getFriendProfile().getDaysSinceLogin())
-                        .setIsGameSource(true)
-                        .setPlatformType(PlatformTypeOuterClass.PlatformType.PLATFORM_TYPE_PC)
-                        .build();
+        var player = this.getFriendProfile().getPlayer(); // get latest player and sync.
 
-        return proto;
+        return FriendBrief.newBuilder()
+                .setUid(getFriendProfile().getUid())
+                .setNickname(getFriendProfile().getName())
+                .setLevel(getFriendProfile().getPlayerLevel())
+                .setProfilePicture(
+                        ProfilePicture.newBuilder().setAvatarId(getFriendProfile().getAvatarId()))
+                .setWorldLevel(getFriendProfile().getWorldLevel())
+                .setSignature(getFriendProfile().getSignature())
+                .setOnlineState(
+                        player != null && player.isOnline()
+                                ? FriendOnlineState.FRIEND_ONLINE_STATE_ONLINE
+                                : FriendOnlineState.FRIEND_ONLINE_STATE_DISCONNECT)
+                .setIsMpModeAvailable(true)
+                .setLastActiveTime(getFriendProfile().getLastActiveTime())
+                .setNameCardId(getFriendProfile().getNameCard())
+                .setParam(getFriendProfile().getDaysSinceLogin())
+                .setIsGameSource(true)
+                .setPlatformType(PlatformTypeOuterClass.PlatformType.PLATFORM_TYPE_PC)
+                .setIsInDuel(getFriendProfile().isInDuel())
+                .setIsDuelObservable(getFriendProfile().isDuelObservable())
+                .build();
     }
 }

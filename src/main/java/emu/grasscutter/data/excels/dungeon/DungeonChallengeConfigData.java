@@ -1,8 +1,7 @@
 package emu.grasscutter.data.excels.dungeon;
 
 import com.google.gson.annotations.SerializedName;
-import emu.grasscutter.data.GameResource;
-import emu.grasscutter.data.ResourceType;
+import emu.grasscutter.data.*;
 import emu.grasscutter.game.dungeons.challenge.enums.ChallengeType;
 import java.util.HashSet;
 import lombok.Getter;

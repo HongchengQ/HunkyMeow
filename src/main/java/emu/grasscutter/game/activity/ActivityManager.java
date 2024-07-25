@@ -11,8 +11,8 @@ import emu.grasscutter.server.packet.send.PacketActivityScheduleInfoNotify;
 import java.util.*;
 import java.util.concurrent.*;
 import lombok.Getter;
-import org.reflections.Reflections;
 
+@SuppressWarnings("unchecked")
 @Getter
 public class ActivityManager extends BasePlayerManager {
     private static final Map<Integer, ActivityConfigItem> activityConfigItemMap;
@@ -26,19 +26,17 @@ public class ActivityManager extends BasePlayerManager {
     }
 
     public static void loadActivityConfigData() {
-        // scan activity type handler & watcher type
+        // scan activity type handler and watcher type
         var activityHandlerTypeMap = new HashMap<ActivityType, ConstructorAccess<?>>();
         var activityWatcherTypeMap = new HashMap<WatcherTriggerType, ConstructorAccess<?>>();
-        var reflections = new Reflections(ActivityManager.class.getPackage().getName());
-
-        reflections
+        Grasscutter.reflector
                 .getSubTypesOf(ActivityHandler.class)
                 .forEach(
                         item -> {
                             var typeName = item.getAnnotation(GameActivity.class);
                             activityHandlerTypeMap.put(typeName.value(), ConstructorAccess.get(item));
                         });
-        reflections
+        Grasscutter.reflector
                 .getSubTypesOf(ActivityWatcher.class)
                 .forEach(
                         item -> {

@@ -1,10 +1,7 @@
 package emu.grasscutter.server.packet.recv;
 
 import emu.grasscutter.game.player.Player.SceneLoadState;
-import emu.grasscutter.net.packet.BasePacket;
-import emu.grasscutter.net.packet.Opcodes;
-import emu.grasscutter.net.packet.PacketHandler;
-import emu.grasscutter.net.packet.PacketOpcodes;
+import emu.grasscutter.net.packet.*;
 import emu.grasscutter.server.game.GameSession;
 import emu.grasscutter.server.packet.send.*;
 
@@ -20,7 +17,7 @@ public class HandlerSceneInitFinishReq extends PacketHandler {
         session.send(new PacketServerTimeNotify());
         session.send(new PacketWorldPlayerInfoNotify(world));
         session.send(new PacketWorldDataNotify(world));
-        session.send(new PacketPlayerWorldSceneInfoListNotify());
+        session.send(new PacketPlayerWorldSceneInfoListNotify(player));
         session.send(new BasePacket(PacketOpcodes.SceneForceUnlockNotify));
         session.send(new PacketHostPlayerNotify(world));
 

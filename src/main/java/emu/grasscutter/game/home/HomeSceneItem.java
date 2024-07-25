@@ -3,11 +3,18 @@ package emu.grasscutter.game.home;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import emu.grasscutter.Grasscutter;
+import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.HomeworldDefaultSaveData;
+import emu.grasscutter.game.entity.EntityHomeAnimal;
+import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.world.Position;
+import emu.grasscutter.game.world.Scene;
 import emu.grasscutter.net.proto.HomeSceneArrangementInfoOuterClass.HomeSceneArrangementInfo;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -44,14 +51,14 @@ public class HomeSceneItem {
                 .build();
     }
 
-    public void update(HomeSceneArrangementInfo arrangementInfo) {
+    public void update(HomeSceneArrangementInfo arrangementInfo, Player owner) {
         for (var blockItem : arrangementInfo.getBlockArrangementInfoListList()) {
             var block = this.blockItems.get(blockItem.getBlockId());
             if (block == null) {
                 Grasscutter.getLogger().warn("Could not found the Home Block {}", blockItem.getBlockId());
                 continue;
             }
-            block.update(blockItem);
+            block.update(blockItem, owner);
             this.blockItems.put(blockItem.getBlockId(), block);
         }
 
@@ -59,15 +66,51 @@ public class HomeSceneItem {
         this.bornRot = new Position(arrangementInfo.getBornRot());
         this.djinnPos = new Position(arrangementInfo.getDjinnPos());
         this.homeBgmId = arrangementInfo.getBgmId();
-        this.mainHouse = HomeFurnitureItem.parseFrom(arrangementInfo.getMainHouse());
+
+        if (!this.isRoom() && arrangementInfo.hasMainHouse()) {
+            this.mainHouse = HomeFurnitureItem.parseFrom(arrangementInfo.getMainHouse());
+        }
+
         this.tmpVersion = arrangementInfo.getTmpVersion();
     }
 
     public int getRoomSceneId() {
-        if (mainHouse == null || mainHouse.getAsItem() == null) {
+        if (this.isRoom()) {
             return 0;
         }
         return mainHouse.getAsItem().getRoomSceneId();
+    }
+
+    public boolean isRoom() {
+        return mainHouse == null || mainHouse.getAsItem() == null;
+    }
+
+    @Nullable public Position getTeleportPointPos(int guid) {
+        return this.getBlockItems().values().stream()
+                .map(HomeBlockItem::getDeployFurnitureList)
+                .flatMap(Collection::stream)
+                .filter(homeFurnitureItem -> homeFurnitureItem.getGuid() == guid)
+                .map(HomeFurnitureItem::getSpawnPos)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<EntityHomeAnimal> getAnimals(Scene scene) {
+        return this.blockItems.values().stream()
+                .map(HomeBlockItem::getDeployAnimalList)
+                .flatMap(Collection::stream)
+                .filter(
+                        homeAnimalItem ->
+                                GameData.getHomeWorldAnimalDataMap().containsKey(homeAnimalItem.getFurnitureId()))
+                .map(
+                        homeAnimalItem -> {
+                            return new EntityHomeAnimal(
+                                    scene,
+                                    GameData.getHomeWorldAnimalDataMap().get(homeAnimalItem.getFurnitureId()),
+                                    homeAnimalItem.getSpawnPos(),
+                                    homeAnimalItem.getSpawnRot());
+                        })
+                .toList();
     }
 
     public int calComfort() {

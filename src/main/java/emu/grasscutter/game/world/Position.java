@@ -7,8 +7,7 @@ import emu.grasscutter.net.proto.VectorOuterClass.Vector;
 import emu.grasscutter.utils.Utils;
 import java.io.Serializable;
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 @Entity

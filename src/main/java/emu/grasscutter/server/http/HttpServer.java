@@ -10,8 +10,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.Arrays;
 
 import static emu.grasscutter.config.Configuration.*;
@@ -153,12 +152,10 @@ public final class HttpServer {
 
     /**
      * Starts listening on the HTTP server.
-     *
-     * @throws UnsupportedEncodingException
      */
     public void start() throws UnsupportedEncodingException {
         // Attempt to start the HTTP server.
-        if (HTTP_INFO.bindAddress.equals("")) {
+        if (HTTP_INFO.bindAddress.isEmpty()) {
             this.javalin.start(HTTP_INFO.bindPort);
         } else {
             this.javalin.start(HTTP_INFO.bindAddress, HTTP_INFO.bindPort);
@@ -221,6 +218,8 @@ public final class HttpServer {
 
                             <body>
                                 <img src="https://http.cat/404" />
+                                <h1>Grasscutter cannot find the route you're trying to access.</h1>
+                                <p>Your proxy is active, so if you're trying to download something close the game/stop the proxy.</p>
                             </body>
                         </html>
                         """);

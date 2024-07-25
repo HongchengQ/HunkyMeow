@@ -3,16 +3,11 @@ package emu.grasscutter.scripts.data;
 import com.github.davidmoten.rtreemulti.RTree;
 import com.github.davidmoten.rtreemulti.geometry.Geometry;
 import emu.grasscutter.Grasscutter;
-import emu.grasscutter.scripts.SceneIndexManager;
-import emu.grasscutter.scripts.ScriptLoader;
-import java.util.List;
-import java.util.Map;
+import emu.grasscutter.scripts.*;
+import java.util.*;
 import java.util.stream.Collectors;
-import javax.script.Bindings;
-import javax.script.CompiledScript;
-import javax.script.ScriptException;
-import lombok.Setter;
-import lombok.ToString;
+import javax.script.*;
+import lombok.*;
 
 @ToString
 @Setter
@@ -43,7 +38,7 @@ public class SceneMeta {
 
         // Eval script
         try {
-            cs.eval(this.context);
+            ScriptLoader.eval(cs, this.context);
 
             this.config =
                     ScriptLoader.getSerializer()

@@ -2,9 +2,7 @@ package emu.grasscutter.game.dungeons.challenge.factory;
 
 import emu.grasscutter.game.dungeons.challenge.WorldChallenge;
 import emu.grasscutter.game.dungeons.challenge.enums.ChallengeType;
-import emu.grasscutter.game.dungeons.challenge.trigger.InTimeTrigger;
-import emu.grasscutter.game.dungeons.challenge.trigger.KillMonsterCountTrigger;
-import emu.grasscutter.game.dungeons.challenge.trigger.KillMonsterTimeIncTrigger;
+import emu.grasscutter.game.dungeons.challenge.trigger.*;
 import emu.grasscutter.game.world.Scene;
 import emu.grasscutter.scripts.data.SceneGroup;
 import java.util.List;
@@ -38,6 +36,6 @@ public class KillMonsterCountInTimeIncChallengeFactoryHandler implements Challen
                 List.of(
                         new KillMonsterCountTrigger(),
                         new InTimeTrigger(),
-                        new KillMonsterTimeIncTrigger(timeInc)));
+                        new KillMonsterTimeIncTrigger(timeLimit, timeInc)));
     }
 }

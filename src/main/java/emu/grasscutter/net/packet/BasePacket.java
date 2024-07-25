@@ -2,9 +2,7 @@ package emu.grasscutter.net.packet;
 
 import com.google.protobuf.GeneratedMessageV3;
 import emu.grasscutter.net.proto.PacketHeadOuterClass.PacketHead;
-import emu.grasscutter.utils.Crypto;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class BasePacket {
     private static final int const1 = 17767; // 0x4567
@@ -109,13 +107,7 @@ public class BasePacket {
         this.writeBytes(baos, data);
         this.writeUint16(baos, const2);
 
-        byte[] packet = baos.toByteArray();
-
-        if (this.shouldEncrypt) {
-            Crypto.xor(packet, this.useDispatchKey() ? Crypto.DISPATCH_KEY : Crypto.ENCRYPT_KEY);
-        }
-
-        return packet;
+        return baos.toByteArray();
     }
 
     public void writeUint16(ByteArrayOutputStream baos, int i) {

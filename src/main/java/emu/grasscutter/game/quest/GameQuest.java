@@ -1,7 +1,7 @@
 package emu.grasscutter.game.quest;
 
 import dev.morphia.annotations.*;
-import emu.grasscutter.Grasscutter;
+import emu.grasscutter.*;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.excels.*;
 import emu.grasscutter.data.excels.quest.QuestData;
@@ -12,6 +12,7 @@ import emu.grasscutter.game.quest.enums.*;
 import emu.grasscutter.net.proto.ChapterStateOuterClass;
 import emu.grasscutter.net.proto.QuestOuterClass.Quest;
 import emu.grasscutter.scripts.data.SceneGroup;
+import emu.grasscutter.server.event.player.PlayerCompleteQuestEvent;
 import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.Utils;
 import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
@@ -104,7 +105,10 @@ public class GameQuest {
                 .forEach(e -> getOwner().getServer().getQuestSystem().triggerExec(this, e, e.getParam()));
         this.getOwner().getQuestManager().checkQuestAlreadyFulfilled(this);
 
-        Grasscutter.getLogger().debug("Quest {} is started", subQuestId);
+        if (DebugConstants.LOG_QUEST_START) {
+            Grasscutter.getLogger().debug("Quest {} is started", subQuestId);
+        }
+
         this.save();
     }
 
@@ -154,6 +158,13 @@ public class GameQuest {
     public boolean clearProgress(boolean notifyDelete) {
         // TODO improve
         var oldState = state;
+        if (questData.getAcceptCond() != null && questData.getAcceptCond().size() != 0) {
+            this.getMainQuest()
+                    .getQuestManager()
+                    .getAcceptProgressLists()
+                    .put(this.getSubQuestId(), new int[questData.getAcceptCond().size()]);
+        }
+
         if (questData.getFinishCond() != null && questData.getFinishCond().size() != 0) {
             for (var condition : questData.getFinishCond()) {
                 if (condition.getType() == QuestContent.QUEST_CONTENT_LUA_NOTIFY) {
@@ -171,6 +182,8 @@ public class GameQuest {
             }
             this.failProgressList = new int[questData.getFailCond().size()];
         }
+
+        this.getMainQuest().getTalks().values().removeIf(talk -> talk.getId() == this.getSubQuestId());
 
         this.getOwner().getPlayerProgress().resetCurrentProgress(String.valueOf(this.subQuestId));
 
@@ -190,6 +203,10 @@ public class GameQuest {
     }
 
     public void finish() {
+        // Call PlayerCompleteQuestEvent.
+        var event = new PlayerCompleteQuestEvent(this.getOwner(), this);
+        if (!event.call()) return;
+
         // Check if the quest has been finished.
         synchronized (this) {
             if (this.state == QuestState.QUEST_STATE_FINISHED) {

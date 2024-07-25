@@ -1,8 +1,6 @@
 package emu.grasscutter.server.packet.recv;
 
-import emu.grasscutter.net.packet.Opcodes;
-import emu.grasscutter.net.packet.PacketHandler;
-import emu.grasscutter.net.packet.PacketOpcodes;
+import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.PlayerEnterDungeonReqOuterClass.PlayerEnterDungeonReq;
 import emu.grasscutter.server.game.GameSession;
 import emu.grasscutter.server.packet.send.PacketPlayerEnterDungeonRsp;
@@ -19,7 +17,7 @@ public class HandlerPlayerEnterDungeonReq extends PacketHandler {
                 session
                         .getServer()
                         .getDungeonSystem()
-                        .enterDungeon(session.getPlayer(), req.getPointId(), req.getDungeonId());
+                        .enterDungeon(session.getPlayer(), req.getPointId(), req.getDungeonId(), true);
         session
                 .getPlayer()
                 .sendPacket(new PacketPlayerEnterDungeonRsp(req.getPointId(), req.getDungeonId(), success));

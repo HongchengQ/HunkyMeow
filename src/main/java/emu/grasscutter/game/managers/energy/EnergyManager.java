@@ -4,19 +4,14 @@ import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import emu.grasscutter.Grasscutter;
-import emu.grasscutter.data.DataLoader;
-import emu.grasscutter.data.GameData;
+import emu.grasscutter.data.*;
 import emu.grasscutter.data.excels.ItemData;
 import emu.grasscutter.data.excels.avatar.AvatarSkillDepotData;
 import emu.grasscutter.data.excels.monster.MonsterData.HpDrops;
 import emu.grasscutter.game.avatar.Avatar;
 import emu.grasscutter.game.entity.*;
-import emu.grasscutter.game.player.BasePlayerManager;
-import emu.grasscutter.game.player.Player;
-import emu.grasscutter.game.props.ElementType;
-import emu.grasscutter.game.props.FightProperty;
-import emu.grasscutter.game.props.MonsterType;
-import emu.grasscutter.game.props.WeaponType;
+import emu.grasscutter.game.player.*;
+import emu.grasscutter.game.props.*;
 import emu.grasscutter.game.world.Position;
 import emu.grasscutter.net.proto.AbilityActionGenerateElemBallOuterClass.AbilityActionGenerateElemBall;
 import emu.grasscutter.net.proto.AbilityIdentifierOuterClass.AbilityIdentifier;
@@ -26,12 +21,9 @@ import emu.grasscutter.net.proto.ChangeEnergyReasonOuterClass.ChangeEnergyReason
 import emu.grasscutter.net.proto.EvtBeingHitInfoOuterClass.EvtBeingHitInfo;
 import emu.grasscutter.net.proto.PropChangeReasonOuterClass.PropChangeReason;
 import emu.grasscutter.server.game.GameSession;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.List;
-import java.util.Optional;
+import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.*;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 
@@ -267,8 +259,14 @@ public class EnergyManager extends BasePlayerManager {
             return;
         }
 
+        // Also reference AvatarSkillData in case the burst gets a different skill ID
+        // when the avatar is in a different state. For example, Wanderer's burst is
+        // 10755 usually but when he floats, it becomes 10753.
+        var skillData = GameData.getAvatarSkillDataMap().get(skillId);
+
         // If the cast skill was a burst, consume energy.
-        if (avatar.getSkillDepot() != null && skillId == avatar.getSkillDepot().getEnergySkill()) {
+        if ((avatar.getSkillDepot() != null && skillId == avatar.getSkillDepot().getEnergySkill())
+                || (skillData != null && skillData.getCostElemVal() > 0)) {
             avatar.getAsEntity().clearEnergy(ChangeEnergyReason.CHANGE_ENERGY_REASON_SKILL_START);
         }
     }
@@ -402,10 +400,11 @@ public class EnergyManager extends BasePlayerManager {
     public void refillTeamEnergy(PropChangeReason changeReason, boolean isFlat) {
         for (var entityAvatar : this.player.getTeamManager().getActiveTeam()) {
             // giving the exact amount read off the AvatarSkillData.json
-            entityAvatar.addEnergy(
-                    entityAvatar.getAvatar().getSkillDepot().getEnergySkillData().getCostElemVal(),
-                    changeReason,
-                    isFlat);
+            var skillDepot = entityAvatar.getAvatar().getSkillDepot();
+            if (skillDepot != null) {
+                entityAvatar.addEnergy(
+                        skillDepot.getEnergySkillData().getCostElemVal(), changeReason, isFlat);
+            }
         }
     }
 

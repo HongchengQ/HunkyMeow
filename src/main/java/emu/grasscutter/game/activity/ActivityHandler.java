@@ -12,9 +12,7 @@ import emu.grasscutter.net.proto.ActivityInfoOuterClass;
 import emu.grasscutter.utils.helpers.DateHelper;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Getter

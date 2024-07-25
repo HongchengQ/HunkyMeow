@@ -1,12 +1,9 @@
 package emu.grasscutter.game.talk;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.*;
+import java.util.*;
 import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 @AllArgsConstructor
 public enum TalkExec {

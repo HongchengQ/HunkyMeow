@@ -8,15 +8,9 @@ import emu.grasscutter.game.player.Player;
 import emu.grasscutter.net.proto.ChatInfoOuterClass.ChatInfo;
 import emu.grasscutter.server.event.player.PlayerChatEvent;
 import emu.grasscutter.server.game.GameServer;
-import emu.grasscutter.server.packet.send.PacketPlayerChatNotify;
-import emu.grasscutter.server.packet.send.PacketPrivateChatNotify;
-import emu.grasscutter.server.packet.send.PacketPullPrivateChatRsp;
-import emu.grasscutter.server.packet.send.PacketPullRecentChatRsp;
+import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.Utils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class ChatSystem implements ChatSystemHandler {

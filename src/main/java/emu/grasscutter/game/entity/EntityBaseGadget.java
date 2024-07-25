@@ -5,8 +5,7 @@ import static emu.grasscutter.scripts.constants.EventType.EVENT_SPECIFIC_GADGET_
 import emu.grasscutter.data.binout.config.ConfigEntityGadget;
 import emu.grasscutter.game.props.FightProperty;
 import emu.grasscutter.game.quest.enums.QuestContent;
-import emu.grasscutter.game.world.Position;
-import emu.grasscutter.game.world.Scene;
+import emu.grasscutter.game.world.*;
 import emu.grasscutter.scripts.data.ScriptArgs;
 import emu.grasscutter.server.event.entity.EntityDamageEvent;
 import lombok.Getter;
@@ -71,6 +70,11 @@ public abstract class EntityBaseGadget extends GameEntity {
                                 .setSourceEntityId(getId())
                                 .setParam3((int) this.getFightProperty(FightProperty.FIGHT_PROP_CUR_HP))
                                 .setEventSource(getConfigId()));
+
+        var challenge = getScene().getChallenge();
+        if (challenge != null && this instanceof EntityGadget gadget) {
+            challenge.onGadgetDamage(gadget);
+        }
     }
 
     protected void fillFightProps(ConfigEntityGadget configGadget) {

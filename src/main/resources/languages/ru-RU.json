@@ -260,7 +260,7 @@
       "refreshed": "Группа %s обновлена."
     },
     "cutscene": {
-      "description": "Odtwarza przerywnik filmowy"
+      "description": "Проигрывает кат-сцену"
     },
     "sound": {
       "description": "Проигрывает звук"
@@ -323,6 +323,9 @@
     },
     "setProp": {
       "description": "Задаёт свойства аккаунта. С помощью данной команды может быть включен godmode, а также разблокированы этажи Коридора Бездны и изменён прогресс боевого пропуска.\n\tВозможные значения <св-во>: godmode | nostamina | unlimitedenergy | abyss | worldlevel | bplevel\n\t(прод.) см. перечисление (enum) PlayerProperty для остальных возможных значений, of form PROP_MAX_SPRING_VOLUME -> max_spring_volume"
+    },
+    "setSceneTag": {
+      "description": "Устанавливает специфические для учетной записи теги сцены. Это позволяет управлять такими вещами, как камни, блокирующие двери, видимость зданий и другими (обычно связанными с квестами) вещами, которые влияют на видимость в вашем мире."
     },
     "setStats": {
       "description": "Задаёт боевые характеристики для активного персонажа\n\tВозможные значения <хар-ка>: hp | maxhp | def | atk | em | er | crate | cdmg | cdr | heal | heali | shield | defi\n\t(прод.) Бонус элементального урона: epyro | ecryo | ehydro | egeo | edendro | eelectro | ephys\n\t(прод.) Элементальное сопротивление: respyro | rescryo | reshydro | resgeo | resdendro | reselectro | resphys",
@@ -407,8 +410,11 @@
       "failure": "Неудача, игрок не найден.",
       "description": "Разблокировывает доступ к серверу (\"разбанивает\")"
     },
-    "troubleshoot": {
+    "info": {
       "description": "Генерирует отладочную информацию для решения проблем."
+    },
+    "debug": {
+      "description": "Полезные отладочные команды для разработкиков."
     }
   },
   "gacha": {
@@ -448,9 +454,9 @@
   },
   "plugin": {
     "directory_failed": "Ошибка создания директории плагинов: ",
-    "unable_to_load": "Невозможно загрудить плагин.",
+    "unable_to_load": "Невозможно загрузить плагин.",
     "invalid_config": "Плагин %s имеет недопустимый файл конфигурации.",
-    "invalid_main_class": "Плагин %s имеет неверный главный класс.",
+    "invalid_main_class": "Плагин %s имеет некорректный главный класс.",
     "missing_config": "Плагин %s не имеет корректного файла конфигурации.",
     "failed_to_load_plugin": "Ошибка загрузки плагина: %s",
     "failed_to_load": "Не удалось загрузить Плагин.",

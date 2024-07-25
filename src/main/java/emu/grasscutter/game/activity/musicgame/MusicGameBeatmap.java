@@ -1,17 +1,10 @@
 package emu.grasscutter.game.activity.musicgame;
 
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
+import dev.morphia.annotations.*;
 import emu.grasscutter.database.DatabaseHelper;
-import emu.grasscutter.net.proto.UgcMusicBriefInfoOuterClass;
-import emu.grasscutter.net.proto.UgcMusicNoteOuterClass;
-import emu.grasscutter.net.proto.UgcMusicRecordOuterClass;
-import emu.grasscutter.net.proto.UgcMusicTrackOuterClass;
-import java.util.List;
-import java.util.Random;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
+import emu.grasscutter.net.proto.*;
+import java.util.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Entity("music_game_beatmaps")

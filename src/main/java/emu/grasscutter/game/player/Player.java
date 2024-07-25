@@ -1,55 +1,39 @@
 package emu.grasscutter.game.player;
 
 import dev.morphia.annotations.*;
-import emu.grasscutter.GameConstants;
-import emu.grasscutter.Grasscutter;
+import emu.grasscutter.*;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.excels.PlayerLevelData;
 import emu.grasscutter.data.excels.world.WeatherData;
 import emu.grasscutter.database.DatabaseHelper;
-import emu.grasscutter.game.Account;
-import emu.grasscutter.game.CoopRequest;
+import emu.grasscutter.game.*;
 import emu.grasscutter.game.ability.AbilityManager;
 import emu.grasscutter.game.achievement.Achievements;
 import emu.grasscutter.game.activity.ActivityManager;
-import emu.grasscutter.game.avatar.Avatar;
-import emu.grasscutter.game.avatar.AvatarStorage;
+import emu.grasscutter.game.avatar.*;
 import emu.grasscutter.game.battlepass.BattlePassManager;
+import emu.grasscutter.game.city.CityInfoData;
 import emu.grasscutter.game.entity.GameEntity;
 import emu.grasscutter.game.expedition.ExpeditionInfo;
-import emu.grasscutter.game.friends.FriendsList;
-import emu.grasscutter.game.friends.PlayerProfile;
+import emu.grasscutter.game.friends.*;
 import emu.grasscutter.game.gacha.PlayerGachaInfo;
-import emu.grasscutter.game.home.GameHome;
-import emu.grasscutter.game.inventory.GameItem;
-import emu.grasscutter.game.inventory.Inventory;
-import emu.grasscutter.game.mail.Mail;
-import emu.grasscutter.game.mail.MailHandler;
-import emu.grasscutter.game.managers.FurnitureManager;
-import emu.grasscutter.game.managers.ResinManager;
-import emu.grasscutter.game.managers.SatiationManager;
-import emu.grasscutter.game.managers.SotSManager;
-import emu.grasscutter.game.managers.cooking.ActiveCookCompoundData;
-import emu.grasscutter.game.managers.cooking.CookingCompoundManager;
-import emu.grasscutter.game.managers.cooking.CookingManager;
+import emu.grasscutter.game.home.*;
+import emu.grasscutter.game.inventory.*;
+import emu.grasscutter.game.mail.*;
+import emu.grasscutter.game.managers.*;
+import emu.grasscutter.game.managers.cooking.*;
 import emu.grasscutter.game.managers.deforestation.DeforestationManager;
 import emu.grasscutter.game.managers.energy.EnergyManager;
-import emu.grasscutter.game.managers.forging.ActiveForgeData;
-import emu.grasscutter.game.managers.forging.ForgingManager;
-import emu.grasscutter.game.managers.mapmark.MapMark;
-import emu.grasscutter.game.managers.mapmark.MapMarksManager;
+import emu.grasscutter.game.managers.forging.*;
+import emu.grasscutter.game.managers.mapmark.*;
 import emu.grasscutter.game.managers.stamina.StaminaManager;
 import emu.grasscutter.game.props.*;
 import emu.grasscutter.game.quest.QuestManager;
-import emu.grasscutter.game.quest.enums.QuestCond;
-import emu.grasscutter.game.quest.enums.QuestContent;
+import emu.grasscutter.game.quest.enums.*;
 import emu.grasscutter.game.shop.ShopLimit;
 import emu.grasscutter.game.talk.TalkManager;
-import emu.grasscutter.game.tower.TowerData;
-import emu.grasscutter.game.tower.TowerManager;
-import emu.grasscutter.game.world.Position;
-import emu.grasscutter.game.world.Scene;
-import emu.grasscutter.game.world.World;
+import emu.grasscutter.game.tower.*;
+import emu.grasscutter.game.world.*;
 import emu.grasscutter.net.packet.BasePacket;
 import emu.grasscutter.net.proto.AbilityInvokeEntryOuterClass.AbilityInvokeEntry;
 import emu.grasscutter.net.proto.AttackResultOuterClass.AttackResult;
@@ -57,38 +41,27 @@ import emu.grasscutter.net.proto.CombatInvokeEntryOuterClass.CombatInvokeEntry;
 import emu.grasscutter.net.proto.GadgetInteractReqOuterClass.GadgetInteractReq;
 import emu.grasscutter.net.proto.MpSettingTypeOuterClass.MpSettingType;
 import emu.grasscutter.net.proto.OnlinePlayerInfoOuterClass.OnlinePlayerInfo;
-import emu.grasscutter.net.proto.PlayerApplyEnterMpResultNotifyOuterClass;
+import emu.grasscutter.net.proto.*;
 import emu.grasscutter.net.proto.PlayerLocationInfoOuterClass.PlayerLocationInfo;
-import emu.grasscutter.net.proto.PlayerWorldLocationInfoOuterClass;
 import emu.grasscutter.net.proto.ProfilePictureOuterClass.ProfilePicture;
 import emu.grasscutter.net.proto.PropChangeReasonOuterClass.PropChangeReason;
-import emu.grasscutter.net.proto.ShowAvatarInfoOuterClass;
 import emu.grasscutter.net.proto.SocialDetailOuterClass.SocialDetail;
-import emu.grasscutter.net.proto.SocialShowAvatarInfoOuterClass;
 import emu.grasscutter.plugin.api.PlayerHook;
+import emu.grasscutter.scripts.ScriptLoader;
 import emu.grasscutter.scripts.data.SceneRegion;
-import emu.grasscutter.server.event.player.PlayerEnterAreaEvent;
-import emu.grasscutter.server.event.player.PlayerJoinEvent;
-import emu.grasscutter.server.event.player.PlayerQuitEvent;
-import emu.grasscutter.server.game.GameServer;
-import emu.grasscutter.server.game.GameSession;
+import emu.grasscutter.server.event.player.*;
+import emu.grasscutter.server.game.*;
 import emu.grasscutter.server.game.GameSession.SessionState;
 import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.*;
 import emu.grasscutter.utils.helpers.DateHelper;
 import emu.grasscutter.utils.objects.FieldFetch;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.Getter;
-import lombok.Setter;
+import it.unimi.dsi.fastutil.ints.*;
+import lombok.*;
 
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
@@ -107,6 +80,8 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter private int nameCardId = 210001;
     @Getter private Position position;
     @Getter @Setter private Position prevPos;
+    @Getter @Setter private Position prevPosForHome;
+    @Getter @Setter private int prevScene;
     @Getter private Position rotation;
     @Getter private PlayerBirthday birthday;
     @Getter private PlayerCodex codex;
@@ -115,6 +90,7 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter @Setter private List<Integer> showNameCardList;
     @Getter private Map<Integer, Integer> properties;
     @Getter @Setter private int currentRealmId;
+    @Getter @Setter private transient boolean isInEditMode;
     @Getter @Setter private int widgetId;
     @Getter @Setter private int sceneId;
     @Getter @Setter private int regionId;
@@ -140,6 +116,7 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter private Map<Integer, ActiveCookCompoundData> activeCookCompounds;
     @Getter private Map<Integer, Integer> questGlobalVariables;
     @Getter private Map<Integer, Integer> openStates;
+    @Getter private Map<Integer, Set<Integer>> sceneTags;
     @Getter @Setter private Map<Integer, Set<Integer>> unlockedSceneAreas;
     @Getter @Setter private Map<Integer, Set<Integer>> unlockedScenePoints;
     @Getter @Setter private List<Integer> chatEmojiIdList;
@@ -147,6 +124,8 @@ public class Player implements PlayerHook, FieldFetch {
     @Transient private long nextGuid = 0;
     @Transient @Getter @Setter private int peerId;
     @Transient private World world;  // Synchronized getter and setter
+    @Transient @Getter @Setter private HomeWorld curHomeWorld;
+    @Transient @Getter @Setter private boolean hasSentInitPacketInHome;
     @Transient private Scene scene;  // Synchronized getter and setter
     @Transient @Getter private int weatherId = 0;
     @Transient @Getter private ClimateType climate = ClimateType.CLIMATE_SUNNY;
@@ -159,7 +138,7 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter private transient FriendsList friendsList;
     @Getter private transient MailHandler mailHandler;
     @Getter private transient AbilityManager abilityManager;
-    @Getter @Setter private transient QuestManager questManager;
+    @Getter private transient QuestManager questManager;
     @Getter private transient TowerManager towerManager;
     @Getter private transient SotSManager sotsManager;
     @Getter private transient MapMarksManager mapMarksManager;
@@ -197,10 +176,12 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter @Setter private Set<Date> moonCardGetTimes;
 
     @Transient @Getter private boolean paused;
+    @Transient @Getter @Setter private Future<?> queuedTeleport;
     @Transient @Getter @Setter private int enterSceneToken;
     @Transient @Getter @Setter private SceneLoadState sceneLoadState = SceneLoadState.NONE;
     @Transient private boolean hasSentLoginPackets;
     @Transient private long nextSendPlayerLocTime = 0;
+    @Getter private transient final Int2ObjectMap<EnterHomeRequest> enterHomeRequests;
 
     private transient final Int2ObjectMap<CoopRequest> coopRequests;  // Synchronized getter
     @Getter private transient final Queue<AttackResult> attackResults;
@@ -221,6 +202,8 @@ public class Player implements PlayerHook, FieldFetch {
 
     @Getter @Setter private ElementType mainCharacterElement = ElementType.None;
 
+    @Getter @Setter private Map<Integer, CityInfoData> cityInfoData; // cityId -> CityData
+
     @Deprecated
     @SuppressWarnings({"rawtypes", "unchecked"}) // Morphia only!
     public Player() {
@@ -235,6 +218,7 @@ public class Player implements PlayerHook, FieldFetch {
         this.buffManager = new PlayerBuffManager(this);
         this.position = new Position(GameConstants.START_POSITION);
         this.prevPos = new Position();
+        this.prevPosForHome = Position.ZERO;
         this.rotation = new Position(0, 307, 0);
         this.sceneId = 3;
         this.regionId = 1;
@@ -262,14 +246,17 @@ public class Player implements PlayerHook, FieldFetch {
         this.unlockedRecipies = new HashMap<>();
         this.questGlobalVariables = new HashMap<>();
         this.openStates = new HashMap<>();
+        this.sceneTags = new HashMap<>();
         this.unlockedSceneAreas = new HashMap<>();
         this.unlockedScenePoints = new HashMap<>();
         this.chatEmojiIdList = new ArrayList<>();
         this.playerProgress = new PlayerProgress();
         this.activeQuestTimers = new HashSet<>();
+        this.cityInfoData = new HashMap<>();
 
         this.attackResults = new LinkedBlockingQueue<>();
         this.coopRequests = new Int2ObjectOpenHashMap<>();
+        this.enterHomeRequests = new Int2ObjectOpenHashMap<>();
         this.combatInvokeHandler = new InvokeHandler(PacketCombatInvocationsNotify.class);
         this.abilityInvokeHandler = new InvokeHandler(PacketAbilityInvocationsNotify.class);
         this.clientAbilityInitFinishHandler = new InvokeHandler(PacketClientAbilityInitFinishNotify.class);
@@ -311,6 +298,7 @@ public class Player implements PlayerHook, FieldFetch {
         this.codex = new PlayerCodex(this);
 
         this.applyProperties();
+        this.applyStartingSceneTags();
         this.getFlyCloakList().add(140001);
         this.getNameCardList().add(210001);
 
@@ -490,6 +478,18 @@ public class Player implements PlayerHook, FieldFetch {
         this.seenRealmList.add(seenId);
     }
 
+    public Optional<GameHome> tryGetHome() {
+        if (this.isOnline()) {
+            return Optional.ofNullable(this.home);
+        }
+
+        if (GameHome.doesHomeExist(this.getUid())) {
+            this.home = GameHome.getByUid(this.getUid());
+        }
+
+        return Optional.ofNullable(this.home);
+    }
+
     public int getExpeditionLimit() {
         final int CONST_VALUE_EXPEDITION_INIT_LIMIT = 2;  // TODO: pull from ConstValueExcelConfigData.json
         int expeditionLimit = CONST_VALUE_EXPEDITION_INIT_LIMIT;
@@ -575,14 +575,34 @@ public class Player implements PlayerHook, FieldFetch {
         this.setOrFetch(PlayerProperty.PROP_SPRING_AUTO_USE_PERCENT, 50);
         this.setOrFetch(PlayerProperty.PROP_IS_FLYABLE,
             withQuesting ? 0 : 1);
+        this.setOrFetch(PlayerProperty.PROP_PLAYER_CAN_DIVE,
+                withQuesting ? 0 : 1);
         this.setOrFetch(PlayerProperty.PROP_IS_TRANSFERABLE, 1);
         this.setOrFetch(PlayerProperty.PROP_MAX_STAMINA,
             withQuesting ? 10000 : 24000);
+        this.setOrFetch(PlayerProperty.PROP_DIVE_MAX_STAMINA,
+                withQuesting ? 10000 : 0);
         this.setOrFetch(PlayerProperty.PROP_PLAYER_RESIN, 160);
 
         // The player's current stamina is always their max stamina.
         this.setProperty(PlayerProperty.PROP_CUR_PERSIST_STAMINA,
             this.getProperty(PlayerProperty.PROP_MAX_STAMINA));
+        this.setProperty(PlayerProperty.PROP_DIVE_CUR_STAMINA,
+                this.getProperty(PlayerProperty.PROP_DIVE_MAX_STAMINA));
+    }
+
+    /**
+     * Applies all default scenetags to the player.
+     */
+    private void applyStartingSceneTags() {
+        GameData.getSceneTagDataMap().values().stream()
+                .filter(sceneTag -> sceneTag.isDefaultValid())
+                .forEach(sceneTag -> {
+                    if (this.getSceneTags().get(sceneTag.getSceneId()) == null) {
+                        this.getSceneTags().put(sceneTag.getSceneId(), new HashSet<>());
+                    }
+                    this.getSceneTags().get(sceneTag.getSceneId()).add(sceneTag.getId());
+                });
     }
 
     /**
@@ -706,7 +726,7 @@ public class Player implements PlayerHook, FieldFetch {
         this.getQuestManager().forEachActiveQuest(quest -> {
             if (quest.getTriggerData() != null &&
                 quest.getTriggers().containsKey(enterRegionName) &&
-                    region.getGroupId() == quest.getTriggerData().get(enterRegionName).getGroupId()) {
+                region.getGroupId() == quest.getTriggerData().get(enterRegionName).getGroupId()) {
                 // If trigger hasn't been fired yet
                 if (!Boolean.TRUE.equals(quest.getTriggers().put(enterRegionName, true))) {
                     this.getSession().send(new PacketServerCondMeetQuestListUpdateNotify());
@@ -921,6 +941,9 @@ public class Player implements PlayerHook, FieldFetch {
                     this.getTeamManager().addAvatarToCurrentTeam(avatar);
                 }
             }
+
+            // Call PlayerObtainAvatarEvent.
+            new PlayerObtainAvatarEvent(this.getPlayer(), avatar).call();
         } else {
             // Failed adding avatar
         }
@@ -943,6 +966,13 @@ public class Player implements PlayerHook, FieldFetch {
     public void addCostume(int costumeId) {
         this.getCostumeList().add(costumeId);
         this.sendPacket(new PacketAvatarGainCostumeNotify(costumeId));
+    }
+
+    public int getCostumeFrom(int avatarId) {
+        var avatars = this.getAvatars();
+        avatars.loadFromDatabase();
+        var avatar = avatars.getAvatarById(avatarId);
+        return avatar == null ? 0 : avatar.getCostume();
     }
 
     public void addPersonalLine(int personalLineId) {
@@ -1191,6 +1221,21 @@ public class Player implements PlayerHook, FieldFetch {
         return true;
     }
 
+    private boolean expireEnterHomeRequest(EnterHomeRequest req) {
+        return this.expireEnterHomeRequest(req, false);
+    }
+
+    private boolean expireEnterHomeRequest(EnterHomeRequest req, boolean force) {
+        if (!req.isExpired() && !force) return false;
+        req.getRequester().sendPacket(new PacketPlayerApplyEnterHomeResultNotify(
+            this.getUid(),
+            this.getNickname(),
+            false,
+            PlayerApplyEnterHomeResultNotifyOuterClass.PlayerApplyEnterHomeResultNotify.Reason.SYSTEM_JUDGE));
+        req.getRequester().sendPacket(new PacketTryEnterHomeRsp());
+        return true;
+    }
+
     public synchronized void onTick() {
         // Check ping
         if (this.getLastPingTime() > System.currentTimeMillis() + 60000) {
@@ -1199,6 +1244,8 @@ public class Player implements PlayerHook, FieldFetch {
         }
         // Check co-op requests
         this.getCoopRequests().values().removeIf(this::expireCoopRequest);
+        // Check enter-home requests
+        this.getEnterHomeRequests().values().removeIf(this::expireEnterHomeRequest);
         // Handle buff
         this.getBuffManager().onTick();
         // Ping
@@ -1332,14 +1379,6 @@ public class Player implements PlayerHook, FieldFetch {
         this.getPlayerProgress().setPlayer(this); // Add reference to the player.
     }
 
-    /**
-     * Invoked when the player selects their avatar.
-     */
-    public void onPlayerBorn() {
-        Grasscutter.getThreadPool().submit(
-            this.getQuestManager()::onPlayerBorn);
-    }
-
     public void onLogin() {
         // Quest - Commented out because a problem is caused if you log out while this quest is active
         /*
@@ -1354,6 +1393,20 @@ public class Player implements PlayerHook, FieldFetch {
             this.getPos().set(GameConstants.START_POSITION);
         }
         */
+
+        // Ensure the player has valid scenetags, allows old accounts to work
+        if (this.getSceneTags().isEmpty() || this.getSceneTags() == null) {
+            this.applyStartingSceneTags();
+        }
+
+        if (GameHome.HOME_SCENE_IDS.contains(this.getSceneId())) {
+            this.setSceneId(this.prevScene <= 0 ? 3 : this.prevScene); // if the player in home, make the player go back.
+            var pos = this.getPrevPosForHome();
+            if (pos.equals(Position.ZERO)) {
+                pos = ScriptLoader.getSceneMeta(this.getSceneId()).config.born_pos;
+            }
+            this.position.set(pos);
+        }
 
         // Create world
         World world = new World(this);
@@ -1403,7 +1456,10 @@ public class Player implements PlayerHook, FieldFetch {
 
         this.furnitureManager.onLogin();
         // Home
-        home = GameHome.getByUid(getUid());
+        var homeWorld = this.getServer().getHomeWorldOrCreate(this);
+        homeWorld.setHost(this); // synchronize player object if homeWorld already exists in the server.
+        this.home = homeWorld.getHome();
+        this.setCurHomeWorld(homeWorld);
         home.onOwnerLogin(this);
         // Activity
         this.activityManager = new ActivityManager(this);
@@ -1427,7 +1483,6 @@ public class Player implements PlayerHook, FieldFetch {
 
         // register
         getServer().registerPlayer(this);
-        getProfile().setPlayer(this); // Set online
     }
 
     public void onLogout() {
@@ -1448,9 +1503,10 @@ public class Player implements PlayerHook, FieldFetch {
 
             // Status stuff
             this.getProfile().syncWithCharacter(this);
-            this.getProfile().setPlayer(null); // Set offline
 
             this.getCoopRequests().clear();
+            this.getEnterHomeRequests().values().forEach(req -> this.expireEnterHomeRequest(req, true));
+            this.getEnterHomeRequests().clear();
 
             // Save to db
             this.save();
@@ -1473,6 +1529,31 @@ public class Player implements PlayerHook, FieldFetch {
         //Note: DON'T DELETE BY UID,BECAUSE THERE ARE MULTIPLE SAME UID PLAYERS WHEN DUPLICATED LOGIN!
         //so I decide to delete by object rather than uid
         getServer().getPlayers().values().removeIf(player1 -> player1 == this);
+    }
+
+    public void unfreezeUnlockedScenePoints(int sceneId) {
+        // Unfreeze previously unlocked scene points. For example,
+        // the first weapon mats domain needs some script interaction
+        // to unlock. It needs to be unfrozen when GetScenePointReq
+        // comes in to be interactable again.
+        GameData.getScenePointEntryMap().values().stream()
+                .filter(scenePointEntry ->
+                        // Note: Only DungeonEntry scene points need to be unfrozen
+                        scenePointEntry.getPointData().getType().equals("DungeonEntry")
+                        // groupLimit says this scene point needs to be unfrozen
+                        && scenePointEntry.getPointData().isGroupLimit())
+                .forEach(scenePointEntry -> {
+                        // If this is a previously unlocked scene point,
+                        // send unfreeze packet.
+                        val pointId = scenePointEntry.getPointData().getId();
+                        if (unlockedScenePoints.get(sceneId).contains(pointId)) {
+                            this.sendPacket(new PacketUnfreezeGroupLimitNotify(pointId, sceneId));
+                        }
+                });
+    }
+
+    public void unfreezeUnlockedScenePoints() {
+        unlockedScenePoints.keySet().forEach(sceneId -> unfreezeUnlockedScenePoints(sceneId));
     }
 
     public int getLegendaryKey() {
@@ -1507,11 +1588,28 @@ public class Player implements PlayerHook, FieldFetch {
         }
     }
 
+    /**
+     * Applies a property change to this player.
+     * Checks the value against the property's min and max values for sanity.
+     *
+     * @param prop The property to change.
+     * @param value The new value.
+     * @param sendPacket Whether to send a packet to the client.
+     * @return Whether the property was changed.
+     */
     private boolean setPropertyWithSanityCheck(PlayerProperty prop, int value, boolean sendPacket) {
-        int min = this.getPropertyMin(prop);
-        int max = this.getPropertyMax(prop);
+        var currentValue = this.properties.getOrDefault(prop.getId(), 0);
+
+        // Call PlayerPropertyChangeEvent.
+        var event = new PlayerPropertyChangeEvent(this, prop, currentValue, value);
+        if (!event.call()) return false;
+
+        prop = event.getProperty();
+        value = event.getNewValue();
+
+        var min = this.getPropertyMin(prop);
+        var max = this.getPropertyMax(prop);
         if (min <= value && value <= max) {
-            int currentValue = this.properties.get(prop.getId());
             this.properties.put(prop.getId(), value);
             if (sendPacket) {
                 // Send property change reasons if needed.
@@ -1520,6 +1618,8 @@ public class Player implements PlayerHook, FieldFetch {
                         PropChangeReason.PROP_CHANGE_REASON_PLAYER_ADD_EXP));
                     case PROP_PLAYER_LEVEL -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
                         PropChangeReason.PROP_CHANGE_REASON_LEVELUP));
+                    case PROP_MAX_STAMINA -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
+                        PropChangeReason.PROP_CHANGE_REASON_CITY_LEVELUP));
 
                     // TODO: Handle world level changing.
                     // case PROP_PLAYER_WORLD_LEVEL -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
@@ -1540,6 +1640,12 @@ public class Player implements PlayerHook, FieldFetch {
     public boolean equals(Object obj) {
         return obj instanceof Player otherPlayer &&
             this.id == otherPlayer.getUid();
+    }
+
+    @Override
+    public String toString() {
+        return "Player UID: %s; Nickname: %s; Account: %s"
+                .formatted(this.id, this.nickname, this.account);
     }
 
     public enum SceneLoadState {

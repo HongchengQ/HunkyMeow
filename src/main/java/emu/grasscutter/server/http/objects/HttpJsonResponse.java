@@ -6,10 +6,8 @@ import static emu.grasscutter.utils.lang.Language.translate;
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.Grasscutter.ServerDebugMode;
 import emu.grasscutter.utils.Utils;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-import java.util.Arrays;
-import java.util.Objects;
+import io.javalin.http.*;
+import java.util.*;
 import org.jetbrains.annotations.NotNull;
 
 public final class HttpJsonResponse implements Handler {

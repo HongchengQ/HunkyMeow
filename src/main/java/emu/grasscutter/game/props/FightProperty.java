@@ -2,8 +2,7 @@ package emu.grasscutter.game.props;
 
 import static java.util.Map.entry;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;

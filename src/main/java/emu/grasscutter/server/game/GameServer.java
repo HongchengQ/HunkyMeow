@@ -8,38 +8,48 @@ import emu.grasscutter.Grasscutter.ServerRunMode;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.Account;
 import emu.grasscutter.game.battlepass.BattlePassSystem;
-import emu.grasscutter.game.chat.*;
+import emu.grasscutter.game.chat.ChatSystem;
+import emu.grasscutter.game.chat.ChatSystemHandler;
 import emu.grasscutter.game.combine.CombineManger;
-import emu.grasscutter.game.drop.*;
+import emu.grasscutter.game.drop.DropSystem;
+import emu.grasscutter.game.drop.DropSystemLegacy;
 import emu.grasscutter.game.dungeons.DungeonSystem;
 import emu.grasscutter.game.expedition.ExpeditionSystem;
 import emu.grasscutter.game.gacha.GachaSystem;
-import emu.grasscutter.game.managers.cooking.*;
+import emu.grasscutter.game.home.HomeWorld;
+import emu.grasscutter.game.home.HomeWorldMPSystem;
+import emu.grasscutter.game.managers.cooking.CookingCompoundManager;
+import emu.grasscutter.game.managers.cooking.CookingManager;
 import emu.grasscutter.game.managers.energy.EnergyManager;
 import emu.grasscutter.game.managers.stamina.StaminaManager;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.quest.QuestSystem;
 import emu.grasscutter.game.shop.ShopSystem;
-import emu.grasscutter.game.systems.*;
+import emu.grasscutter.game.systems.AnnouncementSystem;
+import emu.grasscutter.game.systems.InventorySystem;
+import emu.grasscutter.game.systems.MultiplayerSystem;
 import emu.grasscutter.game.talk.TalkSystem;
 import emu.grasscutter.game.tower.TowerSystem;
-import emu.grasscutter.game.world.*;
+import emu.grasscutter.game.world.World;
+import emu.grasscutter.game.world.WorldDataSystem;
 import emu.grasscutter.net.packet.PacketHandler;
 import emu.grasscutter.net.proto.SocialDetailOuterClass.SocialDetail;
 import emu.grasscutter.server.dispatch.DispatchClient;
 import emu.grasscutter.server.event.game.ServerTickEvent;
-import emu.grasscutter.server.event.internal.*;
+import emu.grasscutter.server.event.internal.ServerStartEvent;
+import emu.grasscutter.server.event.internal.ServerStopEvent;
 import emu.grasscutter.server.event.types.ServerEvent;
 import emu.grasscutter.server.scheduler.ServerTaskScheduler;
 import emu.grasscutter.task.TaskMap;
 import emu.grasscutter.utils.Utils;
+import it.unimi.dsi.fastutil.ints.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 import kcp.highway.*;
 import lombok.*;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 
 @Getter
 public final class GameServer extends KcpServer implements Iterable<Player> {
@@ -48,6 +58,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
     private final GameServerPacketHandler packetHandler;
     private final Map<Integer, Player> players;
     private final Set<World> worlds;
+    private final Int2ObjectMap<HomeWorld> homeWorlds;
 
     @Setter private DispatchClient dispatchClient;
 
@@ -56,6 +67,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
     private final GachaSystem gachaSystem;
     private final ShopSystem shopSystem;
     private final MultiplayerSystem multiplayerSystem;
+    private final HomeWorldMPSystem homeWorldMPSystem;
     private final DungeonSystem dungeonSystem;
     private final ExpeditionSystem expeditionSystem;
     private final DropSystem dropSystem;
@@ -98,11 +110,13 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
             this.dispatchClient = null;
             this.players = null;
             this.worlds = null;
+            this.homeWorlds = null;
 
             this.inventorySystem = null;
             this.gachaSystem = null;
             this.shopSystem = null;
             this.multiplayerSystem = null;
+            this.homeWorldMPSystem = null;
             this.dungeonSystem = null;
             this.expeditionSystem = null;
             this.dropSystem = null;
@@ -140,6 +154,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         this.dispatchClient = new DispatchClient(GameServer.getDispatchUrl());
         this.players = new ConcurrentHashMap<>();
         this.worlds = Collections.synchronizedSet(new HashSet<>());
+        this.homeWorlds = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
 
         // Extra
         this.scheduler = new ServerTaskScheduler();
@@ -150,6 +165,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         this.gachaSystem = new GachaSystem(this);
         this.shopSystem = new ShopSystem(this);
         this.multiplayerSystem = new MultiplayerSystem(this);
+        this.homeWorldMPSystem = new HomeWorldMPSystem(this);
         this.dungeonSystem = new DungeonSystem(this);
         this.dropSystem = new DropSystem(this);
         this.dropSystemLegacy = new DropSystemLegacy(this);
@@ -198,11 +214,11 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         getPlayers().put(player.getUid(), player);
     }
 
-    public Player getPlayerByUid(int id) {
+    @Nullable public Player getPlayerByUid(int id) {
         return this.getPlayerByUid(id, false);
     }
 
-    public Player getPlayerByUid(int id, boolean allowOfflinePlayers) {
+    @Nullable public Player getPlayerByUid(int id, boolean allowOfflinePlayers) {
         // Console check
         if (id == GameConstants.SERVER_CONSOLE_UID) {
             return null;
@@ -272,7 +288,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
     public synchronized void onTick() {
         var tickStart = Instant.now();
 
-        // Tick worlds.
+        // Tick worlds and home worlds.
         this.worlds.removeIf(World::onTick);
 
         // Tick players.
@@ -293,6 +309,11 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
     public void deregisterWorld(World world) {
         // TODO Auto-generated method stub
         world.save(); // Save the player's world
+    }
+
+    public HomeWorld getHomeWorldOrCreate(Player owner) {
+        return this.getHomeWorlds()
+                .computeIfAbsent(owner.getUid(), (uid) -> new HomeWorld(this, owner));
     }
 
     public void start() {

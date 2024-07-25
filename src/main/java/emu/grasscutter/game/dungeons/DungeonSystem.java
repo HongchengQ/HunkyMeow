@@ -1,49 +1,38 @@
 package emu.grasscutter.game.dungeons;
 
-import emu.grasscutter.GameConstants;
-import emu.grasscutter.Grasscutter;
+import emu.grasscutter.*;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.ScenePointEntry;
-import emu.grasscutter.data.excels.dungeon.DungeonData;
-import emu.grasscutter.data.excels.dungeon.DungeonPassConfigData;
+import emu.grasscutter.data.excels.dungeon.*;
 import emu.grasscutter.game.dungeons.handlers.DungeonBaseHandler;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.props.SceneType;
-import emu.grasscutter.game.world.Position;
-import emu.grasscutter.game.world.Scene;
-import emu.grasscutter.net.packet.BasePacket;
-import emu.grasscutter.net.packet.PacketOpcodes;
-import emu.grasscutter.server.game.BaseGameSystem;
-import emu.grasscutter.server.game.GameServer;
+import emu.grasscutter.game.world.*;
+import emu.grasscutter.net.packet.*;
+import emu.grasscutter.server.game.*;
 import emu.grasscutter.server.packet.send.PacketDungeonEntryInfoRsp;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.*;
 import java.util.List;
 import lombok.val;
-import org.reflections.Reflections;
 
-public class DungeonSystem extends BaseGameSystem {
+public final class DungeonSystem extends BaseGameSystem {
     private static final BasicDungeonSettleListener basicDungeonSettleObserver =
             new BasicDungeonSettleListener();
     private final Int2ObjectMap<DungeonBaseHandler> passCondHandlers;
 
     public DungeonSystem(GameServer server) {
         super(server);
+
         this.passCondHandlers = new Int2ObjectOpenHashMap<>();
-        registerHandlers();
+        this.registerHandlers();
     }
 
     public void registerHandlers() {
-        this.registerHandlers(
-                this.passCondHandlers,
-                "emu.grasscutter.game.dungeons.pass_condition",
-                DungeonBaseHandler.class);
+        this.registerHandlers(this.passCondHandlers, DungeonBaseHandler.class);
     }
 
-    public <T> void registerHandlers(Int2ObjectMap<T> map, String packageName, Class<T> clazz) {
-        Reflections reflections = new Reflections(packageName);
-        var handlerClasses = reflections.getSubTypesOf(clazz);
-
+    public <T> void registerHandlers(Int2ObjectMap<T> map, Class<T> clazz) {
+        var handlerClasses = Grasscutter.reflector.getSubTypesOf(clazz);
         for (var obj : handlerClasses) {
             this.registerHandler(map, obj);
         }
@@ -99,7 +88,7 @@ public class DungeonSystem extends BaseGameSystem {
         return handler.execute(condition, params);
     }
 
-    public boolean enterDungeon(Player player, int pointId, int dungeonId) {
+    public boolean enterDungeon(Player player, int pointId, int dungeonId, boolean savePrevious) {
         DungeonData data = GameData.getDungeonDataMap().get(dungeonId);
 
         if (data == null) {
@@ -114,7 +103,7 @@ public class DungeonSystem extends BaseGameSystem {
 
         var sceneId = data.getSceneId();
         var scene = player.getScene();
-        scene.setPrevScene(sceneId);
+        if (savePrevious) scene.setPrevScene(scene.getId());
 
         if (player.getWorld().transferPlayerToScene(player, sceneId, data)) {
             scene = player.getScene();
@@ -122,7 +111,7 @@ public class DungeonSystem extends BaseGameSystem {
             scene.addDungeonSettleObserver(basicDungeonSettleObserver);
         }
 
-        scene.setPrevScenePoint(pointId);
+        if (savePrevious) scene.setPrevScenePoint(pointId);
         return true;
     }
 
@@ -142,7 +131,11 @@ public class DungeonSystem extends BaseGameSystem {
                         dungeonId);
 
         if (player.getWorld().transferPlayerToScene(player, data.getSceneId(), data)) {
-            dungeonSettleListeners.forEach(player.getScene()::addDungeonSettleObserver);
+            var scene = player.getScene();
+            var dungeonManager = new DungeonManager(scene, data);
+            dungeonManager.setTowerDungeon(true);
+            scene.setDungeonManager(dungeonManager);
+            dungeonSettleListeners.forEach(scene::addDungeonSettleObserver);
         }
         return true;
     }
@@ -175,11 +168,40 @@ public class DungeonSystem extends BaseGameSystem {
             dungeonManager.unsetTrialTeam(player);
         }
         // clean temp team if it has
-        player.getTeamManager().cleanTemporaryTeam();
+        if (!player.getTeamManager().cleanTemporaryTeam()) {
+            // no temp team. Will use real current team, but check
+            // for any dead avatar to prevent switching into them.
+            player.getTeamManager().checkCurrentAvatarIsAlive(null);
+        }
         player.getTowerManager().clearEntry();
+        dungeonManager.setTowerDungeon(false);
 
-        // Transfer player back to world
-        player.getWorld().transferPlayerToScene(player, prevScene, prevPos);
-        player.sendPacket(new BasePacket(PacketOpcodes.PlayerQuitDungeonRsp));
+        // Transfer player back to world after a small delay.
+        // This wait is important for avoiding double teleports,
+        // which specifically happen when player quits a dungeon
+        // by teleporting to map waypoints.
+        // From testing, 200ms seem reasonable.
+        player.getWorld().queueTransferPlayerToScene(player, prevScene, prevPos, 200);
+    }
+
+    public void restartDungeon(Player player) {
+        var scene = player.getScene();
+        var dungeonManager = scene.getDungeonManager();
+        var dungeonData = dungeonManager.getDungeonData();
+        var sceneId = dungeonData.getSceneId();
+
+        // Forward over previous scene and scene point
+        var prevScene = scene.getPrevScene();
+        var pointId = scene.getPrevScenePoint();
+
+        // Destroy then create scene again to reinitialize script state
+        scene.getPlayers().forEach(scene::removePlayer);
+        if (player.getWorld().transferPlayerToScene(player, sceneId, dungeonData)) {
+            scene = player.getScene();
+            scene.setPrevScene(prevScene);
+            scene.setPrevScenePoint(pointId);
+            scene.setDungeonManager(new DungeonManager(scene, dungeonData));
+            scene.addDungeonSettleObserver(basicDungeonSettleObserver);
+        }
     }
 }

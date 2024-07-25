@@ -1,19 +1,10 @@
 package emu.grasscutter.data;
 
 import emu.grasscutter.Grasscutter;
-import emu.grasscutter.server.http.handlers.GachaHandler;
-import emu.grasscutter.tools.Tools;
-import emu.grasscutter.utils.FileUtils;
-import emu.grasscutter.utils.JsonUtils;
-import emu.grasscutter.utils.TsvUtils;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import emu.grasscutter.utils.*;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 import lombok.val;
 
 public class DataLoader {
@@ -98,7 +89,7 @@ public class DataLoader {
     public static <T> List<T> loadTableToList(String resourcePath, Class<T> classType)
             throws IOException {
         val path = FileUtils.getDataPathTsjJsonTsv(resourcePath);
-        Grasscutter.getLogger().debug("Loading data table from: " + path);
+        Grasscutter.getLogger().trace("Loading data table from: " + path);
         return switch (FileUtils.getFileExtension(path)) {
             case "json" -> JsonUtils.loadToList(path, classType);
             case "tsj" -> TsvUtils.loadTsjToListSetField(path, classType);
@@ -121,8 +112,6 @@ public class DataLoader {
         } catch (Exception e) {
             Grasscutter.getLogger().error("An error occurred while trying to check the data folder.", e);
         }
-
-        generateGachaMappings();
     }
 
     private static void checkAndCopyData(String name) {
@@ -136,18 +125,6 @@ public class DataLoader {
 
             Grasscutter.getLogger().debug("Creating default '" + name + "' data");
             FileUtils.copyResource("/defaults/data/" + name, filePath.toString());
-        }
-    }
-
-    private static void generateGachaMappings() {
-        var path = GachaHandler.getGachaMappingsPath();
-        if (!Files.exists(path)) {
-            try {
-                Grasscutter.getLogger().debug("Creating default '" + path + "' data");
-                Tools.createGachaMappings(path);
-            } catch (Exception exception) {
-                Grasscutter.getLogger().warn("Failed to create gacha mappings. \n" + exception);
-            }
         }
     }
 }

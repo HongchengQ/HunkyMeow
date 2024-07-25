@@ -4,8 +4,7 @@ import emu.grasscutter.game.player.Player;
 import emu.grasscutter.server.event.Cancellable;
 import emu.grasscutter.server.event.types.PlayerEvent;
 import javax.annotation.Nullable;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter

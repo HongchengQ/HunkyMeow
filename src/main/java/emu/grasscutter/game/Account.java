@@ -1,12 +1,10 @@
 package emu.grasscutter.game;
 
-import static emu.grasscutter.config.Configuration.ACCOUNT;
-import static emu.grasscutter.config.Configuration.LANGUAGE;
+import static emu.grasscutter.config.Configuration.*;
 
 import dev.morphia.annotations.*;
 import emu.grasscutter.database.DatabaseHelper;
-import emu.grasscutter.utils.Crypto;
-import emu.grasscutter.utils.Utils;
+import emu.grasscutter.utils.*;
 import java.util.*;
 import java.util.stream.Stream;
 import org.bson.Document;
@@ -111,7 +109,7 @@ public class Account {
             return email;
         } else {
             // As of game version 3.5+, only the email is displayed to a user.
-            return this.getUsername() + "@grasscutter.io";
+            return this.getUsername() + "@" + ACCOUNT.playerEmail;
         }
     }
 
@@ -237,9 +235,14 @@ public class Account {
             this.addPermission("*");
         }
 
-        // Set account default language as server default language
+        // Set account default language to server default language
         if (!document.containsKey("locale")) {
             this.locale = LANGUAGE;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Account ID: %s; Username: %s".formatted(this.id, this.username);
     }
 }

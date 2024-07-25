@@ -2,9 +2,7 @@ package emu.grasscutter.server.packet.recv;
 
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.ScenePointEntry;
-import emu.grasscutter.net.packet.Opcodes;
-import emu.grasscutter.net.packet.PacketHandler;
-import emu.grasscutter.net.packet.PacketOpcodes;
+import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.SceneTransToPointReqOuterClass.SceneTransToPointReq;
 import emu.grasscutter.server.event.player.PlayerTeleportEvent.TeleportType;
 import emu.grasscutter.server.game.GameSession;
@@ -23,6 +21,16 @@ public class HandlerSceneTransToPointReq extends PacketHandler {
 
         if (scenePointEntry != null) {
             if (player
+                    .getCurHomeWorld()
+                    .isInHome(player)) { // if the player is in home, make the player go back
+                session
+                        .getServer()
+                        .getHomeWorldMPSystem()
+                        .leaveCoop(
+                                player, req.getSceneId(), scenePointEntry.getPointData().getTranPos().clone());
+                session.send(new PacketSceneTransToPointRsp(player, req.getPointId(), req.getSceneId()));
+                return;
+            } else if (player
                     .getWorld()
                     .transferPlayerToScene(
                             player,

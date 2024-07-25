@@ -2,10 +2,8 @@ package emu.grasscutter.game.shop;
 
 import emu.grasscutter.data.common.ItemParamData;
 import emu.grasscutter.data.excels.ShopGoodsData;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.*;
+import lombok.*;
 
 public class ShopInfo {
     @Getter @Setter private int goodsId = 0;

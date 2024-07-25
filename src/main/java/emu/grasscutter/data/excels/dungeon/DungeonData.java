@@ -1,8 +1,6 @@
 package emu.grasscutter.data.excels.dungeon;
 
-import emu.grasscutter.data.GameData;
-import emu.grasscutter.data.GameResource;
-import emu.grasscutter.data.ResourceType;
+import emu.grasscutter.data.*;
 import emu.grasscutter.data.excels.RewardPreviewData;
 import emu.grasscutter.game.dungeons.enums.*;
 import emu.grasscutter.game.world.Position;
@@ -24,6 +22,7 @@ public class DungeonData extends GameResource {
     private DungeonInvolveType involveType;
     @Getter private int limitLevel;
     @Getter private int passCond;
+    @Getter private int passJumpDungeon;
     @Getter private int reviveMaxCount;
     @Getter private int settleCountdownTime;
     @Getter private int failSettleCountdownTime;

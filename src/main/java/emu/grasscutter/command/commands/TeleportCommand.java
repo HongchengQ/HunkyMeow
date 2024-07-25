@@ -2,8 +2,7 @@ package emu.grasscutter.command.commands;
 
 import static emu.grasscutter.utils.lang.Language.translate;
 
-import emu.grasscutter.command.Command;
-import emu.grasscutter.command.CommandHandler;
+import emu.grasscutter.command.*;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.world.Position;
 import emu.grasscutter.server.event.player.PlayerTeleportEvent.TeleportType;
@@ -17,24 +16,10 @@ import java.util.List;
         permissionTargeted = "player.teleport.others")
 public final class TeleportCommand implements CommandHandler {
 
-    private float parseRelative(
-            String input, Float current) { // TODO: Maybe this will be useful elsewhere later
-        if (input.contains("~")) { // Relative
-            if (!input.equals("~")) { // Relative with offset
-                current += Float.parseFloat(input.replace("~", ""));
-            } // Else no offset, no modification
-        } else { // Absolute
-            current = Float.parseFloat(input);
-        }
-        return current;
-    }
-
     @Override
     public void execute(Player sender, Player targetPlayer, List<String> args) {
-        Position pos = targetPlayer.getPosition();
-        float x = pos.getX();
-        float y = pos.getY();
-        float z = pos.getZ();
+        Position pos = new Position(targetPlayer.getPosition());
+        Position rot = new Position(targetPlayer.getRotation());
         int sceneId = targetPlayer.getSceneId();
 
         switch (args.size()) {
@@ -47,9 +32,7 @@ public final class TeleportCommand implements CommandHandler {
                 } // Fallthrough
             case 3:
                 try {
-                    x = this.parseRelative(args.get(0), x);
-                    y = this.parseRelative(args.get(1), y);
-                    z = this.parseRelative(args.get(2), z);
+                    pos = CommandHelpers.parsePosition(args.get(0), args.get(1), args.get(2), pos, rot);
                 } catch (NumberFormatException ignored) {
                     CommandHandler.sendMessage(
                             sender, translate(sender, "commands.teleport.invalid_position"));
@@ -60,11 +43,10 @@ public final class TeleportCommand implements CommandHandler {
                 return;
         }
 
-        Position target_pos = new Position(x, y, z);
         boolean result =
                 targetPlayer
                         .getWorld()
-                        .transferPlayerToScene(targetPlayer, sceneId, TeleportType.COMMAND, target_pos);
+                        .transferPlayerToScene(targetPlayer, sceneId, TeleportType.COMMAND, pos);
 
         if (!result) {
             CommandHandler.sendMessage(sender, translate(sender, "commands.teleport.exists_error"));
@@ -72,7 +54,13 @@ public final class TeleportCommand implements CommandHandler {
             CommandHandler.sendMessage(
                     sender,
                     translate(
-                            sender, "commands.teleport.success", targetPlayer.getNickname(), x, y, z, sceneId));
+                            sender,
+                            "commands.teleport.success",
+                            targetPlayer.getNickname(),
+                            pos.getX(),
+                            pos.getY(),
+                            pos.getZ(),
+                            sceneId));
         }
     }
 }

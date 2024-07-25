@@ -1,8 +1,7 @@
 package emu.grasscutter.game.quest.enums;
 
 import emu.grasscutter.Grasscutter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 

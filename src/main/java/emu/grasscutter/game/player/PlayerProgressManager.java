@@ -12,6 +12,7 @@ import emu.grasscutter.game.quest.enums.*;
 import emu.grasscutter.net.proto.RetcodeOuterClass.Retcode;
 import emu.grasscutter.scripts.data.ScriptArgs;
 import emu.grasscutter.server.packet.send.*;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,12 +33,9 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
 
     public static final Set<Integer> IGNORED_OPEN_STATES =
             Set.of(
-                    1404, // OPEN_STATE_MENGDE_INFUSEDCRYSTAL, causes quest 'Mine Craft' to be given to the
+                    1404 // OPEN_STATE_MENGDE_INFUSEDCRYSTAL, causes quest 'Mine Craft' to be given to the
                     // player at the start of the game.
                     // This should be removed when city reputation is implemented.
-                    57 // OPEN_STATE_PERSONAL_LINE, causes the prompt for showing character hangout quests to
-                    // be permanently shown.
-                    // This should be removed when character story quests are implemented.
                     );
     // Set of open states that are set per default for all accounts. Can be overwritten by an entry in
     // `map`.
@@ -102,7 +100,7 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
     }
 
     private void setOpenState(int openState, int value, boolean sendNotify) {
-        int previousValue = this.player.getOpenStates().getOrDefault(openState, 0);
+        int previousValue = this.player.getOpenStates().getOrDefault(openState, -1 /* non-existent */);
 
         if (value != previousValue) {
             this.player.getOpenStates().put(openState, value);
@@ -312,5 +310,29 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
         var newCount = player.getPlayerProgress().addToItemHistory(id, count);
         player.save();
         player.getQuestManager().queueEvent(QuestCond.QUEST_COND_HISTORY_GOT_ANY_ITEM, id, newCount);
+    }
+
+    /******************************************************************************************************************
+     ******************************************************************************************************************
+     * SCENETAGS
+     ******************************************************************************************************************
+     *****************************************************************************************************************/
+    public void addSceneTag(int sceneId, int sceneTagId) {
+        player.getSceneTags().computeIfAbsent(sceneId, k -> new HashSet<>()).add(sceneTagId);
+        player.sendPacket(new PacketPlayerWorldSceneInfoListNotify(player));
+    }
+
+    public void delSceneTag(int sceneId, int sceneTagId) {
+        // Sanity check
+        if (player.getSceneTags().get(sceneId) == null) {
+            // Can't delete something that doesn't exist
+            return;
+        }
+        player.getSceneTags().get(sceneId).remove(sceneTagId);
+        player.sendPacket(new PacketPlayerWorldSceneInfoListNotify(player));
+    }
+
+    public boolean checkSceneTag(int sceneId, int sceneTagId) {
+        return player.getSceneTags().get(sceneId).contains(sceneTagId);
     }
 }

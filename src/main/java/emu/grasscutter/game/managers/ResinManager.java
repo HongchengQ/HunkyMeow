@@ -3,14 +3,10 @@ package emu.grasscutter.game.managers;
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
 import emu.grasscutter.game.inventory.GameItem;
-import emu.grasscutter.game.player.BasePlayerManager;
-import emu.grasscutter.game.player.Player;
-import emu.grasscutter.game.props.ActionReason;
-import emu.grasscutter.game.props.PlayerProperty;
-import emu.grasscutter.game.props.WatcherTriggerType;
+import emu.grasscutter.game.player.*;
+import emu.grasscutter.game.props.*;
 import emu.grasscutter.net.proto.RetcodeOuterClass;
-import emu.grasscutter.server.packet.send.PacketItemAddHintNotify;
-import emu.grasscutter.server.packet.send.PacketResinChangeNotify;
+import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.Utils;
 
 public class ResinManager extends BasePlayerManager {

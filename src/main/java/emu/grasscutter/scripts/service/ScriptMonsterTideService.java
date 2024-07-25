@@ -3,9 +3,7 @@ package emu.grasscutter.scripts.service;
 import emu.grasscutter.game.entity.EntityMonster;
 import emu.grasscutter.scripts.SceneScriptManager;
 import emu.grasscutter.scripts.constants.EventType;
-import emu.grasscutter.scripts.data.SceneGroup;
-import emu.grasscutter.scripts.data.SceneMonster;
-import emu.grasscutter.scripts.data.ScriptArgs;
+import emu.grasscutter.scripts.data.*;
 import emu.grasscutter.scripts.listener.ScriptMonsterListener;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,9 +20,11 @@ public final class ScriptMonsterTideService {
     private final List<Integer> monsterConfigIds;
     private final OnMonsterCreated onMonsterCreated = new OnMonsterCreated();
     private final OnMonsterDead onMonsterDead = new OnMonsterDead();
+    private final String source;
 
     public ScriptMonsterTideService(
             SceneScriptManager sceneScriptManager,
+            String source,
             SceneGroup group,
             int tideCount,
             int monsterSceneLimit,
@@ -37,6 +37,7 @@ public final class ScriptMonsterTideService {
         this.monsterAlive = new AtomicInteger(0);
         this.monsterConfigOrders = new ConcurrentLinkedQueue<>(List.of(ordersConfigId));
         this.monsterConfigIds = List.of(ordersConfigId);
+        this.source = source;
 
         this.sceneScriptManager
                 .getScriptMonsterSpawnService()
@@ -61,7 +62,11 @@ public final class ScriptMonsterTideService {
 
     public SceneMonster getNextMonster() {
         var nextId = this.monsterConfigOrders.poll();
-        if (currentGroup.monsters.containsKey(nextId)) {
+        if (nextId == null) {
+            // AutoMonsterTide has been called with fewer monster config IDs than the total tide count.
+            // Get last config ID from the list, then.
+            return currentGroup.monsters.get(monsterConfigIds.get(monsterConfigIds.size() - 1));
+        } else if (currentGroup.monsters.containsKey(nextId)) {
             return currentGroup.monsters.get(nextId);
         }
         // TODO some monster config_id do not exist in groups, so temporarily set it to the first
@@ -85,11 +90,11 @@ public final class ScriptMonsterTideService {
                         sceneScriptManager.createMonster(
                                 currentGroup.id, currentGroup.block_id, getNextMonster()));
             }
-            // spawn the last turn of monsters
-            // fix the 5-2
-            sceneScriptManager.callEvent(
-                    new ScriptArgs(
-                            currentGroup.id, EventType.EVENT_MONSTER_TIDE_DIE, monsterKillCount.get()));
+            // call registered events that may spawn in more monsters
+            var scriptArgs =
+                    new ScriptArgs(currentGroup.id, EventType.EVENT_MONSTER_TIDE_DIE, monsterKillCount.get());
+            scriptArgs.setEventSource(source);
+            sceneScriptManager.callEvent(scriptArgs);
         }
     }
 

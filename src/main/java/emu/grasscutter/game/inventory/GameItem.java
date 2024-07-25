@@ -1,12 +1,10 @@
 package emu.grasscutter.game.inventory;
 
 import dev.morphia.annotations.*;
-import emu.grasscutter.data.GameData;
-import emu.grasscutter.data.GameDepot;
+import emu.grasscutter.data.*;
 import emu.grasscutter.data.common.ItemParamData;
 import emu.grasscutter.data.excels.ItemData;
-import emu.grasscutter.data.excels.reliquary.ReliquaryAffixData;
-import emu.grasscutter.data.excels.reliquary.ReliquaryMainPropData;
+import emu.grasscutter.data.excels.reliquary.*;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.entity.EntityWeapon;
 import emu.grasscutter.game.player.Player;
@@ -23,12 +21,8 @@ import emu.grasscutter.net.proto.SceneReliquaryInfoOuterClass.SceneReliquaryInfo
 import emu.grasscutter.net.proto.SceneWeaponInfoOuterClass.SceneWeaponInfo;
 import emu.grasscutter.net.proto.WeaponOuterClass.Weapon;
 import emu.grasscutter.utils.objects.WeightedList;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.*;
+import lombok.*;
 import org.bson.types.ObjectId;
 
 @Entity(value = "items", useDiscriminator = false)
@@ -129,7 +123,7 @@ public class GameItem {
 
     public void checkIsNew(Inventory inventory) {
         // display notification when player obtain new item
-        if (inventory.getItemByGuid(this.itemId) == null) {
+        if (inventory.getItemById(this.itemId) == null) {
             this.newItem = true;
         }
     }

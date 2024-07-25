@@ -5,8 +5,7 @@ import emu.grasscutter.game.player.Player.SceneLoadState;
 import emu.grasscutter.game.props.EnterReason;
 import emu.grasscutter.game.world.Position;
 import emu.grasscutter.game.world.data.TeleportProperties;
-import emu.grasscutter.net.packet.BasePacket;
-import emu.grasscutter.net.packet.PacketOpcodes;
+import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.EnterTypeOuterClass.EnterType;
 import emu.grasscutter.net.proto.PlayerEnterSceneNotifyOuterClass.PlayerEnterSceneNotify;
 import emu.grasscutter.utils.Utils;
@@ -104,6 +103,38 @@ public class PacketPlayerEnterSceneNotify extends BasePacket {
         if (teleportProperties.getDungeonId() != 0) {
             proto.setDungeonId(teleportProperties.getDungeonId());
         }
+
+        this.setData(proto);
+    }
+
+    // Go home
+    public PacketPlayerEnterSceneNotify(
+            Player player, int targetUid, TeleportProperties teleportProperties, boolean other) {
+        super(PacketOpcodes.PlayerEnterSceneNotify);
+
+        player.setSceneLoadState(SceneLoadState.LOADING);
+        player.setEnterSceneToken(Utils.randomRange(1000, 99999));
+
+        var proto =
+                PlayerEnterSceneNotify.newBuilder()
+                        .setPrevSceneId(player.getSceneId())
+                        .setPrevPos(player.getPosition().toProto())
+                        .setSceneId(teleportProperties.getSceneId())
+                        .setPos(teleportProperties.getTeleportTo().toProto())
+                        .setSceneBeginTime(System.currentTimeMillis())
+                        .setType(other ? EnterType.ENTER_TYPE_OTHER_HOME : EnterType.ENTER_TYPE_SELF_HOME)
+                        .setTargetUid(targetUid)
+                        .setEnterSceneToken(player.getEnterSceneToken())
+                        .setEnterReason(teleportProperties.getEnterReason().getValue())
+                        .setWorldType(64)
+                        .setSceneTransaction(
+                                teleportProperties.getSceneId()
+                                        + "-"
+                                        + targetUid
+                                        + "-"
+                                        + (int) (System.currentTimeMillis() / 1000)
+                                        + "-"
+                                        + 27573);
 
         this.setData(proto);
     }

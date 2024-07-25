@@ -3,7 +3,7 @@
 
 <div align="center"><a href="https://discord.gg/T5vZU6UyeG"><img alt="Discord - Grasscutter" src="https://img.shields.io/discord/965284035985305680?label=Discord&logo=discord&style=for-the-badge"></a></div>
 
-[EN](../README.md) | [简中](README_zh-CN.md) | [繁中](README_zh-TW.md) | [FR](README_fr-FR.md) | [ES](README_es-ES.md) | [HE](README_HE.md) | [RU](README_ru-RU.md) | [PL](README_pl-PL.md) | [ID](README_id-ID.md) | [KR](README_ko-KR.md) | [FIL/PH](README_fil-PH.md) | [NL](README_NL.md) | [JP](README_ja-JP.md) | [IT](README_it-IT.md) | [VI](README_vi-VN.md)
+[EN](../README.md) | [简中](README_zh-CN.md) | [繁中](README_zh-TW.md) | [FR](README_fr-FR.md) | [ES](README_es-ES.md) | [HE](README_HE.md) | [RU](README_ru-RU.md) | [PL](README_pl-PL.md) | [ID](README_id-ID.md) | [KR](README_ko-KR.md) | [FIL/PH](README_fil-PH.md) | [NL](README_NL.md) | [JP](README_ja-JP.md) | [IT](README_it-IT.md) | [VI](README_vi-VN.md) | [हिंदी](README_hn-IN.md)
 
 **請注意:** 歡迎成為本專案的貢獻者。在提交 PR 之前, 請仔細閱讀[程式碼規範](https://github.com/Grasscutters/Grasscutter/blob/stable/CONTRIBUTING.md)。
 
@@ -29,7 +29,7 @@
 - 下載遊戲版本 REL3.7（如果你沒有的話，可以在[這裡](https://github.com/MAnggiarMustofa/GI-Download-Library/blob/main/GenshinImpact/Client/3.7.0.md)找到 3.7 客戶端）
 
 - 下載 [最新的 Cultivation 版本](https://github.com/Grasscutters/Cultivation/releases/latest)。使用 `.msi` 安裝程式。
-- 以管理員身分打開 Culivation，按右上角的下載按鈕。
+- 以管理員身分打開 Cultivation，按右上角的下載按鈕。
 - 點擊 `Download All-in-One`
 - 點擊右上角的齒輪
 - 將遊戲安裝路徑設置為你的遊戲所在的位置。

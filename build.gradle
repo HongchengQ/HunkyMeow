@@ -39,6 +39,7 @@ spotless {
         target fileTree(rootDir) {
             include '**/*.java'
             exclude '**/generated/**/*.*'
+            exclude '.idea/**/*.*'
         }
 
         importOrder('io.grasscutter', '', 'java', 'javax', '\\#java', '\\#') // Configure import order.
@@ -57,7 +58,7 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 group = 'io.grasscutter'
-version = '1.6.3'
+version = '1.7.4'
 
 java {
     withJavadocJar()
@@ -283,7 +284,7 @@ idea {
         // proto files and generated Java files are automatically added as
         // source dirs.
         // If you have additional sources, add them here:
-        sourceDirs += file('/proto/');
+        sourceDirs += file('/proto/')
     }
 }
 
@@ -310,6 +311,8 @@ javadoc {
     // Add this to avoid warning caused by lack of comments in proto generated java files
     options.addStringOption('Xdoclint:none', '-quiet')
     exclude '**/*.md'
+    exclude 'src/handbook/**/*.*'
+    exclude 'src/generated/**/*.*'
 }
 
 tasks.register('injectGitHash') {
@@ -354,33 +357,39 @@ tasks.register('generateHandbook') {
         println('NPM is not installed. Skipping handbook generation.')
     } else {
         // Check if the handbook resources are present.
-        if (!file('src/handbook/data/commands.json')) {
+        if (!file('src/handbook/data/commands.json').exists()) {
             println('Command data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/avatars.csv')) {
+        if (!file('src/handbook/data/avatars.csv').exists()) {
             println('Avatar data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/entities.csv')) {
+        if (!file('src/handbook/data/entities.csv').exists()) {
             println('Entity data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/items.csv')) {
+        if (!file('src/handbook/data/items.csv').exists()) {
             println('Item data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/mainquests.csv')) {
+        if (!file('src/handbook/data/mainquests.csv').exists()) {
             println('Main quest data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/quests.csv')) {
+        if (!file('src/handbook/data/quests.csv').exists()) {
             println('Quest data was not found. Skipping handbook generation.')
             return
         }
-        if (!file('src/handbook/data/scenes.csv')) {
+        if (!file('src/handbook/data/scenes.csv').exists()) {
             println('Scene data was not found. Skipping handbook generation.')
             return
+        }
+
+        // Install dependencies before building.
+        exec {
+            workingDir 'src/handbook'
+            commandLine npm, 'install'
         }
 
         // Build the handbook.

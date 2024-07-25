@@ -2,12 +2,9 @@ package emu.grasscutter.server.packet.send;
 
 import emu.grasscutter.game.home.HomeBlockItem;
 import emu.grasscutter.game.player.Player;
-import emu.grasscutter.net.packet.BasePacket;
-import emu.grasscutter.net.packet.PacketOpcodes;
-import emu.grasscutter.net.proto.HomeComfortInfoNotifyOuterClass;
-import emu.grasscutter.net.proto.HomeModuleComfortInfoOuterClass;
-import java.util.ArrayList;
-import java.util.List;
+import emu.grasscutter.net.packet.*;
+import emu.grasscutter.net.proto.*;
+import java.util.*;
 
 public class PacketHomeComfortInfoNotify extends BasePacket {
 
@@ -25,7 +22,7 @@ public class PacketHomeComfortInfoNotify extends BasePacket {
             var homeScene = player.getHome().getHomeSceneItem(moduleId + 2000);
             var blockComfortList =
                     homeScene.getBlockItems().values().stream().map(HomeBlockItem::calComfort).toList();
-            var homeRoomScene = player.getHome().getHomeSceneItem(homeScene.getRoomSceneId());
+            var homeRoomScene = player.getHome().getMainHouseItem(moduleId + 2000);
 
             comfortInfoList.add(
                     HomeModuleComfortInfoOuterClass.HomeModuleComfortInfo.newBuilder()

@@ -3,18 +3,14 @@ package emu.grasscutter.command.commands;
 import static emu.grasscutter.command.CommandHelpers.*;
 import static emu.grasscutter.utils.lang.Language.translate;
 
-import emu.grasscutter.command.Command;
-import emu.grasscutter.command.CommandHandler;
+import emu.grasscutter.command.*;
 import emu.grasscutter.game.entity.*;
 import emu.grasscutter.game.player.Player;
-import emu.grasscutter.game.props.ElementType;
-import emu.grasscutter.game.props.FightProperty;
+import emu.grasscutter.game.props.*;
 import emu.grasscutter.game.world.Scene;
 import emu.grasscutter.server.event.entity.EntityDamageEvent;
 import emu.grasscutter.server.packet.send.PacketEntityFightPropUpdateNotify;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import lombok.Setter;
@@ -55,7 +51,10 @@ public final class EntityCommand implements CommandHandler {
         }
 
         param.scene = targetPlayer.getScene();
-        var entity = param.scene.getEntityByConfigId(param.configId);
+        // TODO Might want to allow groupId specification,
+        // because there can be more than one entity with
+        // the given config ID.
+        var entity = param.scene.getFirstEntityByConfigId(param.configId);
 
         if (entity == null) {
             CommandHandler.sendMessage(sender, translate(sender, "commands.entity.not_found_error"));

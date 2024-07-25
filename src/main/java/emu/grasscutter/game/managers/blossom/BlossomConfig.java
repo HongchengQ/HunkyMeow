@@ -1,7 +1,6 @@
 package emu.grasscutter.game.managers.blossom;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.Getter;
 
 public class BlossomConfig {

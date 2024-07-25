@@ -4,8 +4,7 @@ import static emu.grasscutter.game.quest.enums.QuestContent.QUEST_CONTENT_QUEST_
 
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.excels.quest.QuestData;
-import emu.grasscutter.game.quest.GameQuest;
-import emu.grasscutter.game.quest.QuestValueContent;
+import emu.grasscutter.game.quest.*;
 
 @QuestValueContent(QUEST_CONTENT_QUEST_VAR_EQUAL)
 public class ContentQuestVarEqual extends BaseContent {

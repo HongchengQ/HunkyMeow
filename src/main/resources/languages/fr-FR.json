@@ -324,6 +324,9 @@
     "setProp": {
       "description": "Définit des propriétes pour votre compte. Des choses comme le godemode peuvent être activés avec cette commande, et le déblocage de l'abysse ainsi que l'avancement du PB.\n\tValues for <prop>: godmode | nostamina | unlimitedenergy | abyss | worldlevel | bplevel\n\t(cont.) see PlayerProperty enum for other possible values, of form PROP_MAX_SPRING_VOLUME -> max_spring_volume"
     },
+    "setSceneTag": {
+      "description": "Définit les balises de scène spécifiques au compte. Cela permet de contrôler des choses comme les rochers qui bloquent les portes, les bâtiments qui sont visibles, et d'autres choses (généralement liées aux quêtes) qui affectent ce qui est visible dans votre monde."
+    },
     "setStats": {
       "description": "Définit les propriétés de combat de votre personnage actif\n\tValeurs pour <stat>: hp | maxhp | def | atk | em | er | crate | cdmg | cdr | heal | heali | shield | defi\n\t(cont.) Bonus de dégât élémentaire: epyro | ecryo | ehydro | egeo | edendro | eelectro | ephys\n\t(cont.) Résistance élémentaire: respyro | rescryo | reshydro | resgeo | resdendro | reselectro | resphys",
       "locked_to": "%s verrouillé à %s.",
@@ -407,8 +410,11 @@
       "failure": "Échec, joueur introuvable.",
       "description": "Retire le bannissement d'un joueur"
     },
-    "troubleshoot": {
+    "info": {
       "description": "Génère des informations de déboguage pour le dépannage."
+    },
+    "debug": {
+      "description": "🇺🇸Useful debugging commands for developers."
     }
   },
   "gacha": {

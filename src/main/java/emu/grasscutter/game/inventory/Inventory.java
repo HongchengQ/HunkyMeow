@@ -13,11 +13,14 @@ import emu.grasscutter.game.props.*;
 import emu.grasscutter.game.props.ItemUseAction.UseItemParams;
 import emu.grasscutter.game.quest.enums.QuestContent;
 import emu.grasscutter.net.proto.ItemParamOuterClass.ItemParam;
+import emu.grasscutter.server.event.player.PlayerObtainItemEvent;
 import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.Utils;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import java.util.*;
+import javax.annotation.Nullable;
+import lombok.val;
 
 public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
     private final Long2ObjectMap<GameItem> store;
@@ -58,8 +61,39 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
         this.getInventoryTypes().put(type.getValue(), tab);
     }
 
+    /**
+     * Finds the first item in the inventory with the given item id.
+     *
+     * @param itemId The item id to search for.
+     * @return The first item found with the given item id, or null if no item was
+     */
+    public GameItem getFirstItem(int itemId) {
+        return this.getItems().values().stream()
+                .filter(item -> item.getItemId() == itemId)
+                .findFirst()
+                .orElse(null);
+    }
+
     public GameItem getItemByGuid(long id) {
         return this.getItems().get(id);
+    }
+
+    @Nullable public InventoryTab getInventoryTabByItemId(int itemId) {
+        val itemData = GameData.getItemDataMap().get(itemId);
+        if (itemData == null || itemData.getItemType() == null) {
+            return null;
+        }
+        return getInventoryTab(itemData.getItemType());
+    }
+
+    @Nullable public GameItem getItemById(int itemId) {
+        val inventoryTab = this.getInventoryTabByItemId(itemId);
+        return inventoryTab != null ? inventoryTab.getItemById(itemId) : null;
+    }
+
+    public int getItemCountById(int itemId) {
+        val inventoryTab = this.getInventoryTabByItemId(itemId);
+        return inventoryTab != null ? inventoryTab.getItemCountById(itemId) : 0;
     }
 
     public boolean addItem(int itemId) {
@@ -88,6 +122,9 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
         if (result != null) {
             this.triggerAddItemEvents(result);
             getPlayer().sendPacket(new PacketStoreItemChangeNotify(result));
+
+            // Call PlayerObtainItemEvent.
+            new PlayerObtainItemEvent(this.getPlayer(), item).call();
             return true;
         }
 
@@ -148,6 +185,48 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
             getPlayer().sendPacket(new PacketItemAddHintNotify(items, reason));
         }
         getPlayer().sendPacket(new PacketStoreItemChangeNotify(changedItems));
+    }
+
+    /**
+     * Checks to see if the player has the item in their inventory. This will succeed if the player
+     * has at least the minimum count of the item.
+     *
+     * @param itemId The item id to check for.
+     * @param minCount The minimum count of the item to check for.
+     * @return True if the player has the item, false otherwise.
+     */
+    public boolean hasItem(int itemId, int minCount) {
+        return hasItem(itemId, minCount, false);
+    }
+
+    /**
+     * Checks to see if the player has the item in their inventory.
+     *
+     * @param itemId The item id to check for.
+     * @param count The count of the item to check for.
+     * @param enforce If true, the player must have the exact amount. If false, the player must have
+     *     at least the amount.
+     * @return True if the player has the item, false otherwise.
+     */
+    public boolean hasItem(int itemId, int count, boolean enforce) {
+        var item = this.getFirstItem(itemId);
+        if (item == null) return false;
+
+        return enforce ? item.getCount() == count : item.getCount() >= count;
+    }
+
+    /**
+     * Checks to see if the player has the item in their inventory. This is not exact.
+     *
+     * @param items A map of item game IDs to their count.
+     * @return True if the player has the items, false otherwise.
+     */
+    public boolean hasAllItems(Collection<ItemParam> items) {
+        for (var item : items) {
+            if (!this.hasItem(item.getItemId(), item.getCount(), false)) return false;
+        }
+
+        return true;
     }
 
     private void triggerAddItemEvents(GameItem result) {
@@ -434,8 +513,34 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
         }
     }
 
+    /**
+     * Performs a bulk delete of items.
+     *
+     * @param items A map of item game IDs to the amount of items to remove.
+     */
+    public void removeItems(Collection<ItemParam> items) {
+        for (var entry : items) {
+            this.removeItem(entry.getItemId(), entry.getCount());
+        }
+    }
+
     public boolean removeItem(long guid) {
         return removeItem(guid, 1);
+    }
+
+    /**
+     * Removes an item from the player's inventory. This uses the item ID to find the first stack of
+     * the item's type.
+     *
+     * @param itemId The ID of the item to remove.
+     * @param count The amount of items to remove.
+     * @return True if the item was removed, false otherwise.
+     */
+    public synchronized boolean removeItem(int itemId, int count) {
+        var item = this.getItems().values().stream().filter(i -> i.getItemId() == itemId).findFirst();
+
+        // Check if the item is in the player's inventory.
+        return item.filter(gameItem -> this.removeItem(gameItem, count)).isPresent();
     }
 
     public synchronized boolean removeItem(long guid, int count) {
@@ -562,7 +667,7 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
                 tab = getInventoryTab(item.getItemData().getItemType());
             }
 
-            putItem(item, tab);
+            this.putItem(item, tab);
 
             // Equip to a character if possible
             if (item.isEquipped()) {

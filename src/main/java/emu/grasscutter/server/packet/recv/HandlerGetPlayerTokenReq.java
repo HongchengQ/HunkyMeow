@@ -2,20 +2,16 @@ package emu.grasscutter.server.packet.recv;
 
 import static emu.grasscutter.config.Configuration.ACCOUNT;
 
-import emu.grasscutter.Grasscutter;
+import emu.grasscutter.*;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.player.Player;
-import emu.grasscutter.net.packet.Opcodes;
-import emu.grasscutter.net.packet.PacketHandler;
-import emu.grasscutter.net.packet.PacketOpcodes;
+import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.GetPlayerTokenReqOuterClass.GetPlayerTokenReq;
 import emu.grasscutter.server.event.game.PlayerCreationEvent;
 import emu.grasscutter.server.game.GameSession;
 import emu.grasscutter.server.game.GameSession.SessionState;
 import emu.grasscutter.server.packet.send.PacketGetPlayerTokenRsp;
-import emu.grasscutter.utils.Crypto;
-import emu.grasscutter.utils.DispatchUtils;
-import emu.grasscutter.utils.Utils;
+import emu.grasscutter.utils.*;
 import emu.grasscutter.utils.helpers.ByteHelper;
 import java.nio.ByteBuffer;
 import java.security.Signature;
@@ -32,9 +28,15 @@ public class HandlerGetPlayerTokenReq extends PacketHandler {
         var account = DispatchUtils.authenticate(accountId, req.getAccountToken());
 
         // Check the account.
-        if (account == null) {
+        if (account == null && !DebugConstants.ACCEPT_CLIENT_TOKEN) {
             session.close();
             return;
+        } else if (account == null && DebugConstants.ACCEPT_CLIENT_TOKEN) {
+            account = DispatchUtils.getAccountById(accountId);
+            if (account == null) {
+                session.close();
+                return;
+            }
         }
 
         // Set account
@@ -109,32 +111,32 @@ public class HandlerGetPlayerTokenReq extends PacketHandler {
 
         // Only >= 2.7.50 has this
         if (req.getKeyId() > 0) {
+            var encryptSeed = session.getEncryptSeed();
             try {
                 var cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                 cipher.init(Cipher.DECRYPT_MODE, Crypto.CUR_SIGNING_KEY);
 
-                var client_seed_encrypted = Utils.base64Decode(req.getClientRandKey());
-                var client_seed = ByteBuffer.wrap(cipher.doFinal(client_seed_encrypted)).getLong();
+                var clientSeedEncrypted = Utils.base64Decode(req.getClientRandKey());
+                var clientSeed = ByteBuffer.wrap(cipher.doFinal(clientSeedEncrypted)).getLong();
 
-                var seed_bytes =
-                        ByteBuffer.wrap(new byte[8]).putLong(Crypto.ENCRYPT_SEED ^ client_seed).array();
+                var seedBytes = ByteBuffer.wrap(new byte[8]).putLong(encryptSeed ^ clientSeed).array();
 
                 cipher.init(Cipher.ENCRYPT_MODE, Crypto.EncryptionKeys.get(req.getKeyId()));
-                var seed_encrypted = cipher.doFinal(seed_bytes);
+                var seedEncrypted = cipher.doFinal(seedBytes);
 
                 var privateSignature = Signature.getInstance("SHA256withRSA");
                 privateSignature.initSign(Crypto.CUR_SIGNING_KEY);
-                privateSignature.update(seed_bytes);
+                privateSignature.update(seedBytes);
 
                 session.send(
                         new PacketGetPlayerTokenRsp(
                                 session,
-                                Utils.base64Encode(seed_encrypted),
+                                Utils.base64Encode(seedEncrypted),
                                 Utils.base64Encode(privateSignature.sign())));
             } catch (Exception ignored) {
                 // Only UA Patch users will have exception
                 var clientBytes = Utils.base64Decode(req.getClientRandKey());
-                var seed = ByteHelper.longToBytes(Crypto.ENCRYPT_SEED);
+                var seed = ByteHelper.longToBytes(encryptSeed);
                 Crypto.xor(clientBytes, seed);
 
                 var base64str = Utils.base64Encode(clientBytes);

@@ -1,9 +1,7 @@
 package emu.grasscutter.data.excels;
 
-import emu.grasscutter.data.GameResource;
-import emu.grasscutter.data.ResourceType;
-import java.util.HashMap;
-import java.util.Map;
+import emu.grasscutter.data.*;
+import java.util.*;
 import lombok.Getter;
 
 @Getter

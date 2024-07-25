@@ -1,11 +1,8 @@
 package emu.grasscutter.game.mail;
 
-import static emu.grasscutter.net.proto.MailItemOuterClass.MailItem.*;
+import static emu.grasscutter.net.proto.MailItemOuterClass.MailItem.newBuilder;
 
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Indexed;
-import dev.morphia.annotations.Transient;
+import dev.morphia.annotations.*;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.net.proto.*;
@@ -13,8 +10,7 @@ import emu.grasscutter.net.proto.EquipParamOuterClass.EquipParam;
 import emu.grasscutter.net.proto.MailCollectStateOuterClass.MailCollectState;
 import emu.grasscutter.net.proto.MailTextContentOuterClass.MailTextContent;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import org.bson.types.ObjectId;
 
 @Entity(value = "mail", useDiscriminator = false)

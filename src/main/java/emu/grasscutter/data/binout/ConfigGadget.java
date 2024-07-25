@@ -1,8 +1,7 @@
 package emu.grasscutter.data.binout;
 
 import javax.annotation.Nullable;
-import lombok.AccessLevel;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data

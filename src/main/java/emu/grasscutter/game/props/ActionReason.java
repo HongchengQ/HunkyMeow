@@ -1,9 +1,7 @@
 package emu.grasscutter.game.props;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.*;
+import java.util.*;
 import java.util.stream.Stream;
 
 public enum ActionReason {
@@ -179,7 +177,8 @@ public enum ActionReason {
     ChannellerSlabLoopDungeonFirstPassReward(1090),
     ChannellerSlabLoopDungeonScoreReward(1091),
     HomeLimitedShopBuy(1092),
-    HomeCoinCollect(1093);
+    HomeCoinCollect(1093),
+    HomeAvatarEventReward(1100);
 
     private static final Int2ObjectMap<ActionReason> map = new Int2ObjectOpenHashMap<>();
     private static final Map<String, ActionReason> stringMap = new HashMap<>();

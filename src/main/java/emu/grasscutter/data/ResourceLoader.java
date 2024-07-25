@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import java.util.stream.*;
 import javax.script.*;
 import lombok.*;
-import org.reflections.Reflections;
 
 public final class ResourceLoader {
 
@@ -41,8 +40,7 @@ public final class ResourceLoader {
 
     // Get a list of all resource classes, sorted by loadPriority
     public static List<Class<?>> getResourceDefClasses() {
-        Reflections reflections = new Reflections(ResourceLoader.class.getPackage().getName());
-        Set<?> classes = reflections.getSubTypesOf(GameResource.class);
+        Set<?> classes = Grasscutter.reflector.getSubTypesOf(GameResource.class);
 
         List<Class<?>> classList = new ArrayList<>(classes.size());
         classes.forEach(
@@ -62,9 +60,8 @@ public final class ResourceLoader {
     }
 
     // Get a list containing sets of all resource classes, sorted by loadPriority
-    protected static List<Set<Class<?>>> getResourceDefClassesPrioritySets() {
-        val reflections = new Reflections(ResourceLoader.class.getPackage().getName());
-        val classes = reflections.getSubTypesOf(GameResource.class);
+    private static List<Set<Class<?>>> getResourceDefClassesPrioritySets() {
+        val classes = Grasscutter.reflector.getSubTypesOf(GameResource.class);
         val priorities = ResourceType.LoadPriority.getInOrder();
         Grasscutter.getLogger().debug("Priorities are " + priorities);
         val map = new LinkedHashMap<ResourceType.LoadPriority, Set<Class<?>>>(priorities.size());
@@ -780,7 +777,7 @@ public final class ResourceLoader {
                         if (cs == null) return;
 
                         try {
-                            cs.eval(bindings);
+                            ScriptLoader.eval(cs, bindings);
                             // these are Map<String, class>
                             var teleportDataMap =
                                     ScriptLoader.getSerializer()
@@ -964,7 +961,7 @@ public final class ResourceLoader {
         }
 
         try {
-            cs.eval(bindings);
+            ScriptLoader.eval(cs, bindings);
             // these are Map<String, class>
             var replacementsMap =
                     ScriptLoader.getSerializer()

@@ -5,7 +5,7 @@ import emu.grasscutter.net.packet.PacketHandler;
 import emu.grasscutter.net.packet.PacketOpcodes;
 import emu.grasscutter.net.proto.HomeUpdateArrangementInfoReqOuterClass;
 import emu.grasscutter.server.game.GameSession;
-import emu.grasscutter.server.packet.send.PacketHomeUpdateArrangementInfoRsp;
+import emu.grasscutter.server.packet.send.*;
 
 @Opcodes(PacketOpcodes.HomeUpdateArrangementInfoReq)
 public class HandlerHomeUpdateArrangementInfoReq extends PacketHandler {
@@ -18,7 +18,19 @@ public class HandlerHomeUpdateArrangementInfoReq extends PacketHandler {
         var homeScene =
                 session.getPlayer().getHome().getHomeSceneItem(session.getPlayer().getSceneId());
 
-        homeScene.update(req.getSceneArrangementInfo());
+        var roomSceneId = homeScene.getRoomSceneId();
+        homeScene.update(req.getSceneArrangementInfo(), session.getPlayer());
+        if (roomSceneId != homeScene.getRoomSceneId()) {
+            session.getPlayer().getHome().onMainHouseChanged();
+        }
+
+        session.getPlayer().getCurHomeWorld().getModuleManager().onUpdateArrangement();
+        session.send(new PacketHomeAvatarRewardEventNotify(session.getPlayer()));
+        session.send(
+                new PacketHomeBasicInfoNotify(session.getPlayer(), session.getPlayer().isInEditMode()));
+        session.send(new PacketHomeAvatarTalkFinishInfoNotify(session.getPlayer()));
+        session.send(new PacketHomeAvatarSummonAllEventNotify(session.getPlayer()));
+        session.send(new PacketHomeMarkPointNotify(session.getPlayer()));
 
         session.getPlayer().getHome().save();
 

@@ -108,15 +108,6 @@ public final class Grasscutter {
         logger.info(translate("messages.status.game_version", GameConstants.VERSION));
         logger.info(translate("messages.status.version", BuildConfig.VERSION, BuildConfig.GIT_HASH));
 
-        if (runMode != ServerRunMode.DISPATCH_ONLY) {
-            // Load all resources.
-            Grasscutter.updateDayOfWeek();
-            ResourceLoader.loadAll();
-
-            // Generate handbooks.
-            Tools.createGmHandbooks(false);
-        }
-
         // Initialize database.
         DatabaseManager.initialize();
 
@@ -150,16 +141,33 @@ public final class Grasscutter {
             httpServer.addRouter(HandbookHandler.class);
         }
 
+        // Check if the HTTP server should start.
+        var started = config.server.http.startImmediately;
+        if (started) {
+            Grasscutter.getLogger().info("HTTP server is starting...");
+            Grasscutter.startDispatch();
+
+            Grasscutter.getLogger().info("Game server is starting...");
+        }
+
+        // Load resources.
+        if (runMode != ServerRunMode.DISPATCH_ONLY) {
+            // Load all resources.
+            Grasscutter.updateDayOfWeek();
+            ResourceLoader.loadAll();
+
+            // Generate handbooks.
+            Tools.createGmHandbooks(false);
+            // Generate gacha mappings.
+            Tools.generateGachaMappings();
+        }
+
         // Start servers.
         if (runMode == ServerRunMode.HYBRID) {
-            httpServer.start();
+            if (!started) Grasscutter.startDispatch();
             gameServer.start();
         } else if (runMode == ServerRunMode.DISPATCH_ONLY) {
-            httpServer.start();
-
-            // Start dispatch server.
-            dispatchServer = new DispatchServer("0.0.0.0", 1111);
-            dispatchServer.start();
+            if (!started) Grasscutter.startDispatch();
         } else if (runMode == ServerRunMode.GAME_ONLY) {
             gameServer.start();
         } else {
@@ -201,6 +209,16 @@ public final class Grasscutter {
                 dbExecutor.shutdownNow();
             }
         } catch (InterruptedException ignored) {
+        }
+    }
+
+    /** Utility method for starting the: - SDK server - Dispatch server */
+    public static void startDispatch() throws Exception {
+        httpServer.start(); // Start the SDK/HTTP server.
+
+        if (Grasscutter.getRunMode() == ServerRunMode.DISPATCH_ONLY) {
+            dispatchServer = new DispatchServer("0.0.0.0", 1111); // Create the dispatch server.
+            dispatchServer.start(); // Start the dispatch server.
         }
     }
 

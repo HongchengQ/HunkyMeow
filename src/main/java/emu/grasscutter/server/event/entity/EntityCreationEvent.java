@@ -3,9 +3,7 @@ package emu.grasscutter.server.event.entity;
 import emu.grasscutter.game.entity.GameEntity;
 import emu.grasscutter.server.event.Event;
 import javax.annotation.Nullable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /** Invoked when an entity is created. */
 @AllArgsConstructor

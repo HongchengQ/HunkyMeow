@@ -9,6 +9,8 @@ import lombok.ToString;
 public class AbilityModifier implements Serializable {
     private static final long serialVersionUID = -2001232313615923575L;
 
+    public State state;
+
     @SerializedName(
             value = "onAdded",
             alternate = {"KCICDEJLIJD"})
@@ -40,6 +42,7 @@ public class AbilityModifier implements Serializable {
     public String stacking;
 
     public AbilityMixinData[] modifierMixins;
+    public AbilityModifierProperty properties;
 
     public ElementType elementType;
     public DynamicFloat elementDurability = DynamicFloat.ZERO;
@@ -271,18 +274,20 @@ public class AbilityModifier implements Serializable {
 
         @SerializedName(
                 value = "amount",
-                alternate = {"PDLLIFICICJ", "cdRatio"})
+                alternate = {"LNFMOCKIAGK", "PDLLIFICICJ", "cdRatio"})
         public DynamicFloat amount = DynamicFloat.ZERO;
 
-        @SerializedName(value = "amountByTargetCurrentHPRatio")
+        @SerializedName(
+                value = "amountByTargetCurrentHPRatio",
+                alternate = {"GMFELAKANEF"})
         public DynamicFloat amountByCasterAttackRatio = DynamicFloat.ZERO;
 
-        @SerializedName(value = "unused")
+        @SerializedName(value = "unknown2")
         public DynamicFloat amountByCasterCurrentHPRatio = DynamicFloat.ZERO;
 
         @SerializedName(
-                value = "unknown",
-                alternate = {"HFNJHOGGFKB", "GEJGGCIOLKN"})
+                value = "amountByCasterMaxHPRatio",
+                alternate = {"PKPBLCNMPIG", "HFNJHOGGFKB", "GEJGGCIOLKN"})
         public DynamicFloat amountByCasterMaxHPRatio = DynamicFloat.ZERO;
 
         public DynamicFloat amountByGetDamage = DynamicFloat.ZERO;
@@ -290,7 +295,7 @@ public class AbilityModifier implements Serializable {
         @SerializedName(value = "amountByTargetMaxHPRatio")
         public DynamicFloat amountByTargetCurrentHPRatio = DynamicFloat.ZERO;
 
-        @SerializedName(value = "amountByCasterMaxHPRatio")
+        @SerializedName(value = "unknown1", alternate = "GGLMMJHNGMO")
         public DynamicFloat amountByTargetMaxHPRatio = DynamicFloat.ZERO;
 
         public DynamicFloat limboByTargetMaxHPRatio = DynamicFloat.ZERO;
@@ -316,12 +321,16 @@ public class AbilityModifier implements Serializable {
         public boolean ownerIsTarget;
 
         public boolean isFromOwner;
+        public String key;
         public String globalValueKey;
         public String abilityFormula;
         public String srcTarget, dstTarget;
         public String srcKey, dstKey;
 
         public int skillID;
+        public int resistanceListID;
+        public int monsterID;
+        public int summonTag;
 
         public AbilityModifierAction[] actions;
         public AbilityModifierAction[] successActions;
@@ -340,11 +349,47 @@ public class AbilityModifier implements Serializable {
         public int param2;
         public int param3;
 
+        public String funcName;
+        public LuaCallType luaCallType;
+
+        @SerializedName("CallParamList")
+        public int[] callParamList;
+
+        public String content;
+
+        public enum LuaCallType {
+            FromGroup,
+            CurGalleryControlGroup,
+            CurChallengeGroup,
+            SpecificGroup,
+            AbilityGroupSourceGroup,
+            CurScenePlay
+        }
+
         public enum DropType {
             LevelControl,
             BigWorldOnly,
             ForceDrop
         }
+    }
+
+    public static class AbilityModifierProperty implements Serializable {
+        public float Actor_HpThresholdRatio;
+        // Add more properties here when GC needs them.
+    }
+
+    public enum State {
+        LockHP,
+        Invincible,
+        ElementFreeze,
+        ElementPetrifaction,
+        DenyLockOn,
+        Limbo,
+        NoHeal,
+        IgnoreAddEnergy,
+        IsGhostToEnemy,
+        IsGhostToAllied,
+        UnlockFrequencyLimit
     }
 
     // The following should be implemented into DynamicFloat if older resource formats need to be

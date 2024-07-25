@@ -5,9 +5,9 @@ import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.config.ConfigEntityGadget;
 import emu.grasscutter.data.binout.config.fields.ConfigAbilityData;
 import emu.grasscutter.data.excels.GadgetData;
+import emu.grasscutter.data.excels.monster.MonsterCurveData;
 import emu.grasscutter.game.entity.gadget.*;
-import emu.grasscutter.game.entity.gadget.platform.BaseRoute;
-import emu.grasscutter.game.entity.gadget.platform.ConfigRoute;
+import emu.grasscutter.game.entity.gadget.platform.*;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.props.*;
 import emu.grasscutter.game.world.*;
@@ -105,6 +105,25 @@ public class EntityGadget extends EntityBaseGadget {
         this.bornRot = this.getRotation().clone();
         this.fillFightProps(configGadget);
 
+        // Check if this gadget is the abyss defense objective's gadget.
+        // That doesn't have a level and defaults to having 5000 hp, so it dies in like 2 hits on 11-1.
+        // I'll forgive player skill issues and scale its hp up here.
+        // TODO: find out how its fight props are actually scaled
+        if (gadgetData.getJsonName().equals("SceneObj_Gear_Operator_Mamolu_Entity")) {
+            MonsterCurveData curve = GameData.getMonsterCurveDataMap().get(11);
+            if (curve != null) {
+                FightProperty[] hpProps = {
+                    FightProperty.FIGHT_PROP_MAX_HP,
+                    FightProperty.FIGHT_PROP_BASE_HP,
+                    FightProperty.FIGHT_PROP_CUR_HP
+                };
+                for (var prop : hpProps) {
+                    setFightProperty(
+                            prop, this.getFightProperty(prop) * curve.getMultByProp("GROW_CURVE_HP_ENVIRONMENT"));
+                }
+            }
+        }
+
         if (GameData.getGadgetMappingMap().containsKey(gadgetId)) {
             var controllerName = GameData.getGadgetMappingMap().get(gadgetId).getServerController();
             this.setEntityController(EntityControllerScriptManager.getGadgetController(controllerName));
@@ -150,6 +169,7 @@ public class EntityGadget extends EntityBaseGadget {
     public void updateState(int state) {
         if (state == this.getState()) return; // Don't triggers events
 
+        var oldState = this.getState();
         this.setState(state);
         ticksSinceChange = getScene().getSceneTimeSeconds();
         this.getScene().broadcastPacket(new PacketGadgetStateNotify(this, state));
@@ -157,7 +177,11 @@ public class EntityGadget extends EntityBaseGadget {
                 .getScriptManager()
                 .callEvent(
                         new ScriptArgs(
-                                this.getGroupId(), EventType.EVENT_GADGET_STATE_CHANGE, state, this.getConfigId()));
+                                        this.getGroupId(),
+                                        EventType.EVENT_GADGET_STATE_CHANGE,
+                                        state,
+                                        this.getConfigId())
+                                .setParam3(oldState));
     }
 
     @Deprecated(forRemoval = true) // Dont use!
@@ -252,6 +276,9 @@ public class EntityGadget extends EntityBaseGadget {
             var route = this.getScene().getSceneRouteById(configRoute.getRouteId());
             if (route != null) {
                 var points = route.getPoints();
+                if (configRoute.getStartIndex() == points.length - 1) {
+                    configRoute.setStartIndex(0);
+                }
                 val currIndex = configRoute.getStartIndex();
 
                 Position prevpos;
@@ -297,6 +324,9 @@ public class EntityGadget extends EntityBaseGadget {
                                                         }
                                                         configRoute.setStartIndex(I);
                                                         this.position.set(points[I].getPos());
+                                                        if (I == points.length - 1) {
+                                                            configRoute.setStarted(false);
+                                                        }
                                                     },
                                                     (int) time));
                 }

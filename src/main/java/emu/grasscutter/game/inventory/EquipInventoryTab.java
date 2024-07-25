@@ -1,7 +1,6 @@
 package emu.grasscutter.game.inventory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class EquipInventoryTab implements InventoryTab {
     private final Set<GameItem> items;
@@ -35,5 +34,10 @@ public class EquipInventoryTab implements InventoryTab {
     @Override
     public int getMaxCapacity() {
         return this.maxCapacity;
+    }
+
+    @Override
+    public int getItemCountById(int itemId) {
+        return (int) items.stream().filter(item -> item.getItemId() == itemId).count();
     }
 }

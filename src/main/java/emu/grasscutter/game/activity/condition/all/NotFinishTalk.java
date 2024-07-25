@@ -2,10 +2,8 @@ package emu.grasscutter.game.activity.condition.all;
 
 import static emu.grasscutter.game.activity.condition.ActivityConditions.NEW_ACTIVITY_COND_NOT_FINISH_TALK;
 
-import emu.grasscutter.game.activity.ActivityConfigItem;
-import emu.grasscutter.game.activity.PlayerActivityData;
-import emu.grasscutter.game.activity.condition.ActivityCondition;
-import emu.grasscutter.game.activity.condition.ActivityConditionBaseHandler;
+import emu.grasscutter.game.activity.*;
+import emu.grasscutter.game.activity.condition.*;
 
 @ActivityCondition(NEW_ACTIVITY_COND_NOT_FINISH_TALK)
 public class NotFinishTalk extends ActivityConditionBaseHandler {

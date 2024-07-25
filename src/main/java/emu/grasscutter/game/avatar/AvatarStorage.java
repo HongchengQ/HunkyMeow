@@ -119,10 +119,13 @@ public class AvatarStorage extends BasePlayerManager implements Iterable<Avatar>
             entity =
                     EntityCreationEvent.call(
                             EntityAvatar.class, new Class<?>[] {Avatar.class}, new Object[] {avatar});
-            getPlayer().sendPacket(new PacketAvatarChangeCostumeNotify(entity));
+            getPlayer().getWorld().broadcastPacket(new PacketAvatarChangeCostumeNotify(entity));
         } else {
-            getPlayer().getScene().broadcastPacket(new PacketAvatarChangeCostumeNotify(entity));
+            getPlayer().getWorld().broadcastPacket(new PacketAvatarChangeCostumeNotify(entity));
         }
+
+        // Notify costume change to HomeWorld
+        this.getPlayer().getHome().onPlayerChangedAvatarCostume(avatar);
 
         // Done
         return true;
@@ -157,6 +160,13 @@ public class AvatarStorage extends BasePlayerManager implements Iterable<Avatar>
             // Add to avatar storage
             this.avatars.put(avatar.getAvatarId(), avatar);
             this.avatarsGuid.put(avatar.getGuid(), avatar);
+
+            // Set main character skill depot data, fixes loading with no element every login
+            if ((avatar.getAvatarId() == 10000007) || (avatar.getAvatarId() == 10000005)) {
+                avatar.setSkillDepot(skillDepot);
+                avatar.setSkillDepotData(skillDepot);
+                avatar.save();
+            }
         }
 
         this.setLoaded(true);

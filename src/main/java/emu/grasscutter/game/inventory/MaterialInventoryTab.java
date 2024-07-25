@@ -1,7 +1,7 @@
 package emu.grasscutter.game.inventory;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.*;
+import lombok.val;
 
 public class MaterialInventoryTab implements InventoryTab {
     private final Int2ObjectMap<GameItem> items;
@@ -35,5 +35,11 @@ public class MaterialInventoryTab implements InventoryTab {
     @Override
     public int getMaxCapacity() {
         return this.maxCapacity;
+    }
+
+    @Override
+    public int getItemCountById(int itemId) {
+        val item = getItemById(itemId);
+        return item != null ? item.getCount() : 0;
     }
 }

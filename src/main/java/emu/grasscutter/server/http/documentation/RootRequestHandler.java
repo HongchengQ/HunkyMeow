@@ -4,8 +4,7 @@ import static emu.grasscutter.utils.lang.Language.translate;
 
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.utils.FileUtils;
-import io.javalin.http.ContentType;
-import io.javalin.http.Context;
+import io.javalin.http.*;
 import java.io.IOException;
 import java.nio.file.Files;
 
