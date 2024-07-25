@@ -128,7 +128,7 @@ public class CombineManger extends BaseGameSystem {
                         player.getInventory().addItem(combineBack);
                         result.getBack().add(combineBack);
                     } else {
-                        HashMap<Integer, Integer> mapIdCount = new HashMap<>();
+                        Map<Integer, Integer> mapIdCount = new HashMap<>();
                         for (int i = 0; i < luckyCount; i++) {
                             var randomId = combineData
                                     .getMaterialItems()
@@ -152,10 +152,10 @@ public class CombineManger extends BaseGameSystem {
                     // material excluded) when crafting. The rarity is that of the base material."
                     // from wiki
                     // map of material id to region id
-                    HashMap<Integer, Integer> itemToRegion = GameConstants.YAE_MIKO_ITEM_TO_REGION_COMBINE_BONUS;
+                    Map<Integer, Integer> itemToRegion = GameConstants.YAE_MIKO_ITEM_TO_REGION_COMBINE_BONUS;
 
                     // get list of material id with every region
-                    HashMap<Integer, List<Integer>> regionToId = GameConstants.YAE_MIKO_REGION_TO_ITEM_COMBINE_BONUS;
+                    Map<Integer, List<Integer>> regionToId = GameConstants.YAE_MIKO_REGION_TO_ITEM_COMBINE_BONUS;
 
                     // check material id in itemToRegion
                     int itemId = combineData.getMaterialItems().get(0).getItemId();

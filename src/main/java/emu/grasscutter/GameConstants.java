@@ -59,7 +59,7 @@ public final class GameConstants {
     public static final int[] DEFAULT_ABILITY_HASHES =
             Arrays.stream(DEFAULT_ABILITY_STRINGS).mapToInt(Utils::abilityHash).toArray();
     public static final int DEFAULT_ABILITY_NAME = Utils.abilityHash("Default");
-    public static final HashMap<Integer, Integer> YAE_MIKO_ITEM_TO_REGION_COMBINE_BONUS = new HashMap<>() {{
+    public static final Map<Integer, Integer> YAE_MIKO_ITEM_TO_REGION_COMBINE_BONUS = new HashMap<>() {{
         put(104304, 1);
         put(104307, 1);
         put(104310, 2);
@@ -72,7 +72,7 @@ public final class GameConstants {
         put(104332, 4);
         put(104335, 4);
     }};
-    public static final HashMap<Integer, List<Integer>> YAE_MIKO_REGION_TO_ITEM_COMBINE_BONUS = new HashMap<>() {{
+    public static final Map<Integer, List<Integer>> YAE_MIKO_REGION_TO_ITEM_COMBINE_BONUS = new HashMap<>() {{
         put(1, List.of(104304, 104307));
         put(2, List.of(104310, 104313, 104316));
         put(3, List.of(104320, 104323, 104326));
