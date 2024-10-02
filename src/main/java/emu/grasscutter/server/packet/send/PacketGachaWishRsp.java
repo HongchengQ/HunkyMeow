@@ -14,8 +14,8 @@ public class PacketGachaWishRsp extends BasePacket {
                         .setGachaType(gachaType)
                         .setGachaScheduleId(scheduleId)
                         .setWishItemId(itemId)
-                        .setWishProgress(progress)
-                        .setWishMaxProgress(maxProgress)
+                        .setTenCostItemId(progress)
+                        .setGachaSortId(maxProgress)
                         .build();
 
         this.setData(proto);

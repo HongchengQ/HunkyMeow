@@ -222,20 +222,20 @@ public final class AbilityManager extends BasePlayerManager {
         }
 
         switch (invoke.getArgumentType()) {
-            case ABILITY_INVOKE_ARGUMENT_META_OVERRIDE_PARAM -> this.handleOverrideParam(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_REINIT_OVERRIDEMAP -> this.handleReinitOverrideMap(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_MODIFIER_CHANGE -> this.handleModifierChange(invoke);
-            case ABILITY_INVOKE_ARGUMENT_MIXIN_COST_STAMINA -> this.handleMixinCostStamina(invoke);
-            case ABILITY_INVOKE_ARGUMENT_ACTION_GENERATE_ELEM_BALL -> this.handleGenerateElemBall(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_GLOBAL_FLOAT_VALUE -> this.handleGlobalFloatValue(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_MODIFIER_DURABILITY_CHANGE -> this
-                    .handleModifierDurabilityChange(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_ADD_NEW_ABILITY -> this.handleAddNewAbility(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_SET_KILLED_SETATE -> this.handleKillState(invoke);
+            case ABILITY_META_OVERRIDE_PARAM -> this.handleOverrideParam(invoke);
+            case ABILITY_META_REINIT_OVERRIDEMAP -> this.handleReinitOverrideMap(invoke);
+            case ABILITY_META_MODIFIER_CHANGE -> this.handleModifierChange(invoke);
+            case ABILITY_MIXIN_COST_STAMINA -> this.handleMixinCostStamina(invoke);
+            case ABILITY_ACTION_GENERATE_ELEM_BALL -> this.handleGenerateElemBall(invoke);
+            case ABILITY_META_GLOBAL_FLOAT_VALUE -> this.handleGlobalFloatValue(invoke);
+            case ABILITY_META_MODIFIER_DURABILITY_CHANGE -> this
+                .handleModifierDurabilityChange(invoke);
+            case ABILITY_META_ADD_NEW_ABILITY -> this.handleAddNewAbility(invoke);
+            case ABILITY_META_SET_KILLED_SETATE -> this.handleKillState(invoke);
             default -> {
                 if (DebugConstants.LOG_MISSING_ABILITIES) {
                     Grasscutter.getLogger()
-                            .trace("Missing invoke handler for ability {}.", invoke.getArgumentType().name());
+                        .trace("Missing invoke handler for ability {}.", invoke.getArgumentType().name());
                 }
             }
         }
@@ -361,12 +361,6 @@ public final class AbilityManager extends BasePlayerManager {
     }
 
     private void setAbilityOverrideValue(Ability ability, AbilityScalarValueEntry valueChange) {
-        if (valueChange.getValueType() != AbilityScalarType.ABILITY_SCALAR_TYPE_FLOAT) {
-            Grasscutter.getLogger().trace("Scalar type not supported: {}", valueChange.getValueType());
-
-            return;
-        }
-
         if (!valueChange.getKey().hasStr()) {
             Grasscutter.getLogger().trace("TODO: Calculate all the ability value hashes");
 
@@ -542,12 +536,12 @@ public final class AbilityManager extends BasePlayerManager {
             throws InvalidProtocolBufferException {}
 
     private void handleGlobalFloatValue(AbilityInvokeEntry invoke)
-            throws InvalidProtocolBufferException {
+        throws InvalidProtocolBufferException {
         var entity = this.player.getScene().getEntityById(invoke.getEntityId());
         if (entity == null) return;
 
         var entry = AbilityScalarValueEntry.parseFrom(invoke.getAbilityData());
-        if (entry == null || !entry.hasFloatValue()) return;
+        if (entry == null) return;
 
         String key = null;
         if (entry.getKey().hasStr()) key = entry.getKey().getStr();
@@ -557,17 +551,10 @@ public final class AbilityManager extends BasePlayerManager {
         if (key == null) return;
 
         if (key.startsWith("SGV_")) return; // Server does not allow to change this variables I think
-        switch (entry.getValueType().getNumber()) {
-            case AbilityScalarType.ABILITY_SCALAR_TYPE_FLOAT_VALUE -> {
-                if (!Float.isNaN(entry.getFloatValue()))
-                    entity.getGlobalAbilityValues().put(key, entry.getFloatValue());
-            }
-            case AbilityScalarType.ABILITY_SCALAR_TYPE_UINT_VALUE -> entity
-                    .getGlobalAbilityValues()
-                    .put(key, (float) entry.getUintValue());
-            default -> {
-                return;
-            }
+        if (!Float.isNaN(entry.getFloatValue())) {
+            entity.getGlobalAbilityValues().put(key, entry.getFloatValue());
+        } else {
+            return;
         }
 
         entity.onAbilityValueUpdate();
