@@ -39,6 +39,7 @@ public final class AvatarSkillMaxChargeCountNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 28497
+   * obf: MFADJMCEBGN
    * </pre>
    *
    * Protobuf type {@code AvatarSkillMaxChargeCountNotify}
@@ -346,6 +347,7 @@ public final class AvatarSkillMaxChargeCountNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 28497
+     * obf: MFADJMCEBGN
      * </pre>
      *
      * Protobuf type {@code AvatarSkillMaxChargeCountNotify}

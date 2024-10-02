@@ -25,7 +25,7 @@ public final class CompoundQueueDataOuterClass {
     int getOutputTime();
 
     /**
-     * <code>uint32 waitCount = 14;</code>
+     * <code>uint32 waitCount = 6;</code>
      * @return The waitCount.
      */
     int getWaitCount();
@@ -44,7 +44,7 @@ public final class CompoundQueueDataOuterClass {
   }
   /**
    * <pre>
-   * Obf: EEHJDMLBLEE
+   * obf: AHHMJALNJOH
    * </pre>
    *
    * Protobuf type {@code CompoundQueueData}
@@ -96,6 +96,11 @@ public final class CompoundQueueDataOuterClass {
               outputTime_ = input.readUInt32();
               break;
             }
+            case 48: {
+
+              waitCount_ = input.readUInt32();
+              break;
+            }
             case 88: {
 
               compoundId_ = input.readUInt32();
@@ -104,11 +109,6 @@ public final class CompoundQueueDataOuterClass {
             case 96: {
 
               outputCount_ = input.readUInt32();
-              break;
-            }
-            case 112: {
-
-              waitCount_ = input.readUInt32();
               break;
             }
             default: {
@@ -154,10 +154,10 @@ public final class CompoundQueueDataOuterClass {
       return outputTime_;
     }
 
-    public static final int WAITCOUNT_FIELD_NUMBER = 14;
+    public static final int WAITCOUNT_FIELD_NUMBER = 6;
     private int waitCount_;
     /**
-     * <code>uint32 waitCount = 14;</code>
+     * <code>uint32 waitCount = 6;</code>
      * @return The waitCount.
      */
     @java.lang.Override
@@ -204,14 +204,14 @@ public final class CompoundQueueDataOuterClass {
       if (outputTime_ != 0) {
         output.writeUInt32(1, outputTime_);
       }
+      if (waitCount_ != 0) {
+        output.writeUInt32(6, waitCount_);
+      }
       if (compoundId_ != 0) {
         output.writeUInt32(11, compoundId_);
       }
       if (outputCount_ != 0) {
         output.writeUInt32(12, outputCount_);
-      }
-      if (waitCount_ != 0) {
-        output.writeUInt32(14, waitCount_);
       }
       unknownFields.writeTo(output);
     }
@@ -226,6 +226,10 @@ public final class CompoundQueueDataOuterClass {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(1, outputTime_);
       }
+      if (waitCount_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, waitCount_);
+      }
       if (compoundId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(11, compoundId_);
@@ -233,10 +237,6 @@ public final class CompoundQueueDataOuterClass {
       if (outputCount_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(12, outputCount_);
-      }
-      if (waitCount_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(14, waitCount_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -377,7 +377,7 @@ public final class CompoundQueueDataOuterClass {
     }
     /**
      * <pre>
-     * Obf: EEHJDMLBLEE
+     * obf: AHHMJALNJOH
      * </pre>
      *
      * Protobuf type {@code CompoundQueueData}
@@ -577,7 +577,7 @@ public final class CompoundQueueDataOuterClass {
 
       private int waitCount_ ;
       /**
-       * <code>uint32 waitCount = 14;</code>
+       * <code>uint32 waitCount = 6;</code>
        * @return The waitCount.
        */
       @java.lang.Override
@@ -585,7 +585,7 @@ public final class CompoundQueueDataOuterClass {
         return waitCount_;
       }
       /**
-       * <code>uint32 waitCount = 14;</code>
+       * <code>uint32 waitCount = 6;</code>
        * @param value The waitCount to set.
        * @return This builder for chaining.
        */
@@ -596,7 +596,7 @@ public final class CompoundQueueDataOuterClass {
         return this;
       }
       /**
-       * <code>uint32 waitCount = 14;</code>
+       * <code>uint32 waitCount = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearWaitCount() {
@@ -736,7 +736,7 @@ public final class CompoundQueueDataOuterClass {
     java.lang.String[] descriptorData = {
       "\n\027CompoundQueueData.proto\"d\n\021CompoundQue" +
       "ueData\022\022\n\noutputTime\030\001 \001(\r\022\021\n\twaitCount\030" +
-      "\016 \001(\r\022\023\n\013compound_id\030\013 \001(\r\022\023\n\013outputCoun" +
+      "\006 \001(\r\022\023\n\013compound_id\030\013 \001(\r\022\023\n\013outputCoun" +
       "t\030\014 \001(\rB\033\n\031emu.grasscutter.net.protob\006pr" +
       "oto3"
     };

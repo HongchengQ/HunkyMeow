@@ -66,6 +66,10 @@ public final class WeaponUpgradeReqOuterClass {
     long getTargetWeaponGuid();
   }
   /**
+   * <pre>
+   * CmdId: 20908
+   * </pre>
+   *
    * Protobuf type {@code WeaponUpgradeReq}
    */
   public static final class WeaponUpgradeReq extends
@@ -463,6 +467,10 @@ public final class WeaponUpgradeReqOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 20908
+     * </pre>
+     *
      * Protobuf type {@code WeaponUpgradeReq}
      */
     public static final class Builder extends

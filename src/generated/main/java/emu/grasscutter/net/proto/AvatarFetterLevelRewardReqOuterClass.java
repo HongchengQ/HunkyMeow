@@ -33,6 +33,7 @@ public final class AvatarFetterLevelRewardReqOuterClass {
   /**
    * <pre>
    * CmdId: 7455
+   * obf: BEKNEDMIPID
    * </pre>
    *
    * Protobuf type {@code AvatarFetterLevelRewardReq}
@@ -313,6 +314,7 @@ public final class AvatarFetterLevelRewardReqOuterClass {
     /**
      * <pre>
      * CmdId: 7455
+     * obf: BEKNEDMIPID
      * </pre>
      *
      * Protobuf type {@code AvatarFetterLevelRewardReq}

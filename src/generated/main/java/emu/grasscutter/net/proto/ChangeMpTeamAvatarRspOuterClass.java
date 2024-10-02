@@ -50,6 +50,7 @@ public final class ChangeMpTeamAvatarRspOuterClass {
   /**
    * <pre>
    * CmdId: 28252
+   * obf: KCNOOLDKOPD
    * </pre>
    *
    * Protobuf type {@code ChangeMpTeamAvatarRsp}
@@ -412,6 +413,7 @@ public final class ChangeMpTeamAvatarRspOuterClass {
     /**
      * <pre>
      * CmdId: 28252
+     * obf: KCNOOLDKOPD
      * </pre>
      *
      * Protobuf type {@code ChangeMpTeamAvatarRsp}

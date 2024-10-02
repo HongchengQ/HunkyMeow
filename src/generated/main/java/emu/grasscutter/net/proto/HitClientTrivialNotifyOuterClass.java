@@ -42,6 +42,7 @@ public final class HitClientTrivialNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 25759
+   * obf: PPGAJFBJNNN
    * </pre>
    *
    * Protobuf type {@code HitClientTrivialNotify}
@@ -349,6 +350,7 @@ public final class HitClientTrivialNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 25759
+     * obf: PPGAJFBJNNN
      * </pre>
      *
      * Protobuf type {@code HitClientTrivialNotify}

@@ -27,6 +27,7 @@ public final class ChooseCurAvatarTeamReqOuterClass {
   /**
    * <pre>
    * CmdId: 29682
+   * obf: PCAFGAMHFOA
    * </pre>
    *
    * Protobuf type {@code ChooseCurAvatarTeamReq}
@@ -279,6 +280,7 @@ public final class ChooseCurAvatarTeamReqOuterClass {
     /**
      * <pre>
      * CmdId: 29682
+     * obf: PCAFGAMHFOA
      * </pre>
      *
      * Protobuf type {@code ChooseCurAvatarTeamReq}

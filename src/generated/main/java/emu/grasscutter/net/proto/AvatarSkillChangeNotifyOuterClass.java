@@ -57,6 +57,7 @@ public final class AvatarSkillChangeNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 4410
+   * obf: KLHPNKEPAOA
    * </pre>
    *
    * Protobuf type {@code AvatarSkillChangeNotify}
@@ -445,6 +446,7 @@ public final class AvatarSkillChangeNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 4410
+     * obf: KLHPNKEPAOA
      * </pre>
      *
      * Protobuf type {@code AvatarSkillChangeNotify}

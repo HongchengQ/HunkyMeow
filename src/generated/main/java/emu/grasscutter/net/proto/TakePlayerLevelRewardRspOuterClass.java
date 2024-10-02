@@ -39,6 +39,7 @@ public final class TakePlayerLevelRewardRspOuterClass {
   /**
    * <pre>
    * CmdId: 21700
+   * obf: IIHHMMIJPAP
    * </pre>
    *
    * Protobuf type {@code TakePlayerLevelRewardRsp}
@@ -345,6 +346,7 @@ public final class TakePlayerLevelRewardRspOuterClass {
     /**
      * <pre>
      * CmdId: 21700
+     * obf: IIHHMMIJPAP
      * </pre>
      *
      * Protobuf type {@code TakePlayerLevelRewardRsp}

@@ -25,6 +25,10 @@ public final class SetPlayerBornDataRspOuterClass {
     int getRetcode();
   }
   /**
+   * <pre>
+   * CmdId: 26454
+   * </pre>
+   *
    * Protobuf type {@code SetPlayerBornDataRsp}
    */
   public static final class SetPlayerBornDataRsp extends
@@ -273,6 +277,10 @@ public final class SetPlayerBornDataRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 26454
+     * </pre>
+     *
      * Protobuf type {@code SetPlayerBornDataRsp}
      */
     public static final class Builder extends

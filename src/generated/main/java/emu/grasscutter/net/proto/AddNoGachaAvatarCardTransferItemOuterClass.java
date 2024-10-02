@@ -37,6 +37,10 @@ public final class AddNoGachaAvatarCardTransferItemOuterClass {
     boolean getIsNew();
   }
   /**
+   * <pre>
+   *obf: JOEIKAFCICE {
+   * </pre>
+   *
    * Protobuf type {@code AddNoGachaAvatarCardTransferItem}
    */
   public static final class AddNoGachaAvatarCardTransferItem extends
@@ -340,6 +344,10 @@ public final class AddNoGachaAvatarCardTransferItemOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     *obf: JOEIKAFCICE {
+     * </pre>
+     *
      * Protobuf type {@code AddNoGachaAvatarCardTransferItem}
      */
     public static final class Builder extends

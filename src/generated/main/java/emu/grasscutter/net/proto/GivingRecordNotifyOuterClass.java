@@ -44,8 +44,8 @@ public final class GivingRecordNotifyOuterClass {
   }
   /**
    * <pre>
-   * CmdId: 7258
-   * Obf: DPEHMENOLIB
+   * CmdId: 951
+   * obf: EFOAJNDDCOF
    * </pre>
    *
    * Protobuf type {@code GivingRecordNotify}
@@ -337,8 +337,8 @@ public final class GivingRecordNotifyOuterClass {
     }
     /**
      * <pre>
-     * CmdId: 7258
-     * Obf: DPEHMENOLIB
+     * CmdId: 951
+     * obf: EFOAJNDDCOF
      * </pre>
      *
      * Protobuf type {@code GivingRecordNotify}

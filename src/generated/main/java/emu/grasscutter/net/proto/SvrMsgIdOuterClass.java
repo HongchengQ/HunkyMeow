@@ -15,10 +15,6 @@ public final class SvrMsgIdOuterClass {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   /**
-   * <pre>
-   * Obf: MGJMJBMPFPG
-   * </pre>
-   *
    * Protobuf enum {@code SvrMsgId}
    */
   public enum SvrMsgId
@@ -47,10 +43,6 @@ public final class SvrMsgIdOuterClass {
      * <code>MSG_ROUTINE_TYPE_REWARD_MAX_NUM = 5;</code>
      */
     MSG_ROUTINE_TYPE_REWARD_MAX_NUM(5),
-    /**
-     * <code>MSG_MECHANICUS_COIN_LIMIT = 6;</code>
-     */
-    MSG_MECHANICUS_COIN_LIMIT(6),
     UNRECOGNIZED(-1),
     ;
 
@@ -78,10 +70,6 @@ public final class SvrMsgIdOuterClass {
      * <code>MSG_ROUTINE_TYPE_REWARD_MAX_NUM = 5;</code>
      */
     public static final int MSG_ROUTINE_TYPE_REWARD_MAX_NUM_VALUE = 5;
-    /**
-     * <code>MSG_MECHANICUS_COIN_LIMIT = 6;</code>
-     */
-    public static final int MSG_MECHANICUS_COIN_LIMIT_VALUE = 6;
 
 
     public final int getNumber() {
@@ -114,7 +102,6 @@ public final class SvrMsgIdOuterClass {
         case 3: return MSG_DAILY_TASK_REWARD_MAX_NUM;
         case 4: return MSG_ROUTINE_TYPE_NOT_OPEN;
         case 5: return MSG_ROUTINE_TYPE_REWARD_MAX_NUM;
-        case 6: return MSG_MECHANICUS_COIN_LIMIT;
         default: return null;
       }
     }
@@ -180,14 +167,13 @@ public final class SvrMsgIdOuterClass {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\016SvrMsgId.proto*\343\001\n\010SvrMsgId\022\017\n\013MSG_UNK" +
+      "\n\016SvrMsgId.proto*\304\001\n\010SvrMsgId\022\017\n\013MSG_UNK" +
       "NOWN\020\000\022\037\n\033MSG_BLOCK_REFRESH_COUNTDOWN\020\001\022" +
       "\037\n\033MSG_AVATAR_REVIVE_BY_STATUE\020\002\022!\n\035MSG_" +
       "DAILY_TASK_REWARD_MAX_NUM\020\003\022\035\n\031MSG_ROUTI" +
       "NE_TYPE_NOT_OPEN\020\004\022#\n\037MSG_ROUTINE_TYPE_R" +
-      "EWARD_MAX_NUM\020\005\022\035\n\031MSG_MECHANICUS_COIN_L" +
-      "IMIT\020\006B\033\n\031emu.grasscutter.net.protob\006pro" +
-      "to3"
+      "EWARD_MAX_NUM\020\005B\033\n\031emu.grasscutter.net.p" +
+      "rotob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

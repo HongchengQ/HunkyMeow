@@ -39,6 +39,7 @@ public final class GachaWishReqOuterClass {
   /**
    * <pre>
    * CmdId: 25407
+   * obf: IKOMCHMHPCK
    * </pre>
    *
    * Protobuf type {@code GachaWishReq}
@@ -345,6 +346,7 @@ public final class GachaWishReqOuterClass {
     /**
      * <pre>
      * CmdId: 25407
+     * obf: IKOMCHMHPCK
      * </pre>
      *
      * Protobuf type {@code GachaWishReq}

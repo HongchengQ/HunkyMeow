@@ -37,6 +37,10 @@ public final class QuestTransmitRspOuterClass {
     int getRetcode();
   }
   /**
+   * <pre>
+   * CmdId: 2300
+   * </pre>
+   *
    * Protobuf type {@code QuestTransmitRsp}
    */
   public static final class QuestTransmitRsp extends
@@ -339,6 +343,10 @@ public final class QuestTransmitRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 2300
+     * </pre>
+     *
      * Protobuf type {@code QuestTransmitRsp}
      */
     public static final class Builder extends

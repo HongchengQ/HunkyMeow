@@ -58,11 +58,6 @@ public final class DungeonSettleExhibitionInfoOuterClass {
         int index);
   }
   /**
-   * <pre>
-   * 5.0.0
-   * CmdId: 
-   * </pre>
-   *
    * Protobuf type {@code DungeonSettleExhibitionInfo}
    */
   public static final class DungeonSettleExhibitionInfo extends
@@ -406,11 +401,6 @@ public final class DungeonSettleExhibitionInfoOuterClass {
       return builder;
     }
     /**
-     * <pre>
-     * 5.0.0
-     * CmdId: 
-     * </pre>
-     *
      * Protobuf type {@code DungeonSettleExhibitionInfo}
      */
     public static final class Builder extends

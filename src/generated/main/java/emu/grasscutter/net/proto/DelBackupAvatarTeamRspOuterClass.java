@@ -33,6 +33,7 @@ public final class DelBackupAvatarTeamRspOuterClass {
   /**
    * <pre>
    * CmdId: 7408
+   * obf: PKJCPHLNGGJ
    * </pre>
    *
    * Protobuf type {@code DelBackupAvatarTeamRsp}
@@ -312,6 +313,7 @@ public final class DelBackupAvatarTeamRspOuterClass {
     /**
      * <pre>
      * CmdId: 7408
+     * obf: PKJCPHLNGGJ
      * </pre>
      *
      * Protobuf type {@code DelBackupAvatarTeamRsp}

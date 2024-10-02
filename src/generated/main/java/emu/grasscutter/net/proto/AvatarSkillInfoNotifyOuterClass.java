@@ -61,6 +61,7 @@ public final class AvatarSkillInfoNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 25299
+   * obf: BNJBNBIEGBE
    * </pre>
    *
    * Protobuf type {@code AvatarSkillInfoNotify}
@@ -443,6 +444,7 @@ public final class AvatarSkillInfoNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 25299
+     * obf: BNJBNBIEGBE
      * </pre>
      *
      * Protobuf type {@code AvatarSkillInfoNotify}

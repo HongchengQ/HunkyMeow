@@ -40,9 +40,9 @@ public final class ChangeHpDebtsOuterClass {
      */
     CHANGE_HP_DEBTS_REDUCE_ABILITY(41),
     /**
-     * <code>CHANGE_HP_DEBTS_ADDABILITY = 51;</code>
+     * <code>CHANGE_HP_DEBTS_ADDABILiTY = 51;</code>
      */
-    CHANGE_HP_DEBTS_ADDABILITY(51),
+    CHANGE_HP_DEBTS_ADDABILiTY(51),
     UNRECOGNIZED(-1),
     ;
 
@@ -67,9 +67,9 @@ public final class ChangeHpDebtsOuterClass {
      */
     public static final int CHANGE_HP_DEBTS_REDUCE_ABILITY_VALUE = 41;
     /**
-     * <code>CHANGE_HP_DEBTS_ADDABILITY = 51;</code>
+     * <code>CHANGE_HP_DEBTS_ADDABILiTY = 51;</code>
      */
-    public static final int CHANGE_HP_DEBTS_ADDABILITY_VALUE = 51;
+    public static final int CHANGE_HP_DEBTS_ADDABILiTY_VALUE = 51;
 
 
     public final int getNumber() {
@@ -101,7 +101,7 @@ public final class ChangeHpDebtsOuterClass {
         case 2: return CHANGE_HP_DEBTS_PAYFINISH;
         case 21: return CHANGE_HP_DEBTS_CLEAR;
         case 41: return CHANGE_HP_DEBTS_REDUCE_ABILITY;
-        case 51: return CHANGE_HP_DEBTS_ADDABILITY;
+        case 51: return CHANGE_HP_DEBTS_ADDABILiTY;
         default: return null;
       }
     }
@@ -172,7 +172,7 @@ public final class ChangeHpDebtsOuterClass {
       "EBTS_PAY\020\001\022\035\n\031CHANGE_HP_DEBTS_PAYFINISH\020" +
       "\002\022\031\n\025CHANGE_HP_DEBTS_CLEAR\020\025\022\"\n\036CHANGE_H" +
       "P_DEBTS_REDUCE_ABILITY\020)\022\036\n\032CHANGE_HP_DE" +
-      "BTS_ADDABILITY\0203B\033\n\031emu.grasscutter.net." +
+      "BTS_ADDABILiTY\0203B\033\n\031emu.grasscutter.net." +
       "protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

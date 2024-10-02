@@ -19,21 +19,20 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>bool is_agreed = 13;</code>
+     * <code>bool is_agreed = 2;</code>
      * @return The isAgreed.
      */
     boolean getIsAgreed();
 
     /**
-     * <code>uint32 apply_uid = 1;</code>
+     * <code>uint32 apply_uid = 6;</code>
      * @return The applyUid.
      */
     int getApplyUid();
   }
   /**
    * <pre>
-   * CmdId: 20101
-   * Obf: CMPHGAMCBGN
+   * CmdId: 378
    * </pre>
    *
    * Protobuf type {@code PlayerApplyEnterHomeResultReq}
@@ -80,14 +79,14 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
             case 0:
               done = true;
               break;
-            case 8: {
-
-              applyUid_ = input.readUInt32();
-              break;
-            }
-            case 104: {
+            case 16: {
 
               isAgreed_ = input.readBool();
+              break;
+            }
+            case 48: {
+
+              applyUid_ = input.readUInt32();
               break;
             }
             default: {
@@ -122,10 +121,10 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
               emu.grasscutter.net.proto.PlayerApplyEnterHomeResultReqOuterClass.PlayerApplyEnterHomeResultReq.class, emu.grasscutter.net.proto.PlayerApplyEnterHomeResultReqOuterClass.PlayerApplyEnterHomeResultReq.Builder.class);
     }
 
-    public static final int IS_AGREED_FIELD_NUMBER = 13;
+    public static final int IS_AGREED_FIELD_NUMBER = 2;
     private boolean isAgreed_;
     /**
-     * <code>bool is_agreed = 13;</code>
+     * <code>bool is_agreed = 2;</code>
      * @return The isAgreed.
      */
     @java.lang.Override
@@ -133,10 +132,10 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
       return isAgreed_;
     }
 
-    public static final int APPLY_UID_FIELD_NUMBER = 1;
+    public static final int APPLY_UID_FIELD_NUMBER = 6;
     private int applyUid_;
     /**
-     * <code>uint32 apply_uid = 1;</code>
+     * <code>uint32 apply_uid = 6;</code>
      * @return The applyUid.
      */
     @java.lang.Override
@@ -158,11 +157,11 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (applyUid_ != 0) {
-        output.writeUInt32(1, applyUid_);
-      }
       if (isAgreed_ != false) {
-        output.writeBool(13, isAgreed_);
+        output.writeBool(2, isAgreed_);
+      }
+      if (applyUid_ != 0) {
+        output.writeUInt32(6, applyUid_);
       }
       unknownFields.writeTo(output);
     }
@@ -173,13 +172,13 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
       if (size != -1) return size;
 
       size = 0;
-      if (applyUid_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(1, applyUid_);
-      }
       if (isAgreed_ != false) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(13, isAgreed_);
+          .computeBoolSize(2, isAgreed_);
+      }
+      if (applyUid_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, applyUid_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -313,8 +312,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
     }
     /**
      * <pre>
-     * CmdId: 20101
-     * Obf: CMPHGAMCBGN
+     * CmdId: 378
      * </pre>
      *
      * Protobuf type {@code PlayerApplyEnterHomeResultReq}
@@ -471,7 +469,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
 
       private boolean isAgreed_ ;
       /**
-       * <code>bool is_agreed = 13;</code>
+       * <code>bool is_agreed = 2;</code>
        * @return The isAgreed.
        */
       @java.lang.Override
@@ -479,7 +477,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
         return isAgreed_;
       }
       /**
-       * <code>bool is_agreed = 13;</code>
+       * <code>bool is_agreed = 2;</code>
        * @param value The isAgreed to set.
        * @return This builder for chaining.
        */
@@ -490,7 +488,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
         return this;
       }
       /**
-       * <code>bool is_agreed = 13;</code>
+       * <code>bool is_agreed = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearIsAgreed() {
@@ -502,7 +500,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
 
       private int applyUid_ ;
       /**
-       * <code>uint32 apply_uid = 1;</code>
+       * <code>uint32 apply_uid = 6;</code>
        * @return The applyUid.
        */
       @java.lang.Override
@@ -510,7 +508,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
         return applyUid_;
       }
       /**
-       * <code>uint32 apply_uid = 1;</code>
+       * <code>uint32 apply_uid = 6;</code>
        * @param value The applyUid to set.
        * @return This builder for chaining.
        */
@@ -521,7 +519,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
         return this;
       }
       /**
-       * <code>uint32 apply_uid = 1;</code>
+       * <code>uint32 apply_uid = 6;</code>
        * @return This builder for chaining.
        */
       public Builder clearApplyUid() {
@@ -599,7 +597,7 @@ public final class PlayerApplyEnterHomeResultReqOuterClass {
     java.lang.String[] descriptorData = {
       "\n#PlayerApplyEnterHomeResultReq.proto\"E\n" +
       "\035PlayerApplyEnterHomeResultReq\022\021\n\tis_agr" +
-      "eed\030\r \001(\010\022\021\n\tapply_uid\030\001 \001(\rB\033\n\031emu.gras" +
+      "eed\030\002 \001(\010\022\021\n\tapply_uid\030\006 \001(\rB\033\n\031emu.gras" +
       "scutter.net.protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

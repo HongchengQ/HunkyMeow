@@ -44,6 +44,7 @@ public final class ChangeMpTeamAvatarReqOuterClass {
   /**
    * <pre>
    * CmdId: 28747
+   * obf: DBEBGAGNGEG
    * </pre>
    *
    * Protobuf type {@code ChangeMpTeamAvatarReq}
@@ -379,6 +380,7 @@ public final class ChangeMpTeamAvatarReqOuterClass {
     /**
      * <pre>
      * CmdId: 28747
+     * obf: DBEBGAGNGEG
      * </pre>
      *
      * Protobuf type {@code ChangeMpTeamAvatarReq}

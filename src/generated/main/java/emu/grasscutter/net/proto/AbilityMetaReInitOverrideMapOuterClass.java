@@ -19,32 +19,33 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     java.util.List<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry> 
         getOverrideMapList();
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry getOverrideMap(int index);
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     int getOverrideMapCount();
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     java.util.List<? extends emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder> 
         getOverrideMapOrBuilderList();
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder getOverrideMapOrBuilder(
         int index);
   }
   /**
    * <pre>
-   * Obf: DKNHIBDBJDH
+   * 5.0
+   * obf: BENLIBOCJLP
    * </pre>
    *
    * Protobuf type {@code AbilityMetaReInitOverrideMap}
@@ -93,7 +94,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
             case 0:
               done = true;
               break;
-            case 82: {
+            case 66: {
               if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 overrideMap_ = new java.util.ArrayList<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry>();
                 mutable_bitField0_ |= 0x00000001;
@@ -137,17 +138,17 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
               emu.grasscutter.net.proto.AbilityMetaReInitOverrideMapOuterClass.AbilityMetaReInitOverrideMap.class, emu.grasscutter.net.proto.AbilityMetaReInitOverrideMapOuterClass.AbilityMetaReInitOverrideMap.Builder.class);
     }
 
-    public static final int OVERRIDE_MAP_FIELD_NUMBER = 10;
+    public static final int OVERRIDE_MAP_FIELD_NUMBER = 8;
     private java.util.List<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry> overrideMap_;
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     @java.lang.Override
     public java.util.List<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry> getOverrideMapList() {
       return overrideMap_;
     }
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     @java.lang.Override
     public java.util.List<? extends emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder> 
@@ -155,21 +156,21 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
       return overrideMap_;
     }
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     @java.lang.Override
     public int getOverrideMapCount() {
       return overrideMap_.size();
     }
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     @java.lang.Override
     public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry getOverrideMap(int index) {
       return overrideMap_.get(index);
     }
     /**
-     * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+     * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
      */
     @java.lang.Override
     public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder getOverrideMapOrBuilder(
@@ -192,7 +193,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < overrideMap_.size(); i++) {
-        output.writeMessage(10, overrideMap_.get(i));
+        output.writeMessage(8, overrideMap_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -205,7 +206,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
       size = 0;
       for (int i = 0; i < overrideMap_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(10, overrideMap_.get(i));
+          .computeMessageSize(8, overrideMap_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -336,7 +337,8 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
     }
     /**
      * <pre>
-     * Obf: DKNHIBDBJDH
+     * 5.0
+     * obf: BENLIBOCJLP
      * </pre>
      *
      * Protobuf type {@code AbilityMetaReInitOverrideMap}
@@ -536,7 +538,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
           emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder> overrideMapBuilder_;
 
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public java.util.List<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry> getOverrideMapList() {
         if (overrideMapBuilder_ == null) {
@@ -546,7 +548,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         }
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public int getOverrideMapCount() {
         if (overrideMapBuilder_ == null) {
@@ -556,7 +558,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         }
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry getOverrideMap(int index) {
         if (overrideMapBuilder_ == null) {
@@ -566,7 +568,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         }
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder setOverrideMap(
           int index, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry value) {
@@ -583,7 +585,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder setOverrideMap(
           int index, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder builderForValue) {
@@ -597,7 +599,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder addOverrideMap(emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry value) {
         if (overrideMapBuilder_ == null) {
@@ -613,7 +615,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder addOverrideMap(
           int index, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry value) {
@@ -630,7 +632,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder addOverrideMap(
           emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder builderForValue) {
@@ -644,7 +646,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder addOverrideMap(
           int index, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder builderForValue) {
@@ -658,7 +660,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder addAllOverrideMap(
           java.lang.Iterable<? extends emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry> values) {
@@ -673,7 +675,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder clearOverrideMap() {
         if (overrideMapBuilder_ == null) {
@@ -686,7 +688,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public Builder removeOverrideMap(int index) {
         if (overrideMapBuilder_ == null) {
@@ -699,14 +701,14 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         return this;
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder getOverrideMapBuilder(
           int index) {
         return getOverrideMapFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder getOverrideMapOrBuilder(
           int index) {
@@ -716,7 +718,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         }
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public java.util.List<? extends emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntryOrBuilder> 
            getOverrideMapOrBuilderList() {
@@ -727,14 +729,14 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
         }
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder addOverrideMapBuilder() {
         return getOverrideMapFieldBuilder().addBuilder(
             emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.getDefaultInstance());
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder addOverrideMapBuilder(
           int index) {
@@ -742,7 +744,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
             index, emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.getDefaultInstance());
       }
       /**
-       * <code>repeated .AbilityScalarValueEntry override_map = 10;</code>
+       * <code>repeated .AbilityScalarValueEntry override_map = 8;</code>
        */
       public java.util.List<emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry.Builder> 
            getOverrideMapBuilderList() {
@@ -831,7 +833,7 @@ public final class AbilityMetaReInitOverrideMapOuterClass {
     java.lang.String[] descriptorData = {
       "\n\"AbilityMetaReInitOverrideMap.proto\032\035Ab" +
       "ilityScalarValueEntry.proto\"N\n\034AbilityMe" +
-      "taReInitOverrideMap\022.\n\014override_map\030\n \003(" +
+      "taReInitOverrideMap\022.\n\014override_map\030\010 \003(" +
       "\0132\030.AbilityScalarValueEntryB\033\n\031emu.grass" +
       "cutter.net.protob\006proto3"
     };

@@ -47,6 +47,11 @@ public final class StoreItemDelNotifyOuterClass {
     emu.grasscutter.net.proto.StoreTypeOuterClass.StoreType getStoreType();
   }
   /**
+   * <pre>
+   * CmdId: 9567
+   * obf: PGNLACLONKK
+   * </pre>
+   *
    * Protobuf type {@code StoreItemDelNotify}
    */
   public static final class StoreItemDelNotify extends
@@ -386,6 +391,11 @@ public final class StoreItemDelNotifyOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 9567
+     * obf: PGNLACLONKK
+     * </pre>
+     *
      * Protobuf type {@code StoreItemDelNotify}
      */
     public static final class Builder extends

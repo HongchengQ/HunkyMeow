@@ -33,6 +33,8 @@ public final class ChooseCurAvatarTeamRspOuterClass {
   /**
    * <pre>
    * CmdId: 5985
+   * 可能是 ChooseCurAvatarTeamRsp
+   * obf: EKAEAEABPHD
    * </pre>
    *
    * Protobuf type {@code ChooseCurAvatarTeamRsp}
@@ -312,6 +314,8 @@ public final class ChooseCurAvatarTeamRspOuterClass {
     /**
      * <pre>
      * CmdId: 5985
+     * 可能是 ChooseCurAvatarTeamRsp
+     * obf: EKAEAEABPHD
      * </pre>
      *
      * Protobuf type {@code ChooseCurAvatarTeamRsp}

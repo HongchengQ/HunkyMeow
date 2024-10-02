@@ -135,15 +135,17 @@ public final class ModifierActionOuterClass {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024ModifierAction.proto*H\n\016ModifierAction" +
-      "\022\031\n\025MODIFIER_ACTION_ADDED\020\000\022\033\n\027MODIFIER_" +
-      "ACTION_REMOVED\020\001B\033\n\031emu.grasscutter.net." +
-      "protob\006proto3"
+      "\n\024ModifierAction.proto\032\023AbilityString.pr" +
+      "oto*H\n\016ModifierAction\022\031\n\025MODIFIER_ACTION" +
+      "_ADDED\020\000\022\033\n\027MODIFIER_ACTION_REMOVED\020\001B\033\n" +
+      "\031emu.grasscutter.net.protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          emu.grasscutter.net.proto.AbilityStringOuterClass.getDescriptor(),
         });
+    emu.grasscutter.net.proto.AbilityStringOuterClass.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

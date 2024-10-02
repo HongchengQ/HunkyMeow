@@ -37,6 +37,12 @@ public final class UnlockAvatarTalentRspOuterClass {
     int getTalentId();
   }
   /**
+   * <pre>
+   * CmdId: 23185
+   * obf: JCNMBKLFFFD
+   * 5.0
+   * </pre>
+   *
    * Protobuf type {@code UnlockAvatarTalentRsp}
    */
   public static final class UnlockAvatarTalentRsp extends
@@ -340,6 +346,12 @@ public final class UnlockAvatarTalentRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 23185
+     * obf: JCNMBKLFFFD
+     * 5.0
+     * </pre>
+     *
      * Protobuf type {@code UnlockAvatarTalentRsp}
      */
     public static final class Builder extends

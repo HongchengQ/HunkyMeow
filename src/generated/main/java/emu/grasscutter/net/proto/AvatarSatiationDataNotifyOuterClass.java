@@ -45,6 +45,7 @@ public final class AvatarSatiationDataNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 4982
+   * obf: AKDEBOHJMHE
    * </pre>
    *
    * Protobuf type {@code AvatarSatiationDataNotify}
@@ -337,6 +338,7 @@ public final class AvatarSatiationDataNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 4982
+     * obf: AKDEBOHJMHE
      * </pre>
      *
      * Protobuf type {@code AvatarSatiationDataNotify}

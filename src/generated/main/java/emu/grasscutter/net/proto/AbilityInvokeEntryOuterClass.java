@@ -373,7 +373,7 @@ public final class AbilityInvokeEntryOuterClass {
       if (eventId_ != 0) {
         output.writeUInt32(2, eventId_);
       }
-      if (argumentType_ != emu.grasscutter.net.proto.AbilityInvokeArgumentOuterClass.AbilityInvokeArgument.ABILITY_INVOKE_ARGUMENT_NONE.getNumber()) {
+      if (argumentType_ != emu.grasscutter.net.proto.AbilityInvokeArgumentOuterClass.AbilityInvokeArgument.ABILITY_NONE.getNumber()) {
         output.writeEnum(3, argumentType_);
       }
       if (forwardPeer_ != 0) {
@@ -410,7 +410,7 @@ public final class AbilityInvokeEntryOuterClass {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt32Size(2, eventId_);
       }
-      if (argumentType_ != emu.grasscutter.net.proto.AbilityInvokeArgumentOuterClass.AbilityInvokeArgument.ABILITY_INVOKE_ARGUMENT_NONE.getNumber()) {
+      if (argumentType_ != emu.grasscutter.net.proto.AbilityInvokeArgumentOuterClass.AbilityInvokeArgument.ABILITY_NONE.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(3, argumentType_);
       }

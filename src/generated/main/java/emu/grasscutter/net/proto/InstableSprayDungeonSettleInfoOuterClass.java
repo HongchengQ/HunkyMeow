@@ -19,57 +19,53 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>bool is_new_record = 15;</code>
+     * <code>uint32 MEMPKCGNNMF = 4;</code>
+     * @return The mEMPKCGNNMF.
+     */
+    int getMEMPKCGNNMF();
+
+    /**
+     * <code>uint32 DMNLDPPGOKG = 5;</code>
+     * @return The dMNLDPPGOKG.
+     */
+    int getDMNLDPPGOKG();
+
+    /**
+     * <code>bool is_new_record = 7;</code>
      * @return The isNewRecord.
      */
     boolean getIsNewRecord();
 
     /**
-     * <code>uint32 difficulty = 8;</code>
-     * @return The difficulty.
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+     * @return A list containing the kNBIFCCIBLE.
      */
-    int getDifficulty();
-
+    java.util.List<java.lang.Integer> getKNBIFCCIBLEList();
     /**
-     * <code>uint32 stage_id = 5;</code>
-     * @return The stageId.
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+     * @return The count of kNBIFCCIBLE.
      */
-    int getStageId();
-
+    int getKNBIFCCIBLECount();
     /**
-     * <code>uint32 round = 13;</code>
-     * @return The round.
-     */
-    int getRound();
-
-    /**
-     * <code>uint32 level_id = 4;</code>
-     * @return The levelId.
-     */
-    int getLevelId();
-
-    /**
-     * <code>repeated uint32 score_list = 7;</code>
-     * @return A list containing the scoreList.
-     */
-    java.util.List<java.lang.Integer> getScoreListList();
-    /**
-     * <code>repeated uint32 score_list = 7;</code>
-     * @return The count of scoreList.
-     */
-    int getScoreListCount();
-    /**
-     * <code>repeated uint32 score_list = 7;</code>
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
      * @param index The index of the element to return.
-     * @return The scoreList at the given index.
+     * @return The kNBIFCCIBLE at the given index.
      */
-    int getScoreList(int index);
+    int getKNBIFCCIBLE(int index);
+
+    /**
+     * <code>uint32 PJJAOILBFBN = 12;</code>
+     * @return The pJJAOILBFBN.
+     */
+    int getPJJAOILBFBN();
+
+    /**
+     * <code>uint32 PBKEAOCBPMN = 13;</code>
+     * @return The pBKEAOCBPMN.
+     */
+    int getPBKEAOCBPMN();
   }
   /**
-   * <pre>
-   * Obf: GALINJEGEGO
-   * </pre>
-   *
    * Protobuf type {@code InstableSprayDungeonSettleInfo}
    */
   public static final class InstableSprayDungeonSettleInfo extends
@@ -82,7 +78,7 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       super(builder);
     }
     private InstableSprayDungeonSettleInfo() {
-      scoreList_ = emptyIntList();
+      kNBIFCCIBLE_ = emptyIntList();
     }
 
     @java.lang.Override
@@ -118,48 +114,48 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
               break;
             case 32: {
 
-              levelId_ = input.readUInt32();
+              mEMPKCGNNMF_ = input.readUInt32();
               break;
             }
             case 40: {
 
-              stageId_ = input.readUInt32();
+              dMNLDPPGOKG_ = input.readUInt32();
               break;
             }
             case 56: {
-              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-                scoreList_ = newIntList();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              scoreList_.addInt(input.readUInt32());
+
+              isNewRecord_ = input.readBool();
               break;
             }
-            case 58: {
+            case 88: {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                kNBIFCCIBLE_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              kNBIFCCIBLE_.addInt(input.readUInt32());
+              break;
+            }
+            case 90: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
               if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
-                scoreList_ = newIntList();
+                kNBIFCCIBLE_ = newIntList();
                 mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                scoreList_.addInt(input.readUInt32());
+                kNBIFCCIBLE_.addInt(input.readUInt32());
               }
               input.popLimit(limit);
               break;
             }
-            case 64: {
+            case 96: {
 
-              difficulty_ = input.readUInt32();
+              pJJAOILBFBN_ = input.readUInt32();
               break;
             }
             case 104: {
 
-              round_ = input.readUInt32();
-              break;
-            }
-            case 120: {
-
-              isNewRecord_ = input.readBool();
+              pBKEAOCBPMN_ = input.readUInt32();
               break;
             }
             default: {
@@ -178,7 +174,7 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
             e).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) != 0)) {
-          scoreList_.makeImmutable(); // C
+          kNBIFCCIBLE_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -197,10 +193,32 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
               emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo.class, emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo.Builder.class);
     }
 
-    public static final int IS_NEW_RECORD_FIELD_NUMBER = 15;
+    public static final int MEMPKCGNNMF_FIELD_NUMBER = 4;
+    private int mEMPKCGNNMF_;
+    /**
+     * <code>uint32 MEMPKCGNNMF = 4;</code>
+     * @return The mEMPKCGNNMF.
+     */
+    @java.lang.Override
+    public int getMEMPKCGNNMF() {
+      return mEMPKCGNNMF_;
+    }
+
+    public static final int DMNLDPPGOKG_FIELD_NUMBER = 5;
+    private int dMNLDPPGOKG_;
+    /**
+     * <code>uint32 DMNLDPPGOKG = 5;</code>
+     * @return The dMNLDPPGOKG.
+     */
+    @java.lang.Override
+    public int getDMNLDPPGOKG() {
+      return dMNLDPPGOKG_;
+    }
+
+    public static final int IS_NEW_RECORD_FIELD_NUMBER = 7;
     private boolean isNewRecord_;
     /**
-     * <code>bool is_new_record = 15;</code>
+     * <code>bool is_new_record = 7;</code>
      * @return The isNewRecord.
      */
     @java.lang.Override
@@ -208,77 +226,55 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       return isNewRecord_;
     }
 
-    public static final int DIFFICULTY_FIELD_NUMBER = 8;
-    private int difficulty_;
+    public static final int KNBIFCCIBLE_FIELD_NUMBER = 11;
+    private com.google.protobuf.Internal.IntList kNBIFCCIBLE_;
     /**
-     * <code>uint32 difficulty = 8;</code>
-     * @return The difficulty.
-     */
-    @java.lang.Override
-    public int getDifficulty() {
-      return difficulty_;
-    }
-
-    public static final int STAGE_ID_FIELD_NUMBER = 5;
-    private int stageId_;
-    /**
-     * <code>uint32 stage_id = 5;</code>
-     * @return The stageId.
-     */
-    @java.lang.Override
-    public int getStageId() {
-      return stageId_;
-    }
-
-    public static final int ROUND_FIELD_NUMBER = 13;
-    private int round_;
-    /**
-     * <code>uint32 round = 13;</code>
-     * @return The round.
-     */
-    @java.lang.Override
-    public int getRound() {
-      return round_;
-    }
-
-    public static final int LEVEL_ID_FIELD_NUMBER = 4;
-    private int levelId_;
-    /**
-     * <code>uint32 level_id = 4;</code>
-     * @return The levelId.
-     */
-    @java.lang.Override
-    public int getLevelId() {
-      return levelId_;
-    }
-
-    public static final int SCORE_LIST_FIELD_NUMBER = 7;
-    private com.google.protobuf.Internal.IntList scoreList_;
-    /**
-     * <code>repeated uint32 score_list = 7;</code>
-     * @return A list containing the scoreList.
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+     * @return A list containing the kNBIFCCIBLE.
      */
     @java.lang.Override
     public java.util.List<java.lang.Integer>
-        getScoreListList() {
-      return scoreList_;
+        getKNBIFCCIBLEList() {
+      return kNBIFCCIBLE_;
     }
     /**
-     * <code>repeated uint32 score_list = 7;</code>
-     * @return The count of scoreList.
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+     * @return The count of kNBIFCCIBLE.
      */
-    public int getScoreListCount() {
-      return scoreList_.size();
+    public int getKNBIFCCIBLECount() {
+      return kNBIFCCIBLE_.size();
     }
     /**
-     * <code>repeated uint32 score_list = 7;</code>
+     * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
      * @param index The index of the element to return.
-     * @return The scoreList at the given index.
+     * @return The kNBIFCCIBLE at the given index.
      */
-    public int getScoreList(int index) {
-      return scoreList_.getInt(index);
+    public int getKNBIFCCIBLE(int index) {
+      return kNBIFCCIBLE_.getInt(index);
     }
-    private int scoreListMemoizedSerializedSize = -1;
+    private int kNBIFCCIBLEMemoizedSerializedSize = -1;
+
+    public static final int PJJAOILBFBN_FIELD_NUMBER = 12;
+    private int pJJAOILBFBN_;
+    /**
+     * <code>uint32 PJJAOILBFBN = 12;</code>
+     * @return The pJJAOILBFBN.
+     */
+    @java.lang.Override
+    public int getPJJAOILBFBN() {
+      return pJJAOILBFBN_;
+    }
+
+    public static final int PBKEAOCBPMN_FIELD_NUMBER = 13;
+    private int pBKEAOCBPMN_;
+    /**
+     * <code>uint32 PBKEAOCBPMN = 13;</code>
+     * @return The pBKEAOCBPMN.
+     */
+    @java.lang.Override
+    public int getPBKEAOCBPMN() {
+      return pBKEAOCBPMN_;
+    }
 
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
@@ -295,27 +291,27 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
-      if (levelId_ != 0) {
-        output.writeUInt32(4, levelId_);
+      if (mEMPKCGNNMF_ != 0) {
+        output.writeUInt32(4, mEMPKCGNNMF_);
       }
-      if (stageId_ != 0) {
-        output.writeUInt32(5, stageId_);
-      }
-      if (getScoreListList().size() > 0) {
-        output.writeUInt32NoTag(58);
-        output.writeUInt32NoTag(scoreListMemoizedSerializedSize);
-      }
-      for (int i = 0; i < scoreList_.size(); i++) {
-        output.writeUInt32NoTag(scoreList_.getInt(i));
-      }
-      if (difficulty_ != 0) {
-        output.writeUInt32(8, difficulty_);
-      }
-      if (round_ != 0) {
-        output.writeUInt32(13, round_);
+      if (dMNLDPPGOKG_ != 0) {
+        output.writeUInt32(5, dMNLDPPGOKG_);
       }
       if (isNewRecord_ != false) {
-        output.writeBool(15, isNewRecord_);
+        output.writeBool(7, isNewRecord_);
+      }
+      if (getKNBIFCCIBLEList().size() > 0) {
+        output.writeUInt32NoTag(90);
+        output.writeUInt32NoTag(kNBIFCCIBLEMemoizedSerializedSize);
+      }
+      for (int i = 0; i < kNBIFCCIBLE_.size(); i++) {
+        output.writeUInt32NoTag(kNBIFCCIBLE_.getInt(i));
+      }
+      if (pJJAOILBFBN_ != 0) {
+        output.writeUInt32(12, pJJAOILBFBN_);
+      }
+      if (pBKEAOCBPMN_ != 0) {
+        output.writeUInt32(13, pBKEAOCBPMN_);
       }
       unknownFields.writeTo(output);
     }
@@ -326,39 +322,39 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       if (size != -1) return size;
 
       size = 0;
-      if (levelId_ != 0) {
+      if (mEMPKCGNNMF_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(4, levelId_);
+          .computeUInt32Size(4, mEMPKCGNNMF_);
       }
-      if (stageId_ != 0) {
+      if (dMNLDPPGOKG_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(5, stageId_);
+          .computeUInt32Size(5, dMNLDPPGOKG_);
+      }
+      if (isNewRecord_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(7, isNewRecord_);
       }
       {
         int dataSize = 0;
-        for (int i = 0; i < scoreList_.size(); i++) {
+        for (int i = 0; i < kNBIFCCIBLE_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeUInt32SizeNoTag(scoreList_.getInt(i));
+            .computeUInt32SizeNoTag(kNBIFCCIBLE_.getInt(i));
         }
         size += dataSize;
-        if (!getScoreListList().isEmpty()) {
+        if (!getKNBIFCCIBLEList().isEmpty()) {
           size += 1;
           size += com.google.protobuf.CodedOutputStream
               .computeInt32SizeNoTag(dataSize);
         }
-        scoreListMemoizedSerializedSize = dataSize;
+        kNBIFCCIBLEMemoizedSerializedSize = dataSize;
       }
-      if (difficulty_ != 0) {
+      if (pJJAOILBFBN_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(8, difficulty_);
+          .computeUInt32Size(12, pJJAOILBFBN_);
       }
-      if (round_ != 0) {
+      if (pBKEAOCBPMN_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(13, round_);
-      }
-      if (isNewRecord_ != false) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(15, isNewRecord_);
+          .computeUInt32Size(13, pBKEAOCBPMN_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -375,18 +371,18 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       }
       emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo other = (emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo) obj;
 
+      if (getMEMPKCGNNMF()
+          != other.getMEMPKCGNNMF()) return false;
+      if (getDMNLDPPGOKG()
+          != other.getDMNLDPPGOKG()) return false;
       if (getIsNewRecord()
           != other.getIsNewRecord()) return false;
-      if (getDifficulty()
-          != other.getDifficulty()) return false;
-      if (getStageId()
-          != other.getStageId()) return false;
-      if (getRound()
-          != other.getRound()) return false;
-      if (getLevelId()
-          != other.getLevelId()) return false;
-      if (!getScoreListList()
-          .equals(other.getScoreListList())) return false;
+      if (!getKNBIFCCIBLEList()
+          .equals(other.getKNBIFCCIBLEList())) return false;
+      if (getPJJAOILBFBN()
+          != other.getPJJAOILBFBN()) return false;
+      if (getPBKEAOCBPMN()
+          != other.getPBKEAOCBPMN()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -398,21 +394,21 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MEMPKCGNNMF_FIELD_NUMBER;
+      hash = (53 * hash) + getMEMPKCGNNMF();
+      hash = (37 * hash) + DMNLDPPGOKG_FIELD_NUMBER;
+      hash = (53 * hash) + getDMNLDPPGOKG();
       hash = (37 * hash) + IS_NEW_RECORD_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getIsNewRecord());
-      hash = (37 * hash) + DIFFICULTY_FIELD_NUMBER;
-      hash = (53 * hash) + getDifficulty();
-      hash = (37 * hash) + STAGE_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getStageId();
-      hash = (37 * hash) + ROUND_FIELD_NUMBER;
-      hash = (53 * hash) + getRound();
-      hash = (37 * hash) + LEVEL_ID_FIELD_NUMBER;
-      hash = (53 * hash) + getLevelId();
-      if (getScoreListCount() > 0) {
-        hash = (37 * hash) + SCORE_LIST_FIELD_NUMBER;
-        hash = (53 * hash) + getScoreListList().hashCode();
+      if (getKNBIFCCIBLECount() > 0) {
+        hash = (37 * hash) + KNBIFCCIBLE_FIELD_NUMBER;
+        hash = (53 * hash) + getKNBIFCCIBLEList().hashCode();
       }
+      hash = (37 * hash) + PJJAOILBFBN_FIELD_NUMBER;
+      hash = (53 * hash) + getPJJAOILBFBN();
+      hash = (37 * hash) + PBKEAOCBPMN_FIELD_NUMBER;
+      hash = (53 * hash) + getPBKEAOCBPMN();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -509,10 +505,6 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       return builder;
     }
     /**
-     * <pre>
-     * Obf: GALINJEGEGO
-     * </pre>
-     *
      * Protobuf type {@code InstableSprayDungeonSettleInfo}
      */
     public static final class Builder extends
@@ -550,18 +542,18 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       @java.lang.Override
       public Builder clear() {
         super.clear();
+        mEMPKCGNNMF_ = 0;
+
+        dMNLDPPGOKG_ = 0;
+
         isNewRecord_ = false;
 
-        difficulty_ = 0;
-
-        stageId_ = 0;
-
-        round_ = 0;
-
-        levelId_ = 0;
-
-        scoreList_ = emptyIntList();
+        kNBIFCCIBLE_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
+        pJJAOILBFBN_ = 0;
+
+        pBKEAOCBPMN_ = 0;
+
         return this;
       }
 
@@ -589,16 +581,16 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       public emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo buildPartial() {
         emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo result = new emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo(this);
         int from_bitField0_ = bitField0_;
+        result.mEMPKCGNNMF_ = mEMPKCGNNMF_;
+        result.dMNLDPPGOKG_ = dMNLDPPGOKG_;
         result.isNewRecord_ = isNewRecord_;
-        result.difficulty_ = difficulty_;
-        result.stageId_ = stageId_;
-        result.round_ = round_;
-        result.levelId_ = levelId_;
         if (((bitField0_ & 0x00000001) != 0)) {
-          scoreList_.makeImmutable();
+          kNBIFCCIBLE_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.scoreList_ = scoreList_;
+        result.kNBIFCCIBLE_ = kNBIFCCIBLE_;
+        result.pJJAOILBFBN_ = pJJAOILBFBN_;
+        result.pBKEAOCBPMN_ = pBKEAOCBPMN_;
         onBuilt();
         return result;
       }
@@ -647,30 +639,30 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
 
       public Builder mergeFrom(emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo other) {
         if (other == emu.grasscutter.net.proto.InstableSprayDungeonSettleInfoOuterClass.InstableSprayDungeonSettleInfo.getDefaultInstance()) return this;
+        if (other.getMEMPKCGNNMF() != 0) {
+          setMEMPKCGNNMF(other.getMEMPKCGNNMF());
+        }
+        if (other.getDMNLDPPGOKG() != 0) {
+          setDMNLDPPGOKG(other.getDMNLDPPGOKG());
+        }
         if (other.getIsNewRecord() != false) {
           setIsNewRecord(other.getIsNewRecord());
         }
-        if (other.getDifficulty() != 0) {
-          setDifficulty(other.getDifficulty());
-        }
-        if (other.getStageId() != 0) {
-          setStageId(other.getStageId());
-        }
-        if (other.getRound() != 0) {
-          setRound(other.getRound());
-        }
-        if (other.getLevelId() != 0) {
-          setLevelId(other.getLevelId());
-        }
-        if (!other.scoreList_.isEmpty()) {
-          if (scoreList_.isEmpty()) {
-            scoreList_ = other.scoreList_;
+        if (!other.kNBIFCCIBLE_.isEmpty()) {
+          if (kNBIFCCIBLE_.isEmpty()) {
+            kNBIFCCIBLE_ = other.kNBIFCCIBLE_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureScoreListIsMutable();
-            scoreList_.addAll(other.scoreList_);
+            ensureKNBIFCCIBLEIsMutable();
+            kNBIFCCIBLE_.addAll(other.kNBIFCCIBLE_);
           }
           onChanged();
+        }
+        if (other.getPJJAOILBFBN() != 0) {
+          setPJJAOILBFBN(other.getPJJAOILBFBN());
+        }
+        if (other.getPBKEAOCBPMN() != 0) {
+          setPBKEAOCBPMN(other.getPBKEAOCBPMN());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -702,9 +694,71 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       }
       private int bitField0_;
 
+      private int mEMPKCGNNMF_ ;
+      /**
+       * <code>uint32 MEMPKCGNNMF = 4;</code>
+       * @return The mEMPKCGNNMF.
+       */
+      @java.lang.Override
+      public int getMEMPKCGNNMF() {
+        return mEMPKCGNNMF_;
+      }
+      /**
+       * <code>uint32 MEMPKCGNNMF = 4;</code>
+       * @param value The mEMPKCGNNMF to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMEMPKCGNNMF(int value) {
+        
+        mEMPKCGNNMF_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 MEMPKCGNNMF = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMEMPKCGNNMF() {
+        
+        mEMPKCGNNMF_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int dMNLDPPGOKG_ ;
+      /**
+       * <code>uint32 DMNLDPPGOKG = 5;</code>
+       * @return The dMNLDPPGOKG.
+       */
+      @java.lang.Override
+      public int getDMNLDPPGOKG() {
+        return dMNLDPPGOKG_;
+      }
+      /**
+       * <code>uint32 DMNLDPPGOKG = 5;</code>
+       * @param value The dMNLDPPGOKG to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDMNLDPPGOKG(int value) {
+        
+        dMNLDPPGOKG_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 DMNLDPPGOKG = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDMNLDPPGOKG() {
+        
+        dMNLDPPGOKG_ = 0;
+        onChanged();
+        return this;
+      }
+
       private boolean isNewRecord_ ;
       /**
-       * <code>bool is_new_record = 15;</code>
+       * <code>bool is_new_record = 7;</code>
        * @return The isNewRecord.
        */
       @java.lang.Override
@@ -712,7 +766,7 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
         return isNewRecord_;
       }
       /**
-       * <code>bool is_new_record = 15;</code>
+       * <code>bool is_new_record = 7;</code>
        * @param value The isNewRecord to set.
        * @return This builder for chaining.
        */
@@ -723,7 +777,7 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
         return this;
       }
       /**
-       * <code>bool is_new_record = 15;</code>
+       * <code>bool is_new_record = 7;</code>
        * @return This builder for chaining.
        */
       public Builder clearIsNewRecord() {
@@ -733,205 +787,143 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
         return this;
       }
 
-      private int difficulty_ ;
-      /**
-       * <code>uint32 difficulty = 8;</code>
-       * @return The difficulty.
-       */
-      @java.lang.Override
-      public int getDifficulty() {
-        return difficulty_;
-      }
-      /**
-       * <code>uint32 difficulty = 8;</code>
-       * @param value The difficulty to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDifficulty(int value) {
-        
-        difficulty_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 difficulty = 8;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearDifficulty() {
-        
-        difficulty_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private int stageId_ ;
-      /**
-       * <code>uint32 stage_id = 5;</code>
-       * @return The stageId.
-       */
-      @java.lang.Override
-      public int getStageId() {
-        return stageId_;
-      }
-      /**
-       * <code>uint32 stage_id = 5;</code>
-       * @param value The stageId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setStageId(int value) {
-        
-        stageId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 stage_id = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearStageId() {
-        
-        stageId_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private int round_ ;
-      /**
-       * <code>uint32 round = 13;</code>
-       * @return The round.
-       */
-      @java.lang.Override
-      public int getRound() {
-        return round_;
-      }
-      /**
-       * <code>uint32 round = 13;</code>
-       * @param value The round to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRound(int value) {
-        
-        round_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 round = 13;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearRound() {
-        
-        round_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private int levelId_ ;
-      /**
-       * <code>uint32 level_id = 4;</code>
-       * @return The levelId.
-       */
-      @java.lang.Override
-      public int getLevelId() {
-        return levelId_;
-      }
-      /**
-       * <code>uint32 level_id = 4;</code>
-       * @param value The levelId to set.
-       * @return This builder for chaining.
-       */
-      public Builder setLevelId(int value) {
-        
-        levelId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 level_id = 4;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearLevelId() {
-        
-        levelId_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.Internal.IntList scoreList_ = emptyIntList();
-      private void ensureScoreListIsMutable() {
+      private com.google.protobuf.Internal.IntList kNBIFCCIBLE_ = emptyIntList();
+      private void ensureKNBIFCCIBLEIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          scoreList_ = mutableCopy(scoreList_);
+          kNBIFCCIBLE_ = mutableCopy(kNBIFCCIBLE_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
-       * @return A list containing the scoreList.
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+       * @return A list containing the kNBIFCCIBLE.
        */
       public java.util.List<java.lang.Integer>
-          getScoreListList() {
+          getKNBIFCCIBLEList() {
         return ((bitField0_ & 0x00000001) != 0) ?
-                 java.util.Collections.unmodifiableList(scoreList_) : scoreList_;
+                 java.util.Collections.unmodifiableList(kNBIFCCIBLE_) : kNBIFCCIBLE_;
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
-       * @return The count of scoreList.
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+       * @return The count of kNBIFCCIBLE.
        */
-      public int getScoreListCount() {
-        return scoreList_.size();
+      public int getKNBIFCCIBLECount() {
+        return kNBIFCCIBLE_.size();
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
        * @param index The index of the element to return.
-       * @return The scoreList at the given index.
+       * @return The kNBIFCCIBLE at the given index.
        */
-      public int getScoreList(int index) {
-        return scoreList_.getInt(index);
+      public int getKNBIFCCIBLE(int index) {
+        return kNBIFCCIBLE_.getInt(index);
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
        * @param index The index to set the value at.
-       * @param value The scoreList to set.
+       * @param value The kNBIFCCIBLE to set.
        * @return This builder for chaining.
        */
-      public Builder setScoreList(
+      public Builder setKNBIFCCIBLE(
           int index, int value) {
-        ensureScoreListIsMutable();
-        scoreList_.setInt(index, value);
+        ensureKNBIFCCIBLEIsMutable();
+        kNBIFCCIBLE_.setInt(index, value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
-       * @param value The scoreList to add.
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+       * @param value The kNBIFCCIBLE to add.
        * @return This builder for chaining.
        */
-      public Builder addScoreList(int value) {
-        ensureScoreListIsMutable();
-        scoreList_.addInt(value);
+      public Builder addKNBIFCCIBLE(int value) {
+        ensureKNBIFCCIBLEIsMutable();
+        kNBIFCCIBLE_.addInt(value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
-       * @param values The scoreList to add.
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
+       * @param values The kNBIFCCIBLE to add.
        * @return This builder for chaining.
        */
-      public Builder addAllScoreList(
+      public Builder addAllKNBIFCCIBLE(
           java.lang.Iterable<? extends java.lang.Integer> values) {
-        ensureScoreListIsMutable();
+        ensureKNBIFCCIBLEIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, scoreList_);
+            values, kNBIFCCIBLE_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated uint32 score_list = 7;</code>
+       * <code>repeated uint32 KNBIFCCIBLE = 11;</code>
        * @return This builder for chaining.
        */
-      public Builder clearScoreList() {
-        scoreList_ = emptyIntList();
+      public Builder clearKNBIFCCIBLE() {
+        kNBIFCCIBLE_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+
+      private int pJJAOILBFBN_ ;
+      /**
+       * <code>uint32 PJJAOILBFBN = 12;</code>
+       * @return The pJJAOILBFBN.
+       */
+      @java.lang.Override
+      public int getPJJAOILBFBN() {
+        return pJJAOILBFBN_;
+      }
+      /**
+       * <code>uint32 PJJAOILBFBN = 12;</code>
+       * @param value The pJJAOILBFBN to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPJJAOILBFBN(int value) {
+        
+        pJJAOILBFBN_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 PJJAOILBFBN = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPJJAOILBFBN() {
+        
+        pJJAOILBFBN_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int pBKEAOCBPMN_ ;
+      /**
+       * <code>uint32 PBKEAOCBPMN = 13;</code>
+       * @return The pBKEAOCBPMN.
+       */
+      @java.lang.Override
+      public int getPBKEAOCBPMN() {
+        return pBKEAOCBPMN_;
+      }
+      /**
+       * <code>uint32 PBKEAOCBPMN = 13;</code>
+       * @param value The pBKEAOCBPMN to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPBKEAOCBPMN(int value) {
+        
+        pBKEAOCBPMN_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 PBKEAOCBPMN = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPBKEAOCBPMN() {
+        
+        pBKEAOCBPMN_ = 0;
         onChanged();
         return this;
       }
@@ -1002,12 +994,12 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n$InstableSprayDungeonSettleInfo.proto\"\222" +
-      "\001\n\036InstableSprayDungeonSettleInfo\022\025\n\ris_" +
-      "new_record\030\017 \001(\010\022\022\n\ndifficulty\030\010 \001(\r\022\020\n\010" +
-      "stage_id\030\005 \001(\r\022\r\n\005round\030\r \001(\r\022\020\n\010level_i" +
-      "d\030\004 \001(\r\022\022\n\nscore_list\030\007 \003(\rB\033\n\031emu.grass" +
-      "cutter.net.protob\006proto3"
+      "\n$InstableSprayDungeonSettleInfo.proto\"\240" +
+      "\001\n\036InstableSprayDungeonSettleInfo\022\023\n\013MEM" +
+      "PKCGNNMF\030\004 \001(\r\022\023\n\013DMNLDPPGOKG\030\005 \001(\r\022\025\n\ri" +
+      "s_new_record\030\007 \001(\010\022\023\n\013KNBIFCCIBLE\030\013 \003(\r\022" +
+      "\023\n\013PJJAOILBFBN\030\014 \001(\r\022\023\n\013PBKEAOCBPMN\030\r \001(" +
+      "\rB\033\n\031emu.grasscutter.net.protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1018,7 +1010,7 @@ public final class InstableSprayDungeonSettleInfoOuterClass {
     internal_static_InstableSprayDungeonSettleInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_InstableSprayDungeonSettleInfo_descriptor,
-        new java.lang.String[] { "IsNewRecord", "Difficulty", "StageId", "Round", "LevelId", "ScoreList", });
+        new java.lang.String[] { "MEMPKCGNNMF", "DMNLDPPGOKG", "IsNewRecord", "KNBIFCCIBLE", "PJJAOILBFBN", "PBKEAOCBPMN", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

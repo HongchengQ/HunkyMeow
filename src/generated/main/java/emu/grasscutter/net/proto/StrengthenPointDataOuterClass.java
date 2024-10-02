@@ -31,10 +31,6 @@ public final class StrengthenPointDataOuterClass {
     int getCurPoint();
   }
   /**
-   * <pre>
-   * 5.0.0
-   * </pre>
-   *
    * Protobuf type {@code StrengthenPointData}
    */
   public static final class StrengthenPointData extends
@@ -310,10 +306,6 @@ public final class StrengthenPointDataOuterClass {
       return builder;
     }
     /**
-     * <pre>
-     * 5.0.0
-     * </pre>
-     *
      * Protobuf type {@code StrengthenPointData}
      */
     public static final class Builder extends

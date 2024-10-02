@@ -37,6 +37,10 @@ public final class AvatarSatiationDataOuterClass {
     float getFinishTime();
   }
   /**
+   * <pre>
+   * obf: AFNBGDDDOAD
+   * </pre>
+   *
    * Protobuf type {@code AvatarSatiationData}
    */
   public static final class AvatarSatiationData extends
@@ -344,6 +348,10 @@ public final class AvatarSatiationDataOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * obf: AFNBGDDDOAD
+     * </pre>
+     *
      * Protobuf type {@code AvatarSatiationData}
      */
     public static final class Builder extends

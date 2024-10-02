@@ -19,51 +19,47 @@ public final class MsgParamOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>uint32 int_param = 8;</code>
-     * @return Whether the intParam field is set.
-     */
-    boolean hasIntParam();
-    /**
-     * <code>uint32 int_param = 8;</code>
-     * @return The intParam.
-     */
-    int getIntParam();
-
-    /**
-     * <code>float flt_param = 15;</code>
-     * @return Whether the fltParam field is set.
-     */
-    boolean hasFltParam();
-    /**
-     * <code>float flt_param = 15;</code>
-     * @return The fltParam.
-     */
-    float getFltParam();
-
-    /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return Whether the strParam field is set.
      */
     boolean hasStrParam();
     /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return The strParam.
      */
     java.lang.String getStrParam();
     /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return The bytes for strParam.
      */
     com.google.protobuf.ByteString
         getStrParamBytes();
 
+    /**
+     * <code>uint32 int_param = 13;</code>
+     * @return Whether the intParam field is set.
+     */
+    boolean hasIntParam();
+    /**
+     * <code>uint32 int_param = 13;</code>
+     * @return The intParam.
+     */
+    int getIntParam();
+
+    /**
+     * <code>float flt_param = 12;</code>
+     * @return Whether the fltParam field is set.
+     */
+    boolean hasFltParam();
+    /**
+     * <code>float flt_param = 12;</code>
+     * @return The fltParam.
+     */
+    float getFltParam();
+
     public emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam.ParamCase getParamCase();
   }
   /**
-   * <pre>
-   * Obf: PAAMEAIJADP
-   * </pre>
-   *
    * Protobuf type {@code MsgParam}
    */
   public static final class MsgParam extends
@@ -108,20 +104,20 @@ public final class MsgParamOuterClass {
             case 0:
               done = true;
               break;
-            case 10: {
+            case 90: {
               java.lang.String s = input.readStringRequireUtf8();
-              paramCase_ = 1;
+              paramCase_ = 11;
               param_ = s;
               break;
             }
-            case 64: {
-              paramCase_ = 8;
-              param_ = input.readUInt32();
+            case 101: {
+              paramCase_ = 12;
+              param_ = input.readFloat();
               break;
             }
-            case 125: {
-              paramCase_ = 15;
-              param_ = input.readFloat();
+            case 104: {
+              paramCase_ = 13;
+              param_ = input.readUInt32();
               break;
             }
             default: {
@@ -161,9 +157,9 @@ public final class MsgParamOuterClass {
     public enum ParamCase
         implements com.google.protobuf.Internal.EnumLite,
             com.google.protobuf.AbstractMessage.InternalOneOfEnum {
-      INT_PARAM(8),
-      FLT_PARAM(15),
-      STR_PARAM(1),
+      STR_PARAM(11),
+      INT_PARAM(13),
+      FLT_PARAM(12),
       PARAM_NOT_SET(0);
       private final int value;
       private ParamCase(int value) {
@@ -181,9 +177,9 @@ public final class MsgParamOuterClass {
 
       public static ParamCase forNumber(int value) {
         switch (value) {
-          case 8: return INT_PARAM;
-          case 15: return FLT_PARAM;
-          case 1: return STR_PARAM;
+          case 11: return STR_PARAM;
+          case 13: return INT_PARAM;
+          case 12: return FLT_PARAM;
           case 0: return PARAM_NOT_SET;
           default: return null;
         }
@@ -199,63 +195,21 @@ public final class MsgParamOuterClass {
           paramCase_);
     }
 
-    public static final int INT_PARAM_FIELD_NUMBER = 8;
+    public static final int STR_PARAM_FIELD_NUMBER = 11;
     /**
-     * <code>uint32 int_param = 8;</code>
-     * @return Whether the intParam field is set.
-     */
-    @java.lang.Override
-    public boolean hasIntParam() {
-      return paramCase_ == 8;
-    }
-    /**
-     * <code>uint32 int_param = 8;</code>
-     * @return The intParam.
-     */
-    @java.lang.Override
-    public int getIntParam() {
-      if (paramCase_ == 8) {
-        return (java.lang.Integer) param_;
-      }
-      return 0;
-    }
-
-    public static final int FLT_PARAM_FIELD_NUMBER = 15;
-    /**
-     * <code>float flt_param = 15;</code>
-     * @return Whether the fltParam field is set.
-     */
-    @java.lang.Override
-    public boolean hasFltParam() {
-      return paramCase_ == 15;
-    }
-    /**
-     * <code>float flt_param = 15;</code>
-     * @return The fltParam.
-     */
-    @java.lang.Override
-    public float getFltParam() {
-      if (paramCase_ == 15) {
-        return (java.lang.Float) param_;
-      }
-      return 0F;
-    }
-
-    public static final int STR_PARAM_FIELD_NUMBER = 1;
-    /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return Whether the strParam field is set.
      */
     public boolean hasStrParam() {
-      return paramCase_ == 1;
+      return paramCase_ == 11;
     }
     /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return The strParam.
      */
     public java.lang.String getStrParam() {
       java.lang.Object ref = "";
-      if (paramCase_ == 1) {
+      if (paramCase_ == 11) {
         ref = param_;
       }
       if (ref instanceof java.lang.String) {
@@ -264,33 +218,75 @@ public final class MsgParamOuterClass {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        if (paramCase_ == 1) {
+        if (paramCase_ == 11) {
           param_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>string str_param = 1;</code>
+     * <code>string str_param = 11;</code>
      * @return The bytes for strParam.
      */
     public com.google.protobuf.ByteString
         getStrParamBytes() {
       java.lang.Object ref = "";
-      if (paramCase_ == 1) {
+      if (paramCase_ == 11) {
         ref = param_;
       }
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        if (paramCase_ == 1) {
+        if (paramCase_ == 11) {
           param_ = b;
         }
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
+    }
+
+    public static final int INT_PARAM_FIELD_NUMBER = 13;
+    /**
+     * <code>uint32 int_param = 13;</code>
+     * @return Whether the intParam field is set.
+     */
+    @java.lang.Override
+    public boolean hasIntParam() {
+      return paramCase_ == 13;
+    }
+    /**
+     * <code>uint32 int_param = 13;</code>
+     * @return The intParam.
+     */
+    @java.lang.Override
+    public int getIntParam() {
+      if (paramCase_ == 13) {
+        return (java.lang.Integer) param_;
+      }
+      return 0;
+    }
+
+    public static final int FLT_PARAM_FIELD_NUMBER = 12;
+    /**
+     * <code>float flt_param = 12;</code>
+     * @return Whether the fltParam field is set.
+     */
+    @java.lang.Override
+    public boolean hasFltParam() {
+      return paramCase_ == 12;
+    }
+    /**
+     * <code>float flt_param = 12;</code>
+     * @return The fltParam.
+     */
+    @java.lang.Override
+    public float getFltParam() {
+      if (paramCase_ == 12) {
+        return (java.lang.Float) param_;
+      }
+      return 0F;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -307,16 +303,16 @@ public final class MsgParamOuterClass {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (paramCase_ == 1) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, param_);
+      if (paramCase_ == 11) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 11, param_);
       }
-      if (paramCase_ == 8) {
-        output.writeUInt32(
-            8, (int)((java.lang.Integer) param_));
-      }
-      if (paramCase_ == 15) {
+      if (paramCase_ == 12) {
         output.writeFloat(
-            15, (float)((java.lang.Float) param_));
+            12, (float)((java.lang.Float) param_));
+      }
+      if (paramCase_ == 13) {
+        output.writeUInt32(
+            13, (int)((java.lang.Integer) param_));
       }
       unknownFields.writeTo(output);
     }
@@ -327,18 +323,18 @@ public final class MsgParamOuterClass {
       if (size != -1) return size;
 
       size = 0;
-      if (paramCase_ == 1) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, param_);
+      if (paramCase_ == 11) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, param_);
       }
-      if (paramCase_ == 8) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(
-              8, (int)((java.lang.Integer) param_));
-      }
-      if (paramCase_ == 15) {
+      if (paramCase_ == 12) {
         size += com.google.protobuf.CodedOutputStream
           .computeFloatSize(
-              15, (float)((java.lang.Float) param_));
+              12, (float)((java.lang.Float) param_));
+      }
+      if (paramCase_ == 13) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(
+              13, (int)((java.lang.Integer) param_));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -357,18 +353,18 @@ public final class MsgParamOuterClass {
 
       if (!getParamCase().equals(other.getParamCase())) return false;
       switch (paramCase_) {
-        case 8:
+        case 11:
+          if (!getStrParam()
+              .equals(other.getStrParam())) return false;
+          break;
+        case 13:
           if (getIntParam()
               != other.getIntParam()) return false;
           break;
-        case 15:
+        case 12:
           if (java.lang.Float.floatToIntBits(getFltParam())
               != java.lang.Float.floatToIntBits(
                   other.getFltParam())) return false;
-          break;
-        case 1:
-          if (!getStrParam()
-              .equals(other.getStrParam())) return false;
           break;
         case 0:
         default:
@@ -385,18 +381,18 @@ public final class MsgParamOuterClass {
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
       switch (paramCase_) {
-        case 8:
+        case 11:
+          hash = (37 * hash) + STR_PARAM_FIELD_NUMBER;
+          hash = (53 * hash) + getStrParam().hashCode();
+          break;
+        case 13:
           hash = (37 * hash) + INT_PARAM_FIELD_NUMBER;
           hash = (53 * hash) + getIntParam();
           break;
-        case 15:
+        case 12:
           hash = (37 * hash) + FLT_PARAM_FIELD_NUMBER;
           hash = (53 * hash) + java.lang.Float.floatToIntBits(
               getFltParam());
-          break;
-        case 1:
-          hash = (37 * hash) + STR_PARAM_FIELD_NUMBER;
-          hash = (53 * hash) + getStrParam().hashCode();
           break;
         case 0:
         default:
@@ -497,10 +493,6 @@ public final class MsgParamOuterClass {
       return builder;
     }
     /**
-     * <pre>
-     * Obf: PAAMEAIJADP
-     * </pre>
-     *
      * Protobuf type {@code MsgParam}
      */
     public static final class Builder extends
@@ -566,13 +558,13 @@ public final class MsgParamOuterClass {
       @java.lang.Override
       public emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam buildPartial() {
         emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam result = new emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam(this);
-        if (paramCase_ == 8) {
+        if (paramCase_ == 11) {
           result.param_ = param_;
         }
-        if (paramCase_ == 15) {
+        if (paramCase_ == 13) {
           result.param_ = param_;
         }
-        if (paramCase_ == 1) {
+        if (paramCase_ == 12) {
           result.param_ = param_;
         }
         result.paramCase_ = paramCase_;
@@ -625,18 +617,18 @@ public final class MsgParamOuterClass {
       public Builder mergeFrom(emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam other) {
         if (other == emu.grasscutter.net.proto.MsgParamOuterClass.MsgParam.getDefaultInstance()) return this;
         switch (other.getParamCase()) {
+          case STR_PARAM: {
+            paramCase_ = 11;
+            param_ = other.param_;
+            onChanged();
+            break;
+          }
           case INT_PARAM: {
             setIntParam(other.getIntParam());
             break;
           }
           case FLT_PARAM: {
             setFltParam(other.getFltParam());
-            break;
-          }
-          case STR_PARAM: {
-            paramCase_ = 1;
-            param_ = other.param_;
-            onChanged();
             break;
           }
           case PARAM_NOT_SET: {
@@ -688,110 +680,28 @@ public final class MsgParamOuterClass {
 
 
       /**
-       * <code>uint32 int_param = 8;</code>
-       * @return Whether the intParam field is set.
-       */
-      public boolean hasIntParam() {
-        return paramCase_ == 8;
-      }
-      /**
-       * <code>uint32 int_param = 8;</code>
-       * @return The intParam.
-       */
-      public int getIntParam() {
-        if (paramCase_ == 8) {
-          return (java.lang.Integer) param_;
-        }
-        return 0;
-      }
-      /**
-       * <code>uint32 int_param = 8;</code>
-       * @param value The intParam to set.
-       * @return This builder for chaining.
-       */
-      public Builder setIntParam(int value) {
-        paramCase_ = 8;
-        param_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 int_param = 8;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearIntParam() {
-        if (paramCase_ == 8) {
-          paramCase_ = 0;
-          param_ = null;
-          onChanged();
-        }
-        return this;
-      }
-
-      /**
-       * <code>float flt_param = 15;</code>
-       * @return Whether the fltParam field is set.
-       */
-      public boolean hasFltParam() {
-        return paramCase_ == 15;
-      }
-      /**
-       * <code>float flt_param = 15;</code>
-       * @return The fltParam.
-       */
-      public float getFltParam() {
-        if (paramCase_ == 15) {
-          return (java.lang.Float) param_;
-        }
-        return 0F;
-      }
-      /**
-       * <code>float flt_param = 15;</code>
-       * @param value The fltParam to set.
-       * @return This builder for chaining.
-       */
-      public Builder setFltParam(float value) {
-        paramCase_ = 15;
-        param_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>float flt_param = 15;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearFltParam() {
-        if (paramCase_ == 15) {
-          paramCase_ = 0;
-          param_ = null;
-          onChanged();
-        }
-        return this;
-      }
-
-      /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @return Whether the strParam field is set.
        */
       @java.lang.Override
       public boolean hasStrParam() {
-        return paramCase_ == 1;
+        return paramCase_ == 11;
       }
       /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @return The strParam.
        */
       @java.lang.Override
       public java.lang.String getStrParam() {
         java.lang.Object ref = "";
-        if (paramCase_ == 1) {
+        if (paramCase_ == 11) {
           ref = param_;
         }
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          if (paramCase_ == 1) {
+          if (paramCase_ == 11) {
             param_ = s;
           }
           return s;
@@ -800,21 +710,21 @@ public final class MsgParamOuterClass {
         }
       }
       /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @return The bytes for strParam.
        */
       @java.lang.Override
       public com.google.protobuf.ByteString
           getStrParamBytes() {
         java.lang.Object ref = "";
-        if (paramCase_ == 1) {
+        if (paramCase_ == 11) {
           ref = param_;
         }
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          if (paramCase_ == 1) {
+          if (paramCase_ == 11) {
             param_ = b;
           }
           return b;
@@ -823,7 +733,7 @@ public final class MsgParamOuterClass {
         }
       }
       /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @param value The strParam to set.
        * @return This builder for chaining.
        */
@@ -832,17 +742,17 @@ public final class MsgParamOuterClass {
         if (value == null) {
     throw new NullPointerException();
   }
-  paramCase_ = 1;
+  paramCase_ = 11;
         param_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @return This builder for chaining.
        */
       public Builder clearStrParam() {
-        if (paramCase_ == 1) {
+        if (paramCase_ == 11) {
           paramCase_ = 0;
           param_ = null;
           onChanged();
@@ -850,7 +760,7 @@ public final class MsgParamOuterClass {
         return this;
       }
       /**
-       * <code>string str_param = 1;</code>
+       * <code>string str_param = 11;</code>
        * @param value The bytes for strParam to set.
        * @return This builder for chaining.
        */
@@ -860,9 +770,91 @@ public final class MsgParamOuterClass {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-        paramCase_ = 1;
+        paramCase_ = 11;
         param_ = value;
         onChanged();
+        return this;
+      }
+
+      /**
+       * <code>uint32 int_param = 13;</code>
+       * @return Whether the intParam field is set.
+       */
+      public boolean hasIntParam() {
+        return paramCase_ == 13;
+      }
+      /**
+       * <code>uint32 int_param = 13;</code>
+       * @return The intParam.
+       */
+      public int getIntParam() {
+        if (paramCase_ == 13) {
+          return (java.lang.Integer) param_;
+        }
+        return 0;
+      }
+      /**
+       * <code>uint32 int_param = 13;</code>
+       * @param value The intParam to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIntParam(int value) {
+        paramCase_ = 13;
+        param_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 int_param = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearIntParam() {
+        if (paramCase_ == 13) {
+          paramCase_ = 0;
+          param_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      /**
+       * <code>float flt_param = 12;</code>
+       * @return Whether the fltParam field is set.
+       */
+      public boolean hasFltParam() {
+        return paramCase_ == 12;
+      }
+      /**
+       * <code>float flt_param = 12;</code>
+       * @return The fltParam.
+       */
+      public float getFltParam() {
+        if (paramCase_ == 12) {
+          return (java.lang.Float) param_;
+        }
+        return 0F;
+      }
+      /**
+       * <code>float flt_param = 12;</code>
+       * @param value The fltParam to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFltParam(float value) {
+        paramCase_ = 12;
+        param_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>float flt_param = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFltParam() {
+        if (paramCase_ == 12) {
+          paramCase_ = 0;
+          param_ = null;
+          onChanged();
+        }
         return this;
       }
       @java.lang.Override
@@ -932,9 +924,9 @@ public final class MsgParamOuterClass {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\016MsgParam.proto\"R\n\010MsgParam\022\023\n\tint_para" +
-      "m\030\010 \001(\rH\000\022\023\n\tflt_param\030\017 \001(\002H\000\022\023\n\tstr_pa" +
-      "ram\030\001 \001(\tH\000B\007\n\005paramB\033\n\031emu.grasscutter." +
+      "\n\016MsgParam.proto\"R\n\010MsgParam\022\023\n\tstr_para" +
+      "m\030\013 \001(\tH\000\022\023\n\tint_param\030\r \001(\rH\000\022\023\n\tflt_pa" +
+      "ram\030\014 \001(\002H\000B\007\n\005paramB\033\n\031emu.grasscutter." +
       "net.protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
@@ -946,7 +938,7 @@ public final class MsgParamOuterClass {
     internal_static_MsgParam_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MsgParam_descriptor,
-        new java.lang.String[] { "IntParam", "FltParam", "StrParam", "Param", });
+        new java.lang.String[] { "StrParam", "IntParam", "FltParam", "Param", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

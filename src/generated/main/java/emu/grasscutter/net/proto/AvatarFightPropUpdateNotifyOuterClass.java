@@ -61,6 +61,7 @@ public final class AvatarFightPropUpdateNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 20328
+   * obf: CLGMBNOPKDA
    * </pre>
    *
    * Protobuf type {@code AvatarFightPropUpdateNotify}
@@ -443,6 +444,7 @@ public final class AvatarFightPropUpdateNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 20328
+     * obf: CLGMBNOPKDA
      * </pre>
      *
      * Protobuf type {@code AvatarFightPropUpdateNotify}

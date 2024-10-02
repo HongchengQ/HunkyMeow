@@ -31,6 +31,11 @@ public final class AvatarPromoteRspOuterClass {
     int getRetcode();
   }
   /**
+   * <pre>
+   * 5.0.0 test
+   * CmdId: 1987
+   * </pre>
+   *
    * Protobuf type {@code AvatarPromoteRsp}
    */
   public static final class AvatarPromoteRsp extends
@@ -307,6 +312,11 @@ public final class AvatarPromoteRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * 5.0.0 test
+     * CmdId: 1987
+     * </pre>
+     *
      * Protobuf type {@code AvatarPromoteRsp}
      */
     public static final class Builder extends

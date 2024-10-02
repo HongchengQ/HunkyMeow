@@ -54,6 +54,11 @@ public final class ProudSkillChangeNotifyOuterClass {
     long getAvatarGuid();
   }
   /**
+   * <pre>
+   * CmdId: 29262
+   * obf: PKMMDCDNCLI
+   * </pre>
+   *
    * Protobuf type {@code ProudSkillChangeNotify}
    */
   public static final class ProudSkillChangeNotify extends
@@ -439,6 +444,11 @@ public final class ProudSkillChangeNotifyOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 29262
+     * obf: PKMMDCDNCLI
+     * </pre>
+     *
      * Protobuf type {@code ProudSkillChangeNotify}
      */
     public static final class Builder extends

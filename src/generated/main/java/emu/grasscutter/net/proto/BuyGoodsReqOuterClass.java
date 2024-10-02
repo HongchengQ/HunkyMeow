@@ -46,6 +46,11 @@ public final class BuyGoodsReqOuterClass {
     int getBuyCount();
   }
   /**
+   * <pre>
+   * CmdId: 4523
+   * obf: OAKJHCICNHN
+   * </pre>
+   *
    * Protobuf type {@code BuyGoodsReq}
    */
   public static final class BuyGoodsReq extends
@@ -376,6 +381,11 @@ public final class BuyGoodsReqOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 4523
+     * obf: OAKJHCICNHN
+     * </pre>
+     *
      * Protobuf type {@code BuyGoodsReq}
      */
     public static final class Builder extends

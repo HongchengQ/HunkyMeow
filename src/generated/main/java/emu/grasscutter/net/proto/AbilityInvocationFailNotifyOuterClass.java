@@ -54,6 +54,7 @@ public final class AbilityInvocationFailNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 9225
+   * obf: MLNOHFGMIAK
    * </pre>
    *
    * Protobuf type {@code AbilityInvocationFailNotify}
@@ -416,6 +417,7 @@ public final class AbilityInvocationFailNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 9225
+     * obf: MLNOHFGMIAK
      * </pre>
      *
      * Protobuf type {@code AbilityInvocationFailNotify}

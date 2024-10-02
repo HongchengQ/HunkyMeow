@@ -54,6 +54,7 @@ public final class EvtAvatarSitDownNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 22638
+   * obf: PBJDAJJGMNH
    * </pre>
    *
    * Protobuf type {@code EvtAvatarSitDownNotify}
@@ -416,6 +417,7 @@ public final class EvtAvatarSitDownNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 22638
+     * obf: PBJDAJJGMNH
      * </pre>
      *
      * Protobuf type {@code EvtAvatarSitDownNotify}

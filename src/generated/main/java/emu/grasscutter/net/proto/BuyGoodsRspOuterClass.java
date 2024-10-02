@@ -76,6 +76,11 @@ public final class BuyGoodsRspOuterClass {
     int getShopType();
   }
   /**
+   * <pre>
+   * CmdId: 21
+   * obf: LODPCINKMNE
+   * </pre>
+   *
    * Protobuf type {@code BuyGoodsRsp}
    */
   public static final class BuyGoodsRsp extends
@@ -500,6 +505,11 @@ public final class BuyGoodsRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 21
+     * obf: LODPCINKMNE
+     * </pre>
+     *
      * Protobuf type {@code BuyGoodsRsp}
      */
     public static final class Builder extends

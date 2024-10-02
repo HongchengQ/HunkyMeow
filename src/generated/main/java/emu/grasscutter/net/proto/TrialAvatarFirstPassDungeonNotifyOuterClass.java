@@ -26,8 +26,8 @@ public final class TrialAvatarFirstPassDungeonNotifyOuterClass {
   }
   /**
    * <pre>
-   * 5.0.0
-   * CmdId: 8103
+   * CmdId: 6009
+   * Obf: FMDPKNJCNHO
    * </pre>
    *
    * Protobuf type {@code TrialAvatarFirstPassDungeonNotify}
@@ -279,8 +279,8 @@ public final class TrialAvatarFirstPassDungeonNotifyOuterClass {
     }
     /**
      * <pre>
-     * 5.0.0
-     * CmdId: 8103
+     * CmdId: 6009
+     * Obf: FMDPKNJCNHO
      * </pre>
      *
      * Protobuf type {@code TrialAvatarFirstPassDungeonNotify}

@@ -42,6 +42,11 @@ public final class GetShopmallDataRspOuterClass {
     int getRetcode();
   }
   /**
+   * <pre>
+   * CmdId: 25192
+   * obf: AOAKBECNKJL
+   * </pre>
+   *
    * Protobuf type {@code GetShopmallDataRsp}
    */
   public static final class GetShopmallDataRsp extends
@@ -372,6 +377,11 @@ public final class GetShopmallDataRspOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 25192
+     * obf: AOAKBECNKJL
+     * </pre>
+     *
      * Protobuf type {@code GetShopmallDataRsp}
      */
     public static final class Builder extends

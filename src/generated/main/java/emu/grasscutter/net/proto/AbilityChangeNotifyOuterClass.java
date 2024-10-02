@@ -40,6 +40,11 @@ public final class AbilityChangeNotifyOuterClass {
     emu.grasscutter.net.proto.AbilityControlBlockOuterClass.AbilityControlBlockOrBuilder getAbilityControlBlockOrBuilder();
   }
   /**
+   * <pre>
+   * CmdId: 21684
+   * obf: DGBGDLDJIAF
+   * </pre>
+   *
    * Protobuf type {@code AbilityChangeNotify}
    */
   public static final class AbilityChangeNotify extends
@@ -343,6 +348,11 @@ public final class AbilityChangeNotifyOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 21684
+     * obf: DGBGDLDJIAF
+     * </pre>
+     *
      * Protobuf type {@code AbilityChangeNotify}
      */
     public static final class Builder extends

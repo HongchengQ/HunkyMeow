@@ -59,6 +59,7 @@ public final class EvtEntityRenderersChangedNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 7358
+   * obf: HCNBKIBKGAG
    * </pre>
    *
    * Protobuf type {@code EvtEntityRenderersChangedNotify}
@@ -430,6 +431,7 @@ public final class EvtEntityRenderersChangedNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 7358
+     * obf: HCNBKIBKGAG
      * </pre>
      *
      * Protobuf type {@code EvtEntityRenderersChangedNotify}

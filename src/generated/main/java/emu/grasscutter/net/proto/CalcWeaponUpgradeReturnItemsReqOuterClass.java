@@ -66,6 +66,10 @@ public final class CalcWeaponUpgradeReturnItemsReqOuterClass {
     long getTargetWeaponGuid();
   }
   /**
+   * <pre>
+   * CmdId: 7713
+   * </pre>
+   *
    * Protobuf type {@code CalcWeaponUpgradeReturnItemsReq}
    */
   public static final class CalcWeaponUpgradeReturnItemsReq extends
@@ -463,6 +467,10 @@ public final class CalcWeaponUpgradeReturnItemsReqOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 7713
+     * </pre>
+     *
      * Protobuf type {@code CalcWeaponUpgradeReturnItemsReq}
      */
     public static final class Builder extends

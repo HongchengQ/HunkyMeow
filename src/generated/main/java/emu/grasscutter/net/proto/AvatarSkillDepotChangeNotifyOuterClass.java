@@ -147,6 +147,7 @@ public final class AvatarSkillDepotChangeNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 25309
+   * obf: KLEALCOODKG
    * </pre>
    *
    * Protobuf type {@code AvatarSkillDepotChangeNotify}
@@ -889,6 +890,7 @@ public final class AvatarSkillDepotChangeNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 25309
+     * obf: KLEALCOODKG
      * </pre>
      *
      * Protobuf type {@code AvatarSkillDepotChangeNotify}

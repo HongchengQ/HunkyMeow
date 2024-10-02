@@ -31,12 +31,20 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
     int getItemId();
 
     /**
+     * <pre>
+     * 可能不对 要和下面互换
+     * </pre>
+     *
      * <code>uint32 initial_level = 8;</code>
      * @return The initialLevel.
      */
     int getInitialLevel();
 
     /**
+     * <pre>
+     * 可能不对 要和下面互换
+     * </pre>
+     *
      * <code>uint32 initial_promote_level = 9;</code>
      * @return The initialPromoteLevel.
      */
@@ -79,6 +87,11 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
         int index);
   }
   /**
+   * <pre>
+   * CmdId: 28082
+   * obf: MGNNGBNNFEI
+   * </pre>
+   *
    * Protobuf type {@code AddNoGachaAvatarCardNotify}
    */
   public static final class AddNoGachaAvatarCardNotify extends
@@ -224,6 +237,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
     public static final int INITIAL_LEVEL_FIELD_NUMBER = 8;
     private int initialLevel_;
     /**
+     * <pre>
+     * 可能不对 要和下面互换
+     * </pre>
+     *
      * <code>uint32 initial_level = 8;</code>
      * @return The initialLevel.
      */
@@ -235,6 +252,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
     public static final int INITIAL_PROMOTE_LEVEL_FIELD_NUMBER = 9;
     private int initialPromoteLevel_;
     /**
+     * <pre>
+     * 可能不对 要和下面互换
+     * </pre>
+     *
      * <code>uint32 initial_promote_level = 9;</code>
      * @return The initialPromoteLevel.
      */
@@ -530,6 +551,11 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 28082
+     * obf: MGNNGBNNFEI
+     * </pre>
+     *
      * Protobuf type {@code AddNoGachaAvatarCardNotify}
      */
     public static final class Builder extends
@@ -814,6 +840,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
 
       private int initialLevel_ ;
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_level = 8;</code>
        * @return The initialLevel.
        */
@@ -822,6 +852,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
         return initialLevel_;
       }
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_level = 8;</code>
        * @param value The initialLevel to set.
        * @return This builder for chaining.
@@ -833,6 +867,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
         return this;
       }
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_level = 8;</code>
        * @return This builder for chaining.
        */
@@ -845,6 +883,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
 
       private int initialPromoteLevel_ ;
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_promote_level = 9;</code>
        * @return The initialPromoteLevel.
        */
@@ -853,6 +895,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
         return initialPromoteLevel_;
       }
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_promote_level = 9;</code>
        * @param value The initialPromoteLevel to set.
        * @return This builder for chaining.
@@ -864,6 +910,10 @@ public final class AddNoGachaAvatarCardNotifyOuterClass {
         return this;
       }
       /**
+       * <pre>
+       * 可能不对 要和下面互换
+       * </pre>
+       *
        * <code>uint32 initial_promote_level = 9;</code>
        * @return This builder for chaining.
        */

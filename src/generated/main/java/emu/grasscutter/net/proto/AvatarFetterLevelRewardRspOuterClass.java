@@ -45,6 +45,7 @@ public final class AvatarFetterLevelRewardRspOuterClass {
   /**
    * <pre>
    * CmdId: 21750
+   * obf: IFEMKGALEMM
    * </pre>
    *
    * Protobuf type {@code AvatarFetterLevelRewardRsp}
@@ -379,6 +380,7 @@ public final class AvatarFetterLevelRewardRspOuterClass {
     /**
      * <pre>
      * CmdId: 21750
+     * obf: IFEMKGALEMM
      * </pre>
      *
      * Protobuf type {@code AvatarFetterLevelRewardRsp}

@@ -53,6 +53,7 @@ public final class DropHintNotifyOuterClass {
   /**
    * <pre>
    * CmdId: 3881
+   * obf: BNAGKNMHKEJ
    * </pre>
    *
    * Protobuf type {@code DropHintNotify}
@@ -415,6 +416,7 @@ public final class DropHintNotifyOuterClass {
     /**
      * <pre>
      * CmdId: 3881
+     * obf: BNAGKNMHKEJ
      * </pre>
      *
      * Protobuf type {@code DropHintNotify}

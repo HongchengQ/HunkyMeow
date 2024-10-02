@@ -31,6 +31,12 @@ public final class UnlockAvatarTalentReqOuterClass {
     long getAvatarGuid();
   }
   /**
+   * <pre>
+   * CmdId: 6454
+   * obf: LBMKGDJNDAE
+   * 5.0
+   * </pre>
+   *
    * Protobuf type {@code UnlockAvatarTalentReq}
    */
   public static final class UnlockAvatarTalentReq extends
@@ -307,6 +313,12 @@ public final class UnlockAvatarTalentReqOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 6454
+     * obf: LBMKGDJNDAE
+     * 5.0
+     * </pre>
+     *
      * Protobuf type {@code UnlockAvatarTalentReq}
      */
     public static final class Builder extends

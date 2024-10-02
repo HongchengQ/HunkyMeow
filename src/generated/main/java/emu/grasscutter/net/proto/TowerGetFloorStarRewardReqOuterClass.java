@@ -19,15 +19,14 @@ public final class TowerGetFloorStarRewardReqOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>uint32 floor_id = 3;</code>
+     * <code>uint32 floor_id = 13;</code>
      * @return The floorId.
      */
     int getFloorId();
   }
   /**
    * <pre>
-   * CmdId: 5764
-   * Obf: ELMPNCMADBL
+   * CmdId: 5963
    * </pre>
    *
    * Protobuf type {@code TowerGetFloorStarRewardReq}
@@ -74,7 +73,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
             case 0:
               done = true;
               break;
-            case 24: {
+            case 104: {
 
               floorId_ = input.readUInt32();
               break;
@@ -111,10 +110,10 @@ public final class TowerGetFloorStarRewardReqOuterClass {
               emu.grasscutter.net.proto.TowerGetFloorStarRewardReqOuterClass.TowerGetFloorStarRewardReq.class, emu.grasscutter.net.proto.TowerGetFloorStarRewardReqOuterClass.TowerGetFloorStarRewardReq.Builder.class);
     }
 
-    public static final int FLOOR_ID_FIELD_NUMBER = 3;
+    public static final int FLOOR_ID_FIELD_NUMBER = 13;
     private int floorId_;
     /**
-     * <code>uint32 floor_id = 3;</code>
+     * <code>uint32 floor_id = 13;</code>
      * @return The floorId.
      */
     @java.lang.Override
@@ -137,7 +136,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (floorId_ != 0) {
-        output.writeUInt32(3, floorId_);
+        output.writeUInt32(13, floorId_);
       }
       unknownFields.writeTo(output);
     }
@@ -150,7 +149,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
       size = 0;
       if (floorId_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(3, floorId_);
+          .computeUInt32Size(13, floorId_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -279,8 +278,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
     }
     /**
      * <pre>
-     * CmdId: 5764
-     * Obf: ELMPNCMADBL
+     * CmdId: 5963
      * </pre>
      *
      * Protobuf type {@code TowerGetFloorStarRewardReq}
@@ -431,7 +429,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
 
       private int floorId_ ;
       /**
-       * <code>uint32 floor_id = 3;</code>
+       * <code>uint32 floor_id = 13;</code>
        * @return The floorId.
        */
       @java.lang.Override
@@ -439,7 +437,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
         return floorId_;
       }
       /**
-       * <code>uint32 floor_id = 3;</code>
+       * <code>uint32 floor_id = 13;</code>
        * @param value The floorId to set.
        * @return This builder for chaining.
        */
@@ -450,7 +448,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
         return this;
       }
       /**
-       * <code>uint32 floor_id = 3;</code>
+       * <code>uint32 floor_id = 13;</code>
        * @return This builder for chaining.
        */
       public Builder clearFloorId() {
@@ -527,7 +525,7 @@ public final class TowerGetFloorStarRewardReqOuterClass {
   static {
     java.lang.String[] descriptorData = {
       "\n TowerGetFloorStarRewardReq.proto\".\n\032To" +
-      "werGetFloorStarRewardReq\022\020\n\010floor_id\030\003 \001" +
+      "werGetFloorStarRewardReq\022\020\n\010floor_id\030\r \001" +
       "(\rB\033\n\031emu.grasscutter.net.protob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

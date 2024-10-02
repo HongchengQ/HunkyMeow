@@ -19,6 +19,10 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * 三个uint类型可能都不对
+     * </pre>
+     *
      * <code>uint32 talent_index = 3;</code>
      * @return The talentIndex.
      */
@@ -43,6 +47,11 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
     int getTalentType();
   }
   /**
+   * <pre>
+   * CmdId: 28513
+   * obf: DIAFCPCDCPO
+   * </pre>
+   *
    * Protobuf type {@code ProudSkillExtraLevelNotify}
    */
   public static final class ProudSkillExtraLevelNotify extends
@@ -142,6 +151,10 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
     public static final int TALENT_INDEX_FIELD_NUMBER = 3;
     private int talentIndex_;
     /**
+     * <pre>
+     * 三个uint类型可能都不对
+     * </pre>
+     *
      * <code>uint32 talent_index = 3;</code>
      * @return The talentIndex.
      */
@@ -373,6 +386,11 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
       return builder;
     }
     /**
+     * <pre>
+     * CmdId: 28513
+     * obf: DIAFCPCDCPO
+     * </pre>
+     *
      * Protobuf type {@code ProudSkillExtraLevelNotify}
      */
     public static final class Builder extends
@@ -539,6 +557,10 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
 
       private int talentIndex_ ;
       /**
+       * <pre>
+       * 三个uint类型可能都不对
+       * </pre>
+       *
        * <code>uint32 talent_index = 3;</code>
        * @return The talentIndex.
        */
@@ -547,6 +569,10 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
         return talentIndex_;
       }
       /**
+       * <pre>
+       * 三个uint类型可能都不对
+       * </pre>
+       *
        * <code>uint32 talent_index = 3;</code>
        * @param value The talentIndex to set.
        * @return This builder for chaining.
@@ -558,6 +584,10 @@ public final class ProudSkillExtraLevelNotifyOuterClass {
         return this;
       }
       /**
+       * <pre>
+       * 三个uint类型可能都不对
+       * </pre>
+       *
        * <code>uint32 talent_index = 3;</code>
        * @return This builder for chaining.
        */
