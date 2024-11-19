@@ -5,7 +5,7 @@
 
 [EN](../README.md) | [简中](README_zh-CN.md) | [繁中](README_zh-TW.md) | [FR](README_fr-FR.md) | [ES](README_es-ES.md) | [HE](README_HE.md) | [RU](README_ru-RU.md) | [PL](README_pl-PL.md) | [ID](README_id-ID.md) | [KR](README_ko-KR.md) | [FIL/PH](README_fil-PH.md) | [NL](README_NL.md) | [JP](README_ja-JP.md) | [IT](README_it-IT.md) | [VI](README_vi-VN.md) | [हिंदी](README_hn-IN.md)
 
-**Aantekening:** We verwelkomen altijd bijdragers aan het project. Lees onze [Gedragscode](https://github.com/Grasscutters/Grasscutter/blob/development/README_NL.md#bijdragen-aan-het-project) zorgvuldig door voordat u uw bijdrage toevoegt.
+**Aantekening:** We verwelkomen altijd bijdragers aan het project. Lees onze [Gedragscode](https://github.com/Grasscutters/Grasscutter/blob/stable/CONTRIBUTING.md) zorgvuldig door voordat u uw bijdrage toevoegt.
 
 ## Huidige functies
 
