@@ -1,6 +1,7 @@
 package emu.grasscutter.database;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Projections.include;
 
 import dev.morphia.query.*;
 import dev.morphia.query.experimental.filters.Filters;
@@ -16,28 +17,114 @@ import emu.grasscutter.game.gacha.GachaRecord;
 import emu.grasscutter.game.home.GameHome;
 import emu.grasscutter.game.inventory.GameItem;
 import emu.grasscutter.game.mail.Mail;
+import emu.grasscutter.game.player.GlobalOnlinePlayer;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.quest.GameMainQuest;
+import emu.grasscutter.game.world.SceneBuild;
 import emu.grasscutter.game.world.SceneGroupInstance;
 import emu.grasscutter.utils.objects.Returnable;
 import io.netty.util.concurrent.FastThreadLocalThread;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 public final class DatabaseHelper {
+    public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();  // 可用处理器
+    private static final int DEFAULT_KEEP_ALIVE = 600;                                          // 线程空闲存活时间（秒）
+
+    // 主线程池最大容量
+    public static final int DEFAULT_QUEUE_CAPACITY = AVAILABLE_PROCESSORS * 1000;
+    // 账户线程池最大容量
+    public static final int ACCOUNT_QUEUE_CAPACITY = AVAILABLE_PROCESSORS * 50;
+    // 物品线程池最大容量
+    public static final int ITEM_QUEUE_CAPACITY = AVAILABLE_PROCESSORS * 8000;
+    // 大世界组线程池最大容量
+    public static final int GROUP_QUEUE_CAPACITY = AVAILABLE_PROCESSORS * 4000;
+
+    // 线程工厂（自定义名称）
+    private static ThreadFactory namedThreadFactory(String namePrefix) {
+        return new ThreadFactory() {
+            private final AtomicInteger count = new AtomicInteger(1);
+            @Override
+            public Thread newThread(@NotNull Runnable r) {
+                Thread thread = new FastThreadLocalThread(r);
+                thread.setName(namePrefix + "-thread-" + count.getAndIncrement());
+                thread.setDaemon(true);
+                return thread;
+            }
+        };
+    }
+
+    // 主线程池（默认） 存储player和其他对象
     @Getter
-    private static final ExecutorService eventExecutor =
-            new ThreadPoolExecutor(
-                    6,
-                    6,
-                    60,
-                    TimeUnit.SECONDS,
-                    new LinkedBlockingDeque<>(),
-                    FastThreadLocalThread::new,
-                    new ThreadPoolExecutor.AbortPolicy());
+    private static final ExecutorService eventExecutor = new ThreadPoolExecutor(
+        AVAILABLE_PROCESSORS / 3 + 1, // 核心线程数
+        AVAILABLE_PROCESSORS, // 最大线程数：应对突发流量
+        DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
+        new LinkedBlockingDeque<>(DEFAULT_QUEUE_CAPACITY), // 队列大小：CPU核心数 × 乘数
+        namedThreadFactory("Database-Default"), // 自定义线程名
+        new ThreadPoolExecutor.CallerRunsPolicy() // 拒绝策略：提交者执行
+    );
+
+    // 账户操作线程池（低频但关键） 存储账号信息
+    @Getter
+    private static final ExecutorService eventExecutorAccount = new ThreadPoolExecutor(
+        AVAILABLE_PROCESSORS / 4 + 1, // 核心线程数
+        AVAILABLE_PROCESSORS,
+        DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
+        new LinkedBlockingDeque<>(ACCOUNT_QUEUE_CAPACITY),
+        namedThreadFactory("Database-Account"),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
+    // 物品存储线程池（高频）
+    @Getter
+    private static final ExecutorService eventExecutorItem = new ThreadPoolExecutor(
+        AVAILABLE_PROCESSORS / 3 + 1, // 核心线程数
+        AVAILABLE_PROCESSORS / 2 + 1, // 最大线程数
+        DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
+        new LinkedBlockingDeque<>(ITEM_QUEUE_CAPACITY),
+        namedThreadFactory("Database-Item"),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
+    // 场景实例线程池（高频）
+    @Getter
+    private static final ExecutorService eventExecutorGroup = new ThreadPoolExecutor(
+        AVAILABLE_PROCESSORS / 3 + 1, // 核心线程数
+        AVAILABLE_PROCESSORS / 2 + 1, // 最大线程数
+        DEFAULT_KEEP_ALIVE, TimeUnit.SECONDS,
+        new LinkedBlockingDeque<>(GROUP_QUEUE_CAPACITY),
+        namedThreadFactory("Database-Group"),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
+    public static boolean isThreadPoolOverloaded(ThreadPoolExecutor executor, int maxCount) {
+        int queueSize = executor.getQueue().size();
+        return queueSize > maxCount * 0.7f;
+    }
+
+
+    // 测试线程池资源被耗尽
+    public static void dataBaseLockTest() throws RuntimeException {
+        DatabaseHelper.eventExecutor.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                DatabaseHelper.eventExecutorItem.submit(() -> {
+                    try {
+                        while (true) {
+                            Thread.sleep(999999999);
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        });
+    }
 
     /**
      * Saves an object on the account datastore.
@@ -45,7 +132,7 @@ public final class DatabaseHelper {
      * @param object The object to save.
      */
     public static void saveAccountAsync(Object object) {
-        DatabaseHelper.eventExecutor.submit(() -> DatabaseManager.getAccountDatastore().save(object));
+        DatabaseHelper.eventExecutorAccount.submit(() -> DatabaseManager.getAccountDatastore().save(object));
     }
 
     /**
@@ -54,7 +141,43 @@ public final class DatabaseHelper {
      * @param object The object to save.
      */
     public static void saveGameAsync(Object object) {
-        DatabaseHelper.eventExecutor.submit(() -> DatabaseManager.getGameDatastore().save(object));
+        if (object == null) return;
+
+        switch (object) {
+            case GameItem gameItem -> DatabaseHelper.eventExecutorItem.submit(() -> {
+                // 物品存储线程池（高频）
+                try {
+                    DatabaseManager.getGameDatastore().save(gameItem);
+                } catch (Exception e) {
+                    Grasscutter.getLogger().debug("Failed to saveGameItem", e);
+                }
+            });
+            case SceneGroupInstance sceneGroupInstance -> DatabaseHelper.eventExecutorGroup.submit(() -> {
+                // 场景实例线程池（高频）
+                try {
+                    DatabaseManager.getGameDatastore().save(sceneGroupInstance);
+                } catch (Exception e) {
+                    Grasscutter.getLogger().debug("Failed to saveSceneGroupInstance", e);
+                }
+
+            });
+            case Account account -> DatabaseHelper.eventExecutorAccount.submit(() -> {
+                // 账户操作线程池（低频但关键）
+                try {
+                    DatabaseManager.getGameDatastore().save(account);
+                } catch (Exception e) {
+                    Grasscutter.getLogger().debug("Failed to saveAccountDB", e);
+                }
+            });
+            default -> DatabaseHelper.eventExecutor.submit(() -> {
+                // 主线程池（默认）
+                try {
+                    DatabaseManager.getGameDatastore().save(object);
+                } catch (Exception exception) {
+                    Grasscutter.getLogger().error("Failed to saveGameAsync", exception);
+                }
+            });
+        }
     }
 
     /**
@@ -63,6 +186,9 @@ public final class DatabaseHelper {
      * @param runnable The runnable to run.
      */
     public static void asyncOperation(Runnable runnable) {
+        DatabaseHelper.eventExecutor.submit(runnable);
+    }
+    public static void asyncOperationAccount(Runnable runnable) {
         DatabaseHelper.eventExecutor.submit(runnable);
     }
 
@@ -129,8 +255,7 @@ public final class DatabaseHelper {
         return account;
     }
 
-    @Deprecated
-    public static Account createAccountWithPassword(String username, String password) {
+    public static Account createAccountWithPassword(String username, String password, String email) {
         // Unique names only
         Account exists = DatabaseHelper.getAccountByName(username);
         if (exists != null) {
@@ -138,9 +263,11 @@ public final class DatabaseHelper {
         }
 
         // Account
+        @SuppressWarnings("deprecation")
         Account account = new Account();
         account.setId(Integer.toString(DatabaseManager.getNextId(account)));
         account.setUsername(username);
+        account.setEmail(email);
         account.setPassword(password);
         DatabaseHelper.saveAccount(account);
         return account;
@@ -222,7 +349,7 @@ public final class DatabaseHelper {
         }
         int uid = player.getUid();
 
-        DatabaseHelper.asyncOperation(
+        DatabaseHelper.asyncOperationAccount(
                 () -> {
                     // Delete data from collections
                     DatabaseManager.getGameDatabase()
@@ -279,6 +406,17 @@ public final class DatabaseHelper {
                 .first();
     }
 
+    public static int getPlayerDataVersionByUid(int uid) {
+        Player player = DatabaseManager.getGameDatastore()
+            .find(Player.class)
+            .filter(Filters.eq("_id", uid))
+            .iterator(new FindOptions()
+                .projection().include("dataVersion")
+                .limit(1))
+            .toList().getFirst();
+        return player.getDataVersion(); // 返回字段值或null
+    }
+
     @Deprecated
     public static Player getPlayerByAccount(Account account) {
         return DatabaseManager.getGameDatastore()
@@ -330,7 +468,7 @@ public final class DatabaseHelper {
         }
 
         // Save to database
-        DatabaseHelper.saveGameAsync(character);
+        DatabaseHelper.saveAccountAsync(character);
     }
 
     public static synchronized int getNextPlayerId(int reservedId) {
@@ -483,7 +621,11 @@ public final class DatabaseHelper {
     }
 
     public static void saveQuest(GameMainQuest quest) {
-        DatabaseHelper.saveGameAsync(quest);
+        try {
+            DatabaseHelper.saveGameAsync(quest);
+        } catch(Exception exception){
+            Grasscutter.getLogger().error("Failed to saveQuest",exception);
+        }
     }
 
     public static void deleteQuest(GameMainQuest quest) {
@@ -569,5 +711,49 @@ public final class DatabaseHelper {
                 .find(SceneGroupInstance.class)
                 .filter(Filters.and(Filters.eq("ownerUid", owner.getUid()), Filters.eq("groupId", groupId)))
                 .first();
+    }
+
+    public static void saveSceneBuild(SceneBuild sb) {
+        DatabaseHelper.saveGameAsync(sb);
+    }
+
+    public static void deleteSceneBuild(SceneBuild sb) {
+        DatabaseHelper.asyncOperation(() -> DatabaseManager.getGameDatastore().delete(sb));
+    }
+
+    /**
+     * 返回玩家所有在大世界的建筑（尘歌壶功能除外）
+     *
+     * @param player 这个玩家.
+     * @return 建筑列表.
+     */
+    public static List<SceneBuild> getPlayerSceneBuild(Player player) {
+        return DatabaseManager.getGameDatastore()
+            .find(SceneBuild.class)
+            .filter(Filters.eq("ownerUid", player.getUid()))
+            .stream()
+            .toList();
+    }
+
+    public static void saveGlobalOnlinePlayer(GlobalOnlinePlayer gop) {
+        DatabaseHelper.saveGameAsync(gop);
+    }
+
+    public static void deleteGlobalOnlinePlayer(GlobalOnlinePlayer gop) {
+        DatabaseHelper.asyncOperation(() -> DatabaseManager.getGameDatastore().delete(gop));
+    }
+
+    public static List<GlobalOnlinePlayer> getGlobalOnlinePlayers() {
+        return DatabaseManager.getGameDatastore()
+            .find(GlobalOnlinePlayer.class)
+            .stream()
+            .toList();
+    }
+
+    public static GlobalOnlinePlayer getGlobalOnlinePlayerByUid(int uid) {
+        return DatabaseManager.getGameDatastore()
+            .find(GlobalOnlinePlayer.class)
+            .filter(Filters.eq("_id", uid))
+            .first();
     }
 }

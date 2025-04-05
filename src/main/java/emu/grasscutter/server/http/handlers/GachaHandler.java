@@ -99,36 +99,40 @@ public final class GachaHandler implements Router {
             return;
         }
 
-        var scheduleId = Integer.parseInt(scheduleIdStr);
-        var manager = Grasscutter.getGameServer().getGachaSystem();
-        var banner = manager.getGachaBanners().get(scheduleId);
+        var gameServer = Grasscutter.getGameServer();
+        // todo 目前如果game和dispatch分离会导致空指针
+        if (gameServer != null) {
+            var scheduleId = Integer.parseInt(scheduleIdStr);
+            var manager = Grasscutter.getGameServer().getGachaSystem();
+            var banner = manager.getGachaBanners().get(scheduleId);
 
-        // Add 5-star items.
-        var fiveStarItems = new LinkedHashSet<String>();
+            // Add 5-star items.
+            var fiveStarItems = new LinkedHashSet<String>();
 
-        Arrays.stream(banner.getRateUpItems5()).forEach(i -> fiveStarItems.add(Integer.toString(i)));
-        Arrays.stream(banner.getFallbackItems5Pool1())
+            Arrays.stream(banner.getRateUpItems5()).forEach(i -> fiveStarItems.add(Integer.toString(i)));
+            Arrays.stream(banner.getFallbackItems5Pool1())
                 .forEach(i -> fiveStarItems.add(Integer.toString(i)));
-        Arrays.stream(banner.getFallbackItems5Pool2())
+            Arrays.stream(banner.getFallbackItems5Pool2())
                 .forEach(i -> fiveStarItems.add(Integer.toString(i)));
 
-        template = template.replace("{{FIVE_STARS}}", "[" + String.join(",", fiveStarItems) + "]");
+            template = template.replace("{{FIVE_STARS}}", "[" + String.join(",", fiveStarItems) + "]");
 
-        // Add 4-star items.
-        var fourStarItems = new LinkedHashSet<String>();
+            // Add 4-star items.
+            var fourStarItems = new LinkedHashSet<String>();
 
-        Arrays.stream(banner.getRateUpItems4()).forEach(i -> fourStarItems.add(Integer.toString(i)));
-        Arrays.stream(banner.getFallbackItems4Pool1())
+            Arrays.stream(banner.getRateUpItems4()).forEach(i -> fourStarItems.add(Integer.toString(i)));
+            Arrays.stream(banner.getFallbackItems4Pool1())
                 .forEach(i -> fourStarItems.add(Integer.toString(i)));
-        Arrays.stream(banner.getFallbackItems4Pool2())
+            Arrays.stream(banner.getFallbackItems4Pool2())
                 .forEach(i -> fourStarItems.add(Integer.toString(i)));
 
-        template = template.replace("{{FOUR_STARS}}", "[" + String.join(",", fourStarItems) + "]");
+            template = template.replace("{{FOUR_STARS}}", "[" + String.join(",", fourStarItems) + "]");
 
-        // Add 3-star items.
-        var threeStarItems = new LinkedHashSet<String>();
-        Arrays.stream(banner.getFallbackItems3()).forEach(i -> threeStarItems.add(Integer.toString(i)));
-        template = template.replace("{{THREE_STARS}}", "[" + String.join(",", threeStarItems) + "]");
+            // Add 3-star items.
+            var threeStarItems = new LinkedHashSet<String>();
+            Arrays.stream(banner.getFallbackItems3()).forEach(i -> threeStarItems.add(Integer.toString(i)));
+            template = template.replace("{{THREE_STARS}}", "[" + String.join(",", threeStarItems) + "]");
+        }
 
         // Done.
         ctx.contentType(ContentType.TEXT_HTML);

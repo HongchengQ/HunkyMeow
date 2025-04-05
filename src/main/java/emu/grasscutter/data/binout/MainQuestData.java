@@ -3,6 +3,8 @@ package emu.grasscutter.data.binout;
 import dev.morphia.annotations.Entity;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.game.quest.enums.QuestType;
+
+import java.math.BigInteger;
 import java.util.*;
 import lombok.Data;
 
@@ -18,7 +20,7 @@ public class MainQuestData {
 
     private SubQuestData[] subQuests;
     private List<TalkData> talks;
-    private long[] preloadLuaList;
+    private BigInteger[] preloadLuaList; //long类型在4.5的res中长度已经不够用了
 
     public int getId() {
         return id;

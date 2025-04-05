@@ -25,6 +25,7 @@ public class QuestData extends GameResource {
 
     @Getter private LogicType acceptCondComb;
     @Getter private LogicType finishCondComb;
+    @SerializedName(value = "failCondComb", alternate = "showType")
     @Getter private LogicType failCondComb;
 
     @Getter private List<QuestAcceptCondition> acceptCond;

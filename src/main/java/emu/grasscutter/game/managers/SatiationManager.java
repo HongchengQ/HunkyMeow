@@ -14,8 +14,9 @@ public class SatiationManager extends BasePlayerManager {
 
     /********************
      * Change satiation
+     * 如果这个方法使用 synchronized 会造成死锁
      ********************/
-    public synchronized boolean addSatiation(Avatar avatar, float satiationIncrease, int itemId) {
+    public boolean addSatiation(Avatar avatar, float satiationIncrease, int itemId) {
 
         // Satiation is max 10000 but can go over in the case of overeating
         Map<Integer, Long> propMap = new HashMap<>();
@@ -40,7 +41,7 @@ public class SatiationManager extends BasePlayerManager {
 
         // Add satiation
         if (!addSatiationDirectly(avatar, satiation)) return false;
-        propMap.put(PlayerProperty.PROP_SATIATION_VAL.getId(), Long.valueOf(satiation));
+        propMap.put(PlayerProperty.PROP_SATIATION_VAL.getId(), (long) satiation);
         propMap.put(PlayerProperty.PROP_SATIATION_PENALTY_TIME.getId(), penaltyValue);
 
         // Send packets
@@ -49,14 +50,14 @@ public class SatiationManager extends BasePlayerManager {
         return true;
     }
 
-    public synchronized boolean addSatiationDirectly(Avatar avatar, int value) {
+    public boolean addSatiationDirectly(Avatar avatar, int value) {
         if (!avatar.addSatiation(value)) return false;
         // Update avatar
         avatar.save();
         return true;
     }
 
-    public synchronized void removeSatiationDirectly(Avatar avatar, int value) {
+    public void removeSatiationDirectly(Avatar avatar, int value) {
         avatar.reduceSatiation(value);
         avatar.reduceSatiationPenalty(3000);
         avatar.save();
@@ -64,7 +65,7 @@ public class SatiationManager extends BasePlayerManager {
         updateSingleAvatar(avatar, 0);
     }
 
-    public synchronized void reduceSatiation() {
+    public void reduceSatiation() {
         /* Satiation may not reduce while paused on official but it will here */
         // Get all avatars with satiation
         player
@@ -97,7 +98,7 @@ public class SatiationManager extends BasePlayerManager {
     /********************
      * Player Updates
      ********************/
-    public synchronized void updateSingleAvatar(Avatar avatar, float givenTime) {
+    public void updateSingleAvatar(Avatar avatar, float givenTime) {
         float time = (player.getClientTime() / 1000) + givenTime;
         player.getSession().send(new PacketAvatarPropNotify(avatar));
         player.getSession().send(new PacketAvatarSatiationDataNotify(time, avatar));

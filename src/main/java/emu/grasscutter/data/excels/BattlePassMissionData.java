@@ -2,7 +2,7 @@ package emu.grasscutter.data.excels;
 
 import emu.grasscutter.data.*;
 import emu.grasscutter.game.props.*;
-import emu.grasscutter.net.proto.BattlePassMissionOuterClass.BattlePassMission.MissionStatus;
+import emu.grasscutter.net.proto.MissionStatusOuterClass.MissionStatus;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -57,7 +57,7 @@ public class BattlePassMissionData extends GameResource {
                 .setMissionId(getId())
                 .setTotalProgress(this.getProgress())
                 .setRewardBattlePassPoint(this.getAddPoint())
-                .setMissionStatus(MissionStatus.MISSION_STATUS_UNFINISHED)
+                .setMissionStatus(MissionStatus.MissionSTATUS_MISSION_UNFINISHED)
                 .setMissionType(this.getRefreshType() == null ? 0 : this.getRefreshType().getValue());
 
         return protoBuilder.build();

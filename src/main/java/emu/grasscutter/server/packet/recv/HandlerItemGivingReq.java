@@ -95,14 +95,14 @@ public final class HandlerItemGivingReq extends PacketHandler {
                             }
 
                             // Send the response packet.
-                            player.sendPacket(new PacketItemGivingRsp(matchedGroups.get(0), Mode.GROUP_SUCCESS));
+                            player.sendPacket(new PacketItemGivingRsp(matchedGroups.getFirst(), Mode.GROUP_SUCCESS));
                             // Mark the giving action as completed.
                             questManager.markCompleted(giveId);
                             // Queue the content and condition actions.
                             questManager.queueEvent(
-                                    QuestContent.QUEST_CONTENT_FINISH_ITEM_GIVING, giveId, matchedGroups.get(0));
+                                    QuestContent.QUEST_CONTENT_FINISH_ITEM_GIVING, giveId, matchedGroups.getFirst());
                             questManager.queueEvent(
-                                    QuestCond.QUEST_COND_ITEM_GIVING_FINISHED, giveId, matchedGroups.get(0));
+                                    QuestCond.QUEST_COND_ITEM_GIVING_FINISHED, giveId, matchedGroups.getFirst());
                         }
                     }
                 }

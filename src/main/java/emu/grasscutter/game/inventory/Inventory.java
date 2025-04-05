@@ -1,7 +1,5 @@
 package emu.grasscutter.game.inventory;
 
-import static emu.grasscutter.config.Configuration.INVENTORY_LIMITS;
-
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.common.ItemParamData;
@@ -18,9 +16,13 @@ import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.Utils;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
-import java.util.*;
-import javax.annotation.Nullable;
 import lombok.val;
+
+import javax.annotation.Nullable;
+import java.util.*;
+
+import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
+import static emu.grasscutter.config.Configuration.INVENTORY_LIMITS;
 
 public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
     private final Long2ObjectMap<GameItem> store;
@@ -169,7 +171,7 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
         List<GameItem> changedItems = new ArrayList<>();
         for (var item : items) {
             if (item.getItemId() == 0) continue;
-            GameItem result = null;
+            GameItem result;
 
             result = putItem(item);
 
@@ -178,13 +180,13 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
                 changedItems.add(result);
             }
         }
-        if (changedItems.size() == 0) {
+        if (changedItems.isEmpty()) {
             return;
         }
+        getPlayer().sendPacket(new PacketStoreItemChangeNotify(changedItems));
         if (reason != null) {
             getPlayer().sendPacket(new PacketItemAddHintNotify(items, reason));
         }
-        getPlayer().sendPacket(new PacketStoreItemChangeNotify(changedItems));
     }
 
     /**
@@ -298,8 +300,7 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
 
         // Add
         switch (type) {
-            case ITEM_WEAPON:
-            case ITEM_RELIQUARY:
+            case ITEM_WEAPON, ITEM_RELIQUARY -> {
                 if (tab.getSize() >= tab.getMaxCapacity()) {
                     return null;
                 }
@@ -310,23 +311,23 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
                 // Set ownership and save to db
                 item.save();
                 return item;
-            case ITEM_VIRTUAL:
+            }
+            case ITEM_VIRTUAL -> {
                 // Handle
                 this.addVirtualItem(item.getItemId(), item.getCount());
                 return item;
-            default:
+            }
+            default -> {
                 switch (item.getItemData().getMaterialType()) {
-                    case MATERIAL_AVATAR:
-                    case MATERIAL_FLYCLOAK:
-                    case MATERIAL_COSTUME:
-                    case MATERIAL_NAMECARD:
+                    case MATERIAL_AVATAR, MATERIAL_FLYCLOAK, MATERIAL_COSTUME, MATERIAL_NAMECARD -> {
                         Grasscutter.getLogger()
                                 .warn(
                                         "Attempted to add a "
                                                 + item.getItemData().getMaterialType().name()
                                                 + " to inventory, but item definition lacks isUseOnGain. This indicates a Resources error.");
                         return null;
-                    default:
+                    }
+                    default -> {
                         if (tab == null) {
                             return null;
                         }
@@ -350,7 +351,9 @@ public class Inventory extends BasePlayerManager implements Iterable<GameItem> {
                             existingItem.save();
                             return existingItem;
                         }
+                    }
                 }
+            }
         }
     }
 

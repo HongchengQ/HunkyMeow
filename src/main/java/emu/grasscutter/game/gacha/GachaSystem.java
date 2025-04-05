@@ -2,7 +2,6 @@ package emu.grasscutter.game.gacha;
 
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.*;
 import emu.grasscutter.data.common.ItemParamData;
@@ -26,12 +25,13 @@ import it.unimi.dsi.fastutil.ints.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import lombok.Getter;
 import org.greenrobot.eventbus.Subscribe;
 
 public class GachaSystem extends BaseGameSystem {
     private static final int starglitterId = 221;
     private static final int stardustId = 222;
-    private final Int2ObjectMap<GachaBanner> gachaBanners;
+    @Getter private final Int2ObjectMap<GachaBanner> gachaBanners;
     private WatchService watchService;
 
     public GachaSystem(GameServer server) {
@@ -39,10 +39,6 @@ public class GachaSystem extends BaseGameSystem {
         this.gachaBanners = new Int2ObjectOpenHashMap<>();
         this.load();
         this.startWatcher(server);
-    }
-
-    public Int2ObjectMap<GachaBanner> getGachaBanners() {
-        return gachaBanners;
     }
 
     public int randomRange(int min, int max) { // Both are inclusive
@@ -59,13 +55,13 @@ public class GachaSystem extends BaseGameSystem {
         int autoSortId = 9000;
         try {
             var banners = DataLoader.loadTableToList("Banners", GachaBanner.class);
-            if (!banners.isEmpty()) {
+            if (banners != null && !banners.isEmpty()) {
                 for (var banner : banners) {
                     banner.onLoad();
                     if (banner.isDeprecated()) {
                         Grasscutter.getLogger()
-                                .error(
-                                        "A Banner has not been loaded because it contains one or more deprecated fields. Remove the fields mentioned above and reload.");
+                            .error(
+                                "A Banner has not been loaded because it contains one or more deprecated fields. Remove the fields mentioned above and reload.");
                     } else if (banner.isDisabled()) {
                         Grasscutter.getLogger().trace("A Banner has not been loaded because it is disabled.");
                     } else {
@@ -75,8 +71,6 @@ public class GachaSystem extends BaseGameSystem {
                     }
                 }
                 Grasscutter.getLogger().debug("Banners successfully loaded.");
-            } else {
-                Grasscutter.getLogger().error("Unable to load banners. Banners size is 0.");
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -105,7 +99,7 @@ public class GachaSystem extends BaseGameSystem {
             }
             total += weight;
         }
-        int roll = ThreadLocalRandom.current().nextInt((total < cutoff) ? total : cutoff);
+        int roll = ThreadLocalRandom.current().nextInt(Math.min(total, cutoff));
         int subTotal = 0;
         for (int i = 0; i < weights.length; i++) {
             subTotal += weights[i];
@@ -352,11 +346,11 @@ public class GachaSystem extends BaseGameSystem {
                                 itemId + 100; // This may not hold true for future characters. Examples of strictly
                         // correct constellation item lookup are elsewhere for now.
                         boolean haveConstItem =
-                                inventory.getInventoryTab(ItemType.ITEM_MATERIAL).getItemById(constItemId) == null;
+                            inventory.getInventoryTab(ItemType.ITEM_MATERIAL).getItemById(constItemId) == null;
                         gachaItem.addTransferItems(
-                                GachaTransferItem.newBuilder()
-                                        .setItem(ItemParam.newBuilder().setItemId(constItemId).setCount(1))
-                                        .setIsTransferItemNew(haveConstItem));
+                            GachaTransferItem.newBuilder()
+                                .setItem(ItemParam.newBuilder().setItemId(constItemId).setCount(1))
+                                .setIsTransferItemNew(haveConstItem));
                         // inventory.addItem(constItemId, 1);  // This is now managed by the avatar card item
                         // itself
                     }
@@ -424,19 +418,14 @@ public class GachaSystem extends BaseGameSystem {
         if (this.watchService == null) {
             try {
                 this.watchService = FileSystems.getDefault().newWatchService();
-                FileUtils.getDataUserPath("")
-                        .register(
-                                watchService,
-                                new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY},
-                                SensitivityWatchEventModifier.HIGH);
+                FileUtils.getDataUserPath("").register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
             } catch (Exception e) {
                 Grasscutter.getLogger()
                         .error(
                                 "Unable to load the Gacha Manager Watch Service. If ServerOptions.watchGacha is true it will not auto-reload");
-                e.printStackTrace();
             }
         } else {
-            Grasscutter.getLogger().error("Cannot reinitialise watcher ");
+            Grasscutter.getLogger().error("Cannot reinitialise watcher");
         }
     }
 

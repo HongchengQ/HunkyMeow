@@ -1,5 +1,6 @@
 package emu.grasscutter.server.packet.recv;
 
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.game.entity.*;
 import emu.grasscutter.game.props.FightProperty;
 import emu.grasscutter.net.packet.*;
@@ -16,7 +17,15 @@ public class HandlerSceneEntityDrownReq extends PacketHandler {
 
         GameEntity entity = session.getPlayer().getScene().getEntityById(req.getEntityId());
 
-        if (entity == null || !(entity instanceof EntityMonster || entity instanceof EntityAvatar)) {
+        if (entity == null) {
+            // 不知道怎么回事客户端总是发一些与服务端对不上的溺亡包
+            // todo 后面写个流量令牌
+            return;
+        }
+
+        if (!(entity instanceof EntityMonster || entity instanceof EntityAvatar)) {
+            // EntityType 表路径: emu.grasscutter.game.props.EntityType
+            Grasscutter.getLogger().warn("客户端发出错误溺亡包 EntityId: {}, EntityType: {}", req.getEntityId(), entity.getEntityType().getValue());
             return;
         }
 

@@ -33,8 +33,9 @@ public class Ability {
         this.manager = owner.getWorld().getHost().getAbilityManager();
 
         if (this.data.abilitySpecials != null) {
-            for (var entry : this.data.abilitySpecials.entrySet())
+            for (var entry : this.data.abilitySpecials.entrySet()) {
                 abilitySpecials.put(entry.getKey(), entry.getValue().floatValue());
+            }
         }
 
         // if(abilitySpecialsModified.containsKey(this.data.abilityName)) {//Modify talent data
@@ -65,8 +66,7 @@ public class Ability {
                 data.modifiers.values().stream()
                         .map(
                                 m ->
-                                        (List<AbilityModifierAction>)
-                                                (m.onAdded == null ? Collections.emptyList() : Arrays.asList(m.onAdded)))
+                                    m.onAdded == null ? Collections.<AbilityModifierAction>emptyList() : Arrays.asList(m.onAdded))
                         .flatMap(List::stream)
                         .filter(action -> action.type == AbilityModifierAction.Type.AvatarSkillStart)
                         .map(action -> action.skillID)

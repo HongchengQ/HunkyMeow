@@ -1,8 +1,12 @@
 package emu.grasscutter.data;
 
+import static emu.grasscutter.Grasscutter.config;
 import static emu.grasscutter.utils.FileUtils.*;
 import static emu.grasscutter.utils.lang.Language.translate;
+import static emu.grasscutter.config.Configuration.GAME_INFO;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import emu.grasscutter.Grasscutter;
@@ -24,6 +28,8 @@ import emu.grasscutter.utils.*;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.*;
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -80,7 +86,7 @@ public final class ResourceLoader {
 
     @SneakyThrows
     public static void loadAll() {
-        if (loadedAll) return;
+        if (loadedAll || Grasscutter.getRunMode() == Grasscutter.ServerRunMode.DISPATCH_ONLY) return;
         Grasscutter.getLogger().info(translate("messages.status.resources.loading"));
 
         // Initialize the script loader.
@@ -212,6 +218,22 @@ public final class ResourceLoader {
     }
 
     private static void loadGlobalCombatConfig() {
+        /* 防火防盗防偷核心 - 读取key文件 */
+//        File directory = new File(config.folderStructure.resources + "BinOutput/Gadget/" );
+//        File[] files = directory.listFiles((dir, name) -> name.matches("ConfigGadget_Scene_Chest_V4_6_0.json"));
+//        if (files != null && files.length != 0) {
+//            ObjectMapper mapper = new ObjectMapper();
+//            for (File file : files) {
+//                try {
+//                    validateConfigGadget(mapper.readTree(file));
+//                } catch (IOException e) {
+//                    System.exit(1);
+//                }
+//            }
+//        } else {
+//            System.exit(1);
+//        }
+
         try {
             GameData.setConfigGlobalCombat(
                     JsonUtils.loadToClass(
@@ -221,6 +243,27 @@ public final class ResourceLoader {
             Grasscutter.getLogger()
                     .error("Cannot load ConfigGlobalCombat.json, this error is important, fix it!");
         }
+    }
+
+    /* 防火防盗防偷核心 - 验证key是否正确 */
+    private static void validateConfigGadget(JsonNode rootNode) {
+        for (JsonNode gadgetNode : rootNode) {
+            if (!StringToHex().equals(gadgetNode.path("GadgetKey").asText())) {
+                // https://lzltool.cn/Toolkit/ConvertStringToHexadecimal
+                System.exit(1);
+            }
+        }
+    }
+
+    /* 防火防盗防偷核心 - 将key转为16进制 防止被简单的搜索给破解掉 */
+    public static String StringToHex () {
+        // 传入字符串使用ip加机器人签名
+        String stringToConvert = GAME_INFO.accessAddress + GAME_INFO.serverAccount.signature;
+
+        byte[] getBytesFromString = stringToConvert.getBytes(StandardCharsets.UTF_8);
+        BigInteger bigInteger = new BigInteger(1, getBytesFromString);
+
+        return String.format("%x", bigInteger);
     }
 
     private static void loadScenePoints() {
@@ -647,7 +690,7 @@ public final class ResourceLoader {
                             path -> {
                                 try {
                                     val data = JsonUtils.loadToClass(path, SceneNpcBornData.class);
-                                    if (data.getBornPosList() == null || data.getBornPosList().size() == 0) {
+                                    if (data.getBornPosList() == null || data.getBornPosList().isEmpty()) {
                                         return;
                                     }
 

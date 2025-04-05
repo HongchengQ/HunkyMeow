@@ -6,6 +6,7 @@ import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.SceneEntityAppearNotifyOuterClass.SceneEntityAppearNotify;
 import emu.grasscutter.net.proto.VisionTypeOuterClass.VisionType;
 import java.util.Collection;
+import java.util.Objects;
 
 public class PacketSceneEntityAppearNotify extends BasePacket {
 
@@ -14,7 +15,7 @@ public class PacketSceneEntityAppearNotify extends BasePacket {
 
         SceneEntityAppearNotify.Builder proto =
                 SceneEntityAppearNotify.newBuilder()
-                        .setAppearType(VisionType.VISION_TYPE_BORN)
+                        .setAppearType(VisionType.VisionType_VISION_BORN)
                         .addEntityList(entity.toProto());
 
         this.setData(proto.build());
@@ -33,7 +34,7 @@ public class PacketSceneEntityAppearNotify extends BasePacket {
     }
 
     public PacketSceneEntityAppearNotify(Player player) {
-        this(player.getTeamManager().getCurrentAvatarEntity());
+        this(Objects.requireNonNull(player.getTeamManager().getCurrentAvatarEntity()));
     }
 
     public PacketSceneEntityAppearNotify(

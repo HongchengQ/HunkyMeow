@@ -19,6 +19,7 @@ import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 
@@ -95,6 +96,10 @@ public final class Utils {
     }
 
     public static int abilityHash(String str) {
+        if (str == null) {
+            Grasscutter.getLogger().debug("获取abilityHash失败 因为传入参数为null 如果在启动阶段发生此警告 可能是res有问题");
+            return 0;
+        }
         int v7 = 0;
         int v8 = 0;
         while (v8 < str.length()) {
@@ -173,35 +178,39 @@ public final class Utils {
 
         String dataFolder = config.folderStructure.data;
 
-        // Check for resources folder.
-        if (!Files.exists(getResourcePath(""))) {
-            logger.info(translate("messages.status.create_resources"));
-            logger.info(translate("messages.status.resources_error"));
-            createFolder(config.folderStructure.resources);
-            exit = true;
-        }
+        if (Grasscutter.getRunMode() != Grasscutter.ServerRunMode.DISPATCH_ONLY) {
+            // Check for resources folder.
+            if (!Files.exists(getResourcePath(""))) {
+                logger.info(translate("messages.status.create_resources"));
+                logger.info(translate("messages.status.resources_error"));
+                createFolder(config.folderStructure.resources);
+                exit = true;
+            }
 
-        // Check for BinOutput + ExcelBinOutput.
-        if (!Files.exists(getResourcePath("BinOutput"))
+            // Check for BinOutput + ExcelBinOutput.
+            if (!Files.exists(getResourcePath("BinOutput"))
                 || !Files.exists(getResourcePath("ExcelBinOutput"))) {
-            logger.info(translate("messages.status.resources_error"));
-            exit = true;
+                logger.info(translate("messages.status.resources_error"));
+                exit = true;
+            }
+
+            // Check for Server resources.
+            if (!Files.exists(getResourcePath("Server"))) {
+                logger.info(translate("messages.status.resources.missing_server"));
+                custom = true;
+            }
+
+            // Check for ScriptSceneData.
+            if (!Files.exists(getResourcePath("ScriptSceneData"))) {
+                logger.info(translate("messages.status.resources.missing_scenes"));
+                custom = true;
+            }
+        } else {
+            Grasscutter.getLogger().info("跳过检查 resources 存在, 因为服务器启动类型为: DISPATCH_ONLY");
         }
 
         // Check for game data.
         if (!fileExists(dataFolder)) createFolder(dataFolder);
-
-        // Check for Server resources.
-        if (!Files.exists(getResourcePath("Server"))) {
-            logger.info(translate("messages.status.resources.missing_server"));
-            custom = true;
-        }
-
-        // Check for ScriptSceneData.
-        if (!Files.exists(getResourcePath("ScriptSceneData"))) {
-            logger.info(translate("messages.status.resources.missing_scenes"));
-            custom = true;
-        }
 
         // Log message if custom resources are missing.
         if (custom) logger.info(translate("messages.status.resources.custom"));
@@ -533,5 +542,23 @@ public final class Utils {
      */
     public static String unescapeJson(String json) {
         return json.replaceAll("\"", "\"");
+    }
+
+    public static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        return pattern.matcher(email).matches();
     }
 }

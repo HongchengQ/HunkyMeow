@@ -27,4 +27,17 @@ public class PacketEntityFightPropUpdateNotify extends BasePacket {
 
         this.setData(protoBuilder);
     }
+
+    // test
+    public PacketEntityFightPropUpdateNotify(int entity, int b) {
+        super(PacketOpcodes.EntityFightPropUpdateNotify);
+
+        EntityFightPropUpdateNotify proto =
+            EntityFightPropUpdateNotify.newBuilder()
+                .setEntityId(entity)
+                .putFightPropMap(b, 100)
+                .build();
+
+        this.setData(proto);
+    }
 }

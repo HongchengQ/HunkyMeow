@@ -34,44 +34,57 @@ public class LuaSerializer implements Serializer {
         return serializeMap(type, (LuaTable) obj);
     }
 
+    private <T> T convertToType(Class<T> type, LuaValue value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value.istable()) {
+            return serialize(type, null, value.checktable());
+        } else if (type.isAssignableFrom(Integer.class) && value.isint()) {
+            return type.cast(value.toint());
+        } else if (type.isAssignableFrom(Float.class) && value.isnumber()) {
+            return type.cast(value.tofloat());
+        } else if (type.isAssignableFrom(String.class) && value.isstring()) {
+            return type.cast(value.tojstring());
+        } else if (type.isAssignableFrom(Boolean.class) && value.isboolean()) {
+            return type.cast(value.toboolean());
+        } else if (type.isInstance(value)) {
+            return type.cast(value);
+        } else {
+            throw new IllegalArgumentException("Unsupported type conversion");
+        }
+    }
+
     private <T> Map<String, T> serializeMap(Class<T> type, LuaTable table) {
         Map<String, T> map = new HashMap<>();
 
-        if (table == null) {
+        if (table == null || table.length() == 0) {
             return map;
         }
 
         try {
             LuaValue[] keys = table.keys();
+            if (keys == null || keys.length == 0) {
+                return map;
+            }
+
             for (LuaValue k : keys) {
+                String keyStr = String.valueOf(k);
                 try {
                     LuaValue keyValue = table.get(k);
 
-                    T object = null;
-
-                    if (keyValue.istable()) {
-                        object = serialize(type, null, keyValue.checktable());
-                    } else if (keyValue.isint()) {
-                        object = (T) (Integer) keyValue.toint();
-                    } else if (keyValue.isnumber()) {
-                        object = (T) (Float) keyValue.tofloat(); // terrible...
-                    } else if (keyValue.isstring()) {
-                        object = (T) keyValue.tojstring();
-                    } else if (keyValue.isboolean()) {
-                        object = (T) (Boolean) keyValue.toboolean();
-                    } else {
-                        object = (T) keyValue;
-                    }
+                    T object = convertToType(type, keyValue);
 
                     if (object != null) {
-                        map.put(String.valueOf(k), object);
+                        map.put(keyStr, object);
                     }
                 } catch (Exception ex) {
-
+                    Grasscutter.getLogger().error("Error processing key: {}", k, ex);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Grasscutter.getLogger().error("Error serializing map", e);
         }
 
         return map;
@@ -80,41 +93,20 @@ public class LuaSerializer implements Serializer {
     public <T> List<T> serializeList(Class<T> type, LuaTable table) {
         List<T> list = new ArrayList<>();
 
-        if (table == null) {
+        if (table == null || table.length() == 0) {
             return list;
         }
 
-        try {
-            LuaValue[] keys = table.keys();
-            for (LuaValue k : keys) {
-                try {
-                    LuaValue keyValue = table.get(k);
-
-                    T object = null;
-
-                    if (keyValue.istable()) {
-                        object = serialize(type, null, keyValue.checktable());
-                    } else if (keyValue.isint()) {
-                        object = (T) (Integer) keyValue.toint();
-                    } else if (keyValue.isnumber()) {
-                        object = (T) (Float) keyValue.tofloat(); // terrible...
-                    } else if (keyValue.isstring()) {
-                        object = (T) keyValue.tojstring();
-                    } else if (keyValue.isboolean()) {
-                        object = (T) (Boolean) keyValue.toboolean();
-                    } else {
-                        object = (T) keyValue;
-                    }
-
-                    if (object != null) {
-                        list.add(object);
-                    }
-                } catch (Exception ex) {
-
+        for (LuaValue k : table.keys()) {
+            try {
+                LuaValue keyValue = table.get(k);
+                T object = convertToType(type, keyValue);
+                if (object != null) {
+                    list.add(object);
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -239,7 +231,7 @@ public class LuaSerializer implements Serializer {
     }
 
     public String getSetterName(String fieldName) {
-        if (fieldName == null || fieldName.length() == 0) {
+        if (fieldName == null || fieldName.isEmpty()) {
             return null;
         }
         if (fieldName.length() == 1) {

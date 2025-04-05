@@ -66,7 +66,8 @@ public final class HttpServer {
         this.javalin.exception(Exception.class, (exception, ctx) -> {
             ctx.status(500).result("Internal server error. %s"
                 .formatted(exception.getMessage()));
-            Grasscutter.getLogger().debug("Exception thrown: " +
+
+            Grasscutter.getLogger().debug("Exception thrown: {}",
                 exception.getMessage(), exception);
         });
     }
@@ -174,6 +175,13 @@ public final class HttpServer {
             javalin.get("/", ctx -> {
                 // Send file
                 File file = new File(HTTP_STATIC_FILES.indexFile);
+
+                // 访问根域名时如果 type=sdk 就返回账号注册的界面
+                String type = ctx.queryParam("type");
+                if ("sdk".equals(type)) {
+                    file = new File("./account/register.html");
+                }
+
                 if (!file.exists()) {
                     ctx.contentType(ContentType.TEXT_HTML);
                     ctx.result("""
@@ -185,12 +193,13 @@ public final class HttpServer {
                             <body>%s</body>
                         </html>
                         """.formatted(translate("messages.status.welcome")));
-                } else {
-                    var filePath = file.getPath();
-                    ContentType fromExtension = ContentType.getContentTypeByExtension(filePath.substring(filePath.lastIndexOf(".") + 1));
-                    ctx.contentType(fromExtension != null ? fromExtension : ContentType.TEXT_HTML);
-                    ctx.result(FileUtils.read(filePath));
+                    return;
                 }
+
+                var filePath = file.getPath();
+                ContentType fromExtension = ContentType.getContentTypeByExtension(filePath.substring(filePath.lastIndexOf(".") + 1));
+                ctx.contentType(fromExtension != null ? fromExtension : ContentType.TEXT_HTML);
+                ctx.result(FileUtils.read(filePath));
             });
         }
     }

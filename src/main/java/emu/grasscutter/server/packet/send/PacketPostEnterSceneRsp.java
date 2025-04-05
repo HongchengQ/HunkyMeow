@@ -12,9 +12,8 @@ public class PacketPostEnterSceneRsp extends BasePacket {
         PostEnterSceneRsp p =
                 PostEnterSceneRsp.newBuilder().setEnterSceneToken(player.getEnterSceneToken()).build();
 
-        //
-        // On moving to new scene:
-        // Unfreeze dungeon entry points that have already been unlocked in this scene.
+        // 移动到新场景时：
+        // 解冻此场景中已解锁的地牢入口点。
         player.unfreezeUnlockedScenePoints();
 
         this.setData(p);

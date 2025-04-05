@@ -57,9 +57,9 @@ public class CommandHelpers {
     }
 
     public static float parseRelative(String input, Float current) {
-        if (input.contains("~")) { // Relative
-            if (!input.equals("~")) { // Relative with offset
-                current += Float.parseFloat(input.replace("~", ""));
+        if (input.contains("`")) { // Relative
+            if (!input.equals("`")) { // Relative with offset
+                current += Float.parseFloat(input.replace("`", ""));
             } // Else no offset, no modification
         } else { // Absolute
             current = Float.parseFloat(input);
@@ -71,9 +71,9 @@ public class CommandHelpers {
             String inputX, String inputY, String inputZ, Position curPos, Position curRot) {
         Position offset = new Position();
         Position target = new Position(curPos);
-        if (inputX.contains("~")) { // Relative
-            if (!inputX.equals("~")) { // Relative with offset
-                target.addX(Float.parseFloat(inputX.replace("~", "")));
+        if (inputX.contains("`")) { // Relative
+            if (!inputX.equals("`")) { // Relative with offset
+                target.addX(Float.parseFloat(inputX.replace("`", "")));
             }
         } else if (inputX.contains("^")) {
             if (!inputX.equals("^")) {
@@ -83,9 +83,9 @@ public class CommandHelpers {
             target.setX(Float.parseFloat(inputX));
         }
 
-        if (inputY.contains("~")) { // Relative
-            if (!inputY.equals("~")) { // Relative with offset
-                target.addY(Float.parseFloat(inputY.replace("~", "")));
+        if (inputY.contains("`")) { // Relative
+            if (!inputY.equals("`")) { // Relative with offset
+                target.addY(Float.parseFloat(inputY.replace("`", "")));
             }
         } else if (inputY.contains("^")) {
             if (!inputY.equals("^")) {
@@ -95,9 +95,9 @@ public class CommandHelpers {
             target.setY(Float.parseFloat(inputY));
         }
 
-        if (inputZ.contains("~")) { // Relative
-            if (!inputZ.equals("~")) { // Relative with offset
-                target.addZ(Float.parseFloat(inputZ.replace("~", "")));
+        if (inputZ.contains("`")) { // Relative
+            if (!inputZ.equals("`")) { // Relative with offset
+                target.addZ(Float.parseFloat(inputZ.replace("`", "")));
             }
         } else if (inputZ.contains("^")) {
             if (!inputZ.equals("^")) {

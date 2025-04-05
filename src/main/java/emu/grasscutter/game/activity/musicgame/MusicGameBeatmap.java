@@ -52,7 +52,7 @@ public class MusicGameBeatmap {
         var player = DatabaseHelper.getPlayerByUid(authorUid);
 
         return UgcMusicBriefInfoOuterClass.UgcMusicBriefInfo.newBuilder()
-                .setMusicId(musicId)
+//                .setMusicId(musicId)
                 //            .setMusicNoteCount(musicNoteCount)
                 .setUgcGuid(musicShareId)
                 .setMaxScore(maxScore)

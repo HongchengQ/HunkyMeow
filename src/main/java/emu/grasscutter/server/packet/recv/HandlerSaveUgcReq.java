@@ -26,7 +26,7 @@
 //        val req = SaveUgcReqOuterClass.SaveUgcReq.parseFrom(payload);
 //
 //        // We only support music game user generated content
-//        if (req.getUgcType() != UgcTypeOuterClass.UgcType.UGC_TYPE_MUSIC_GAME) {
+//        if (req.getUgcType() != UgcTypeOuterClass.UgcType.UgcType_MUSIC_GAME) {
 //            session.send(
 //                    new PacketMusicGameCreateBeatmapRsp(
 //                            RetcodeOuterClass.Retcode.RET_UGC_DISABLED, req.getUgcType()));

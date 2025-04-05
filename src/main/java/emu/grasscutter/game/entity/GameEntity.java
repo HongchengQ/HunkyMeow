@@ -54,7 +54,7 @@ public abstract class GameEntity {
 
     public GameEntity(Scene scene) {
         this.scene = scene;
-        this.motionState = MotionState.MOTION_STATE_NONE;
+        this.motionState = MotionState.MotionState_MOTION_NONE;
     }
 
     public abstract void initAbilities();
@@ -96,7 +96,7 @@ public abstract class GameEntity {
     }
 
     public float getFightProperty(FightProperty prop) {
-        return this.getFightProperties().getOrDefault(prop.getId(), 0f);
+        return this.getFightProperties().getOrDefault(prop.getId(), 0.0f);
     }
 
     public boolean hasFightProperty(FightProperty prop) {

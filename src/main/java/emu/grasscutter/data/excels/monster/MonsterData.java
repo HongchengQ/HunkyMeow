@@ -121,7 +121,9 @@ public class MonsterData extends GameResource {
 
     @Getter
     public class HpDrops {
+        @SerializedName(value = "DropId", alternate = "dropId")
         private int DropId;
+        @SerializedName(value = "HpPercent", alternate = "hpPercent")
         private int HpPercent;
     }
 }

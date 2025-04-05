@@ -40,7 +40,7 @@ public final class Crypto {
                                     new PKCS8EncodedKeySpec(FileUtils.readResource("/keys/SigningKey.der")));
 
             Pattern pattern = Pattern.compile("([0-9]*)_Pub\\.der");
-            for (Path path : FileUtils.getPathsFromResource("/keys/game_keys")) {
+            for (Path path : Objects.requireNonNull(FileUtils.getPathsFromResource("/keys/game_keys"))) {
                 if (path.toString().endsWith("_Pub.der")) {
 
                     var m = pattern.matcher(path.getFileName().toString());

@@ -16,7 +16,7 @@ import emu.grasscutter.net.proto.EnterTypeOuterClass.EnterType;
 import emu.grasscutter.net.proto.MotionStateOuterClass.MotionState;
 import emu.grasscutter.net.proto.PlayerDieTypeOuterClass.PlayerDieType;
 import emu.grasscutter.net.proto.RetcodeOuterClass.Retcode;
-import emu.grasscutter.net.proto.TrialAvatarGrantRecordOuterClass.TrialAvatarGrantRecord.GrantReason;
+import emu.grasscutter.net.proto.GrantReasonOuterClass.GrantReason;
 import emu.grasscutter.server.event.entity.EntityCreationEvent;
 import emu.grasscutter.server.event.player.*;
 import emu.grasscutter.server.packet.send.*;
@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.*;
 import java.util.stream.Stream;
 import lombok.*;
+import emu.grasscutter.database.Database;
 
 @Entity
 public final class TeamManager extends BasePlayerDataManager {
@@ -98,7 +99,7 @@ public final class TeamManager extends BasePlayerDataManager {
         }
 
         // same as avatar ability hash (add frm levelEntityConfig data)
-        if (this.getTeamAbilityEmbryos().size() > 0) {
+        if (!this.getTeamAbilityEmbryos().isEmpty()) {
             for (String skill : this.getTeamAbilityEmbryos()) {
                 AbilityEmbryoOuterClass.AbilityEmbryo emb =
                         AbilityEmbryoOuterClass.AbilityEmbryo.newBuilder()
@@ -141,7 +142,7 @@ public final class TeamManager extends BasePlayerDataManager {
     }
 
     public long getCurrentCharacterGuid() {
-        return this.getCurrentAvatarEntity().getAvatar().getGuid();
+        return Objects.requireNonNull(this.getCurrentAvatarEntity()).getAvatar().getGuid();
     }
 
     public TeamInfo getCurrentTeamInfo() {
@@ -560,7 +561,7 @@ public final class TeamManager extends BasePlayerDataManager {
                         x ->
                                 this.getPlayer()
                                         .getScene()
-                                        .removeEntity(x, VisionTypeOuterClass.VisionType.VISION_TYPE_REMOVE));
+                                        .removeEntity(x, VisionTypeOuterClass.VisionType.VisionType_VISION_REMOVE));
         // Remove the existing avatar from the teams if it exists.
         this.getActiveTeam().removeIf(x -> x.getAvatar().getAvatarId() == trialAvatar.getAvatarId());
         this.getCurrentTeamInfo().getAvatars().removeIf(x -> x == trialAvatar.getAvatarId());
@@ -636,7 +637,7 @@ public final class TeamManager extends BasePlayerDataManager {
                 .forEach(
                         avatarEntity ->
                                 scene.removeEntity(
-                                        avatarEntity, VisionTypeOuterClass.VisionType.VISION_TYPE_REMOVE));
+                                        avatarEntity, VisionTypeOuterClass.VisionType.VisionType_VISION_REMOVE));
 
         if (isTeam) {
             this.getActiveTeam().clear();
@@ -801,7 +802,7 @@ public final class TeamManager extends BasePlayerDataManager {
         this.setCurrentCharacterIndex(index);
 
         // Old entity motion state
-        oldEntity.setMotionState(MotionState.MOTION_STATE_STANDBY);
+        oldEntity.setMotionState(MotionState.MotionState_MOTION_STANDBY);
 
         // Remove and Add
         this.getPlayer().getScene().replaceEntity(oldEntity, newEntity);
@@ -828,7 +829,7 @@ public final class TeamManager extends BasePlayerDataManager {
         PlayerDieType dieType = deadAvatar.getKilledType();
         int killedBy = deadAvatar.getKilledBy();
 
-        if (dieType == PlayerDieType.PLAYER_DIE_TYPE_DRAWN) {
+        if (dieType == PlayerDieType.PlayerDieType_PLAYER_DIE_DRAWN) {
             // Died in water. Do not replace
             // The official server has skipped this notify and will just respawn the team immediately
             // after the animation.
@@ -951,7 +952,7 @@ public final class TeamManager extends BasePlayerDataManager {
                     .sendPacket(
                             new PacketPlayerEnterSceneNotify(
                                     this.getPlayer(),
-                                    EnterType.ENTER_TYPE_SELF,
+                                    EnterType.EnterType_ENTER_SELF,
                                     EnterReason.Revival,
                                     this.getPlayer().getSceneId(),
                                     this.getRespawnPosition()));
@@ -961,7 +962,7 @@ public final class TeamManager extends BasePlayerDataManager {
                     .sendPacket(
                             new PacketPlayerEnterSceneNotify(
                                     this.getPlayer(),
-                                    EnterType.ENTER_TYPE_SELF,
+                                    EnterType.EnterType_ENTER_SELF,
                                     EnterReason.Revival,
                                     3,
                                     GameConstants.START_POSITION));
@@ -990,11 +991,15 @@ public final class TeamManager extends BasePlayerDataManager {
         return respawnPoint.get().getPointData().getTranPos();
     }
 
+
+    /**
+    * Performs a bulk save operation on all avatars.
+    */
     public void saveAvatars() {
         // Save all avatars from active team
-        for (EntityAvatar entity : this.getActiveTeam()) {
-            entity.getAvatar().save();
-        }
+        Database.savePlayerData(this.getPlayer().getObjectPlayerUid(),new ArrayList<>(this.getActiveTeam().stream()
+            .map(EntityAvatar::getAvatar)
+            .toList()));
     }
 
     public void onPlayerLogin() { // Hack for now to fix resonances on login

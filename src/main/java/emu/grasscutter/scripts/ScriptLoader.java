@@ -156,7 +156,7 @@ public class ScriptLoader {
             } catch (Exception exception) {
                 if (DebugConstants.LOG_MISSING_LUA_SCRIPTS) {
                     Grasscutter.getLogger()
-                            .error("Loading script {} failed! - {}", scriptPath, exception.getLocalizedMessage());
+                            .error("-1 Loading script {} failed! - {}", scriptPath, exception.getLocalizedMessage());
                 }
             }
 
@@ -192,7 +192,7 @@ public class ScriptLoader {
         // Attempt to load the script.
         var scriptPath = useAbsPath ? Paths.get(path) : FileUtils.getScriptPath(path);
         if (!Files.exists(scriptPath)) {
-            Grasscutter.getLogger().error("Could not find script at path {}", path);
+            Grasscutter.getLogger().error("-1 Could not find script at path {}", path);
             return null;
         }
 
@@ -203,7 +203,7 @@ public class ScriptLoader {
             return source;
         } catch (IOException exception) {
             Grasscutter.getLogger()
-                    .error("Loading script {} failed! - {}", path, exception.getLocalizedMessage());
+                    .error("-2 Loading script {} failed! - {}", path, exception.getLocalizedMessage());
             return null;
         }
     }
@@ -235,22 +235,22 @@ public class ScriptLoader {
         try {
             CompiledScript script;
             if (Configuration.FAST_REQUIRE) {
-                // Attempt to load the script.
+                // 尝试加载脚本。
                 var scriptPath = useAbsPath ? Paths.get(path) : FileUtils.getScriptPath(path);
                 if (!Files.exists(scriptPath)) {
-                    Grasscutter.getLogger().error("Could not find script at path {}", path);
+                    Grasscutter.getLogger().error("-2 Could not find script at path {}", path);
                     return null;
                 }
 
-                // Compile the script from the file.
+                // 从文件编译脚本。
                 var source = Files.newBufferedReader(scriptPath);
                 script = ScriptLoader.getEngine().compile(source);
             } else {
-                // Load the script sources.
+                // 加载脚本源。
                 var sources = ScriptLoader.readScript(path, useAbsPath);
                 if (sources == null) return null;
 
-                // Check to see if the script references other scripts.
+                // 检查脚本是否引用了其他脚本。
                 if (sources.contains("require")) {
                     var lines = sources.split("\n");
                     var output = new StringBuilder();
@@ -268,13 +268,13 @@ public class ScriptLoader {
                         var scriptSource = ScriptLoader.readScript(scriptPath, useAbsPath);
                         if (scriptSource == null) continue;
 
-                        // Append the script source.
+                        // 附加脚本源。
                         output.append(scriptSource).append("\n");
                     }
                     sources = output.toString();
                 }
 
-                // Compile the script & cache it in memory.
+                // 编译脚本并将其缓存在内存中。
                 script = ScriptLoader.getEngine().compile(sources);
             }
 
@@ -283,7 +283,7 @@ public class ScriptLoader {
             return script;
         } catch (Exception e) {
             Grasscutter.getLogger()
-                    .error("Loading script {} failed! - {}", path, e.getLocalizedMessage());
+                    .error("-3 Loading script {} failed! - {}", path, e.getLocalizedMessage());
             return null;
         }
     }

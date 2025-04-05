@@ -16,7 +16,7 @@ public class PlayerProfile {
     private int uid;
 
     private int nameCard;
-    private int avatarId;
+    private int headImageId;
     private String name;
     private String signature;
 
@@ -58,7 +58,7 @@ public class PlayerProfile {
 
         this.uid = player.getUid();
         this.name = player.getNickname();
-        this.avatarId = player.getHeadImage();
+        this.headImageId = player.getHeadImage();
         this.signature = player.getSignature();
         this.nameCard = player.getNameCardId();
         this.playerLevel = player.getLevel();
@@ -69,7 +69,7 @@ public class PlayerProfile {
                         .map(GameHome::getEnterHomeOption)
                         .orElse(
                                 FriendEnterHomeOptionOuterClass.FriendEnterHomeOption
-                                        .FRIEND_ENTER_HOME_OPTION_REFUSE_VALUE);
+                                        .FriendEnterHomeOption_REFUSE_VALUE);
         this.updateLastActiveTime();
     }
 }

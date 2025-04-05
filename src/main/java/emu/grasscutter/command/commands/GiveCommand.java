@@ -21,7 +21,7 @@ import lombok.Setter;
         label = "give",
         aliases = {"g", "item", "giveitem"},
         usage = {
-            "(<itemId>|<avatarId>|all|weapons|mats|avatars) [lv<level>] [r<refinement>] [x<amount>] [c<constellation>] [sl<skilllevel>]",
+            "(<itemId>|<avatarId>|all|weapons|mats|avatars|reliquary) [lv<level>] [r<refinement>] [x<amount>] [c<constellation>] [sl<skilllevel>]",
             "<artifactId> [lv<level>] [x<amount>] [<mainPropId>] [<appendPropId>[,<times>]]..."
         },
         permission = "player.give",
@@ -50,10 +50,12 @@ public final class GiveCommand implements CommandHandler {
         Avatar avatar = new Avatar(avatarData);
         avatar.setLevel(level);
         avatar.setPromoteLevel(promoteLevel);
-        avatar
-                .getSkillDepot()
-                .getSkillsAndEnergySkill()
-                .forEach(id -> avatar.setSkillLevel(id, skillLevel));
+
+        if (avatar.getSkillDepot() == null) {
+            return null;
+        }
+        avatar.getSkillDepot().getSkillsAndEnergySkill().forEach(id -> avatar.setSkillLevel(id, skillLevel));
+
         avatar.forceConstellationLevel(constellation);
         avatar.recalcStats(true);
         avatar.save();
@@ -62,10 +64,10 @@ public final class GiveCommand implements CommandHandler {
 
     private static void giveAllAvatars(Player player, GiveItemParameters param) {
         int promoteLevel = Avatar.getMinPromoteLevel(param.lvl);
+        // Constellation 的默认值为 -1，因此如果没有为 Constellations 设置参数，它将自动为 6
         if (param.constellation < 0 || param.constellation > 6)
-            param.constellation =
-                    6; // constellation's default is -1 so if no parameters set for constellations it'll
-        // automatically be 6
+            param.constellation = 6;
+
         for (AvatarData avatarData : GameData.getAvatarDataMap().values()) {
             int id = avatarData.getId();
             if (id < 10000002 || id >= 11000000) continue; // Exclude test avatars
@@ -112,7 +114,7 @@ public final class GiveCommand implements CommandHandler {
             item.setTotalExp(totalExp);
             int numAffixes = param.data.getAppendPropNum() + (param.lvl - 1) / 4;
             if (param.mainPropId > 0) // Keep random mainProp if we didn't specify one
-            item.setMainPropId(param.mainPropId);
+                item.setMainPropId(param.mainPropId);
             if (param.appendPropIdList != null) {
                 item.getAppendPropIdList().clear();
                 item.getAppendPropIdList().addAll(param.appendPropIdList);
@@ -183,7 +185,7 @@ public final class GiveCommand implements CommandHandler {
         // Get the main stat from the arguments.
         // If the given argument is an integer, we use that.
         // If not, we check if the argument string is in the main prop map.
-        String mainPropIdString = args.remove(0);
+        String mainPropIdString = args.removeFirst();
 
         try {
             param.mainPropId = Integer.parseInt(mainPropIdString);
@@ -265,10 +267,27 @@ public final class GiveCommand implements CommandHandler {
         addItemsChunked(player, itemList, 100);
     }
 
+    private static void giveAllReliquary(Player player) {
+        List<GameItem> itemList = new ArrayList<>();
+        for (ItemData itemdata : GameData.getItemDataMap().values()) {
+            int id = itemdata.getId();
+            if (id < 20002 || id > 99999) continue; // All extant reliquary are within this range
+            if (ILLEGAL_RELICS.contains(id)) continue;
+            if (!itemdata.isEquip()) continue;
+            if (itemdata.getItemType() != ItemType.ITEM_RELIQUARY) continue;
+
+            GameItem item = new GameItem(itemdata);
+            itemList.add(item);
+        }
+
+        addItemsChunked(player, itemList, 100);
+    }
+
     private static void giveAll(Player player, GiveItemParameters param) {
         giveAllAvatars(player, param);
         giveAllMats(player, param);
         giveAllWeapons(player, param);
+        giveAllReliquary(player);
     }
 
     private GiveItemParameters parseArgs(Player sender, List<String> args)
@@ -279,11 +298,11 @@ public final class GiveCommand implements CommandHandler {
         parseIntParameters(args, param, intCommandHandlers);
 
         // At this point, first remaining argument MUST be itemId/avatarId
-        if (args.size() < 1) {
+        if (args.isEmpty()) {
             sendUsageMessage(sender); // Reachable if someone does `/give lv90` or similar
             throw new IllegalArgumentException();
         }
-        String id = args.remove(0);
+        String id = args.removeFirst();
         boolean isRelic = false;
 
         switch (id) {
@@ -298,6 +317,9 @@ public final class GiveCommand implements CommandHandler {
                 break;
             case "avatars":
                 param.giveAllType = GiveAllType.AVATARS;
+                break;
+            case "reliquary":
+                param.giveAllType = GiveAllType.RELIQUARY;
                 break;
             default:
                 try {
@@ -318,7 +340,7 @@ public final class GiveCommand implements CommandHandler {
                         && !args.isEmpty()
                         && (param.amount == 1)) { // A concession for the people that truly hate [x<amount>].
                     try {
-                        param.amount = Integer.parseInt(args.remove(0));
+                        param.amount = Integer.parseInt(args.removeFirst());
                     } catch (NumberFormatException e) {
                         CommandHandler.sendTranslatedMessage(sender, "commands.generic.invalid.amount");
                         throw e;
@@ -362,7 +384,7 @@ public final class GiveCommand implements CommandHandler {
 
     @Override
     public void execute(Player sender, Player targetPlayer, List<String> args) {
-        if (args.size() < 1) { // *No args*
+        if (args.isEmpty()) { // *No args*
             sendUsageMessage(sender);
             return;
         }
@@ -384,6 +406,10 @@ public final class GiveCommand implements CommandHandler {
                     return;
                 case AVATARS:
                     giveAllAvatars(targetPlayer, param);
+                    CommandHandler.sendTranslatedMessage(sender, "commands.give.giveall_success");
+                    return;
+                case RELIQUARY:
+                    giveAllReliquary(targetPlayer);
                     CommandHandler.sendTranslatedMessage(sender, "commands.give.giveall_success");
                     return;
                 case NONE:
@@ -441,10 +467,11 @@ public final class GiveCommand implements CommandHandler {
 
     private enum GiveAllType {
         NONE,
-        ALL,
-        WEAPONS,
-        MATS,
-        AVATARS
+        ALL,        // 所有
+        WEAPONS,    // 武器
+        MATS,       // 物品
+        AVATARS,    // 角色
+        RELIQUARY   // 圣遗物
     }
 
     private static class GiveItemParameters {

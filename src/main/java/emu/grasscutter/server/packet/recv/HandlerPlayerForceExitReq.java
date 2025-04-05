@@ -7,19 +7,17 @@ import emu.grasscutter.server.game.GameSession;
 public class HandlerPlayerForceExitReq extends PacketHandler {
     @Override
     public void handle(GameSession session, byte[] header, byte[] payload) throws Exception {
-        // Client should auto disconnect right now
         session.send(new BasePacket(PacketOpcodes.PlayerForceExitRsp));
-        new Thread() {
-            @Override
-            public void run() {
+        Thread.ofVirtual() // 使用虚拟线程
+            .start(() -> {
                 try {
-                    Thread.sleep(1000); // disconnect after 1 seconds
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // 恢复中断状态
                     e.printStackTrace();
+                } finally {
+                    session.close();
                 }
-                session.close();
-                super.run();
-            }
-        }.start();
+            });
     }
 }

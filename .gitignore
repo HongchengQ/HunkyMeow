@@ -60,14 +60,12 @@ tmp/
 /keys
 /language
 /languages
-/proto
 
 /*.jar
 /*.sh
 !entrypoint.sh
 
 GM Handbook*.txt
-handbook.html
 
 config.json
 mitmdump.exe
@@ -93,3 +91,6 @@ patches/*.patch
 
 # Artifact Signatures
 *.asc
+build后proto.lnk
+*.jsonc
+*.toml

@@ -27,18 +27,19 @@ public class PacketPlayerWorldSceneInfoListNotify extends BasePacket {
             /** Add scene-specific data */
 
             // Scenetags
-            if (sceneTags.keySet().contains(scene)) {
+            if (sceneTags.containsKey(scene)) {
                 worldInfoBuilder.addAllSceneTagIdList(
                         sceneTags.entrySet().stream()
                                 .filter(e -> e.getKey().equals(scene))
                                 .map(Map.Entry::getValue)
                                 .toList()
-                                .get(0));
+                                .getFirst());
             }
 
             // Map layer information (Big world)
             if (scene == 3) {
                 worldInfoBuilder.setMapLayerInfo(
+                    // 地图分层
                         MapLayerInfoOuterClass.MapLayerInfo.newBuilder()
                                 .addAllUnlockedMapLayerIdList(
                                         GameData.getMapLayerDataMap().keySet()) // MapLayer Ids

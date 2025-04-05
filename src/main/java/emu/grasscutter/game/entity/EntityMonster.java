@@ -2,6 +2,7 @@ package emu.grasscutter.game.entity;
 
 import static emu.grasscutter.scripts.constants.EventType.EVENT_SPECIFIC_MONSTER_HP_CHANGE;
 
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.config.ConfigEntityMonster;
 import emu.grasscutter.data.common.PropGrowCurve;
@@ -216,7 +217,12 @@ public class EntityMonster extends GameEntity {
             return;
         }
 
-        player.getInventory().addItem(gatherData.getGatherItem(), ActionReason.SubfieldDrop);
+        val item = gatherData.getGatherItem();
+        if (item != null) {
+            player.getInventory().addItem(item, ActionReason.SubfieldDrop);
+        } else {
+            Grasscutter.getLogger().error("动物拾取发生异常 无法获取返回物品 animalId:{}", this.getMonsterData().getId());
+        }
 
         this.getScene().killEntity(this);
     }
@@ -385,6 +391,10 @@ public class EntityMonster extends GameEntity {
         //  +100%: Floors 8 – 11
         //  +150%: Floor 12
         var dungeonManager = getScene().getDungeonManager();
+        if (this.getScene().getPlayers().isEmpty()) {
+            return;
+        }
+
         var towerManager = getScene().getPlayers().get(0).getTowerManager();
         if (dungeonManager != null && dungeonManager.isTowerDungeon() && towerManager != null) {
             var floor = towerManager.getCurrentFloorNumber();
@@ -413,7 +423,10 @@ public class EntityMonster extends GameEntity {
         var data = this.getMonsterData();
 
         var aiInfo =
-                SceneEntityAiInfo.newBuilder().setIsAiOpen(true).setBornPos(this.getBornPos().toProto());
+                SceneEntityAiInfo.newBuilder()
+                    .setIsAiOpen(true);
+//                    .setBornPos(this.getBornPos().toProto());  // 新版本没这个字段了
+
         if (ownerEntityId != 0) {
             aiInfo.setServantInfo(ServantInfo.newBuilder().setMasterEntityId(ownerEntityId));
         }
@@ -429,7 +442,7 @@ public class EntityMonster extends GameEntity {
         var entityInfo =
                 SceneEntityInfo.newBuilder()
                         .setEntityId(this.getId())
-                        .setEntityType(ProtEntityType.PROT_ENTITY_TYPE_MONSTER)
+                        .setEntityType(ProtEntityType.ProtEntityType_PROT_ENTITY_MONSTER)
                         .setMotionInfo(this.getMotionInfo())
                         .addAnimatorParaList(AnimatorParameterValueInfoPair.newBuilder())
                         .setEntityClientData(EntityClientData.newBuilder())
@@ -455,7 +468,7 @@ public class EntityMonster extends GameEntity {
                         .setBlockId(this.getScene().getId())
                         .setSummonedTag(this.summonedTag)
                         .setOwnerEntityId(this.ownerEntityId)
-                        .setBornType(MonsterBornType.MONSTER_BORN_TYPE_DEFAULT);
+                        .setBornType(MonsterBornType.MonsterBornType_MONSTER_BORN_DEFAULT);
         summonTagMap.forEach((k, v) -> monsterInfo.putSummonTagMap(k, v == null ? 0 : 1));
 
         if (this.metaMonster != null) {

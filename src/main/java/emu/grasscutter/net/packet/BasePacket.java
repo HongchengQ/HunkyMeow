@@ -1,8 +1,14 @@
 package emu.grasscutter.net.packet;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
+import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.GeneratedMessageV3;
 import emu.grasscutter.net.proto.PacketHeadOuterClass.PacketHead;
+import lombok.Getter;
+
 import java.io.*;
+import java.util.Arrays;
 
 public class BasePacket {
     private static final int const1 = 17767; // 0x4567
@@ -11,7 +17,8 @@ public class BasePacket {
     private int opcode;
     private boolean shouldBuildHeader = false;
     private byte[] header;
-    private byte[] data;
+    @Getter private byte[] data;
+    @Getter private Message message;
     // Encryption
     private boolean useDispatchKey;
 
@@ -57,21 +64,19 @@ public class BasePacket {
         return shouldBuildHeader;
     }
 
-    public byte[] getData() {
-        return data;
-    }
-
     public void setData(byte[] data) {
         this.data = data;
     }
 
     public void setData(GeneratedMessageV3 proto) {
+        this.message = proto;
         this.data = proto.toByteArray();
     }
 
     @SuppressWarnings("rawtypes")
     public void setData(GeneratedMessageV3.Builder proto) {
-        this.data = proto.build().toByteArray();
+        this.message = proto.build();
+        this.data = message.toByteArray();
     }
 
     public BasePacket buildHeader(int clientSequence) {

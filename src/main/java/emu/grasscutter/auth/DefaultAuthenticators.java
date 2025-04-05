@@ -1,6 +1,7 @@
 package emu.grasscutter.auth;
 
 import static emu.grasscutter.config.Configuration.ACCOUNT;
+import static emu.grasscutter.config.Configuration.SERVER;
 import static emu.grasscutter.utils.lang.Language.translate;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.*;
 import java.util.concurrent.*;
 import javax.crypto.Cipher;
 
@@ -27,20 +29,31 @@ public final class DefaultAuthenticators {
     public static class PasswordAuthenticator implements Authenticator<LoginResultJson> {
         @Override
         public LoginResultJson authenticate(AuthenticationRequest request) {
+            boolean useIntegrationPassword = ACCOUNT.useIntegrationPassword;
             var response = new LoginResultJson();
 
             var requestData = request.getPasswordRequest();
             assert requestData != null; // This should never be null.
 
             boolean successfulLogin = false;
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("request.getContext() == null");
+                return null;
+            }
             String address = Utils.address(request.getContext());
+
             String responseMessage = translate("messages.dispatch.account.username_error");
             String loggerMessage = "";
+
+            if (useIntegrationPassword) {
+                // 使用一体化密码
+                requestData.parse();
+            }
 
             // Get account from database.
             Account account = DatabaseHelper.getAccountByName(requestData.account);
             // Check if account exists.
-            if (account == null && ACCOUNT.autoCreate) {
+            if (account == null && ACCOUNT.autoCreate && !useIntegrationPassword) {
                 // This account has been created AUTOMATICALLY. There will be no permissions added.
                 account = DatabaseHelper.createAccountWithUid(requestData.account, 0);
 
@@ -53,17 +66,32 @@ public final class DefaultAuthenticators {
                     // Continue with login.
                     successfulLogin = true;
 
-                    // Log the creation.
-                    Grasscutter.getLogger()
+                    String uid = response.data.account.uid;
+                    if (uid != null) {
+                        // Log the creation.
+                        Grasscutter.getLogger()
                             .info(
-                                    translate(
-                                            "messages.dispatch.account.account_login_create_success",
-                                            address,
-                                            response.data.account.uid));
+                                translate(
+                                    "messages.dispatch.account.account_login_create_success",
+                                    address,
+                                    response.data.account.uid));
+                    } else {
+                        responseMessage = "账号登录失败, uid为空";
+                        Grasscutter.getLogger().error("账号登录失败, uid为空");
+                    }
                 }
-            } else if (account != null) successfulLogin = true;
-            else
+            } else if (account != null) {
+                successfulLogin = true;
+            } else
                 loggerMessage = translate("messages.dispatch.account.account_login_exist_error", address);
+
+            if (useIntegrationPassword) {
+                // 一体化密码不正确
+                if (account != null && !Objects.equals(account.getPassword(), requestData.password)) {
+                    successfulLogin = false;
+                    responseMessage = "密码不正确 请首先确认格式再确认密码正确性。\n例如: abc&&1234";
+                }
+            }
 
             // Set response data.
             if (successfulLogin) {
@@ -87,13 +115,16 @@ public final class DefaultAuthenticators {
     public static class ExperimentalPasswordAuthenticator implements Authenticator<LoginResultJson> {
         @Override
         public LoginResultJson authenticate(AuthenticationRequest request) {
-            var response = new LoginResultJson();
+            LoginResultJson response = new LoginResultJson();
 
             var requestData = request.getPasswordRequest();
             assert requestData != null; // This should never be null.
 
             boolean successfulLogin = false;
-            String address = Utils.address(request.getContext());
+            String address = null;
+            if (request.getContext() != null) {
+                address = Utils.address(request.getContext());
+            }
             String responseMessage = translate("messages.dispatch.account.username_error");
             String loggerMessage = "";
             String decryptedPassword = "";
@@ -112,7 +143,13 @@ public final class DefaultAuthenticators {
                                 cipher.doFinal(Utils.base64Decode(request.getPasswordRequest().password)),
                                 StandardCharsets.UTF_8);
             } catch (Exception ignored) {
-                decryptedPassword = request.getPasswordRequest().password;
+                if (requestData.is_crypto) {
+                    response.retcode = -201;
+                    response.message = "无法解密客户端的给定密码 请确认您使用了正确的游戏版本";
+                    return response;
+                } else {
+                    decryptedPassword = request.getPasswordRequest().password;
+                }
             }
 
             if (decryptedPassword == null) {
@@ -126,28 +163,32 @@ public final class DefaultAuthenticators {
             // Check if account exists.
             if (account == null && ACCOUNT.autoCreate) {
                 // This account has been created AUTOMATICALLY. There will be no permissions added.
-                if (decryptedPassword.length() >= 8) {
+                if (decryptedPassword != null && decryptedPassword.length() >= 8) {
                     account = DatabaseHelper.createAccountWithUid(requestData.account, 0);
-                    account.setPassword(
-                            BCrypt.withDefaults().hashToString(12, decryptedPassword.toCharArray()));
-                    account.save();
 
                     // Check if the account was created successfully.
                     if (account == null) {
                         responseMessage = translate("messages.dispatch.account.username_create_error");
                         loggerMessage =
-                                translate("messages.dispatch.account.account_login_create_error", address);
+                            translate("messages.dispatch.account.account_login_create_error", address);
                     } else {
+                        account.setPassword(
+                            BCrypt.withDefaults().hashToString(12, decryptedPassword.toCharArray()));
+                        account.save();
+                    }
+
+                    // Check if the account was created successfully.
+                    if (account != null) {
                         // Continue with login.
                         successfulLogin = true;
 
                         // Log the creation.
                         Grasscutter.getLogger()
-                                .info(
-                                        translate(
-                                                "messages.dispatch.account.account_login_create_success",
-                                                address,
-                                                response.data.account.uid));
+                            .info(
+                                translate(
+                                    "messages.dispatch.account.account_login_create_success",
+                                    address,
+                                    response.data.account.uid));
                     }
                 } else {
                     successfulLogin = false;
@@ -156,14 +197,9 @@ public final class DefaultAuthenticators {
                 }
             } else if (account != null) {
                 if (account.getPassword() != null && !account.getPassword().isEmpty()) {
-                    if (BCrypt.verifyer()
-                            .verify(decryptedPassword.toCharArray(), account.getPassword())
-                            .verified) {
+                    if (decryptedPassword != null && BCrypt.verifyer().verify(decryptedPassword.toCharArray(),
+                        account.getPassword()).verified) {
                         successfulLogin = true;
-                    } else {
-                        successfulLogin = false;
-                        loggerMessage = translate("messages.dispatch.account.login_password_error", address);
-                        responseMessage = translate("messages.dispatch.account.password_error");
                     }
                 } else {
                     successfulLogin = false;
@@ -204,8 +240,14 @@ public final class DefaultAuthenticators {
             assert requestData != null;
 
             boolean successfulLogin;
-            String address = Utils.address(request.getContext());
             String loggerMessage;
+
+            String address = null;
+            if (request.getContext() != null)
+                address = Utils.address(request.getContext());
+            else
+                Grasscutter.getLogger().error("TokenAuthenticator.authenticate -> request.getContext()==null");
+
 
             // Log the attempt.
             Grasscutter.getLogger()
@@ -242,6 +284,10 @@ public final class DefaultAuthenticators {
 
     /** Handles the authentication request from the game when using a combo token/session key. */
     public static class SessionKeyAuthenticator implements Authenticator<ComboTokenResJson> {
+        private static final int MAX_LOGIN_NUM_TIME = 1000;         // 登录并发检查间隔1秒
+        private static final Queue<Long> connectionTimes = new LinkedList<>();  //服务器登录并发过高处理
+        private static final Map<String, Queue<Long>> ipRequestTimes = new ConcurrentHashMap<>();//处理同一IP在限定时间内访问次数过多
+
         @Override
         public ComboTokenResJson authenticate(AuthenticationRequest request) {
             var response = new ComboTokenResJson();
@@ -251,18 +297,66 @@ public final class DefaultAuthenticators {
             assert requestData != null;
             assert loginData != null;
 
-            boolean successfulLogin;
-            String address = Utils.address(request.getContext());
+            int successfulLoginRetcode;
             String loggerMessage;
+
+            String address = null;
+            if (request.getContext() != null)
+                address = Utils.address(request.getContext());
+            else
+                Grasscutter.getLogger().error("SessionKeyAuthenticator.authenticate -> request.getContext()==null");
 
             // Get account from database.
             Account account = DatabaseHelper.getAccountById(loginData.uid);
 
             // Check if account exists/token is valid.
-            successfulLogin = account != null && account.getSessionKey().equals(loginData.token);
+            if (account == null)
+                successfulLoginRetcode = -1;
+            else if (!account.getSessionKey().equals(loginData.token))
+                successfulLoginRetcode = -2;
+            else
+                successfulLoginRetcode = 0;
+
+            long currentTime = System.currentTimeMillis();
+
+            /* 服务器登录并发过高处理 */
+            synchronized (connectionTimes) {
+                while (!connectionTimes.isEmpty() && (currentTime - connectionTimes.peek() > MAX_LOGIN_NUM_TIME)) {
+                    connectionTimes.poll();
+                }
+                // 检查当前连接数量是否超过限制
+                if ((connectionTimes.size() < ACCOUNT.loginMaxConnNum) || SERVER.isDevServer) { // 不要更改这里 应该是两个变量/常量比较
+                    connectionTimes.add(currentTime);
+                    Grasscutter.getLogger().debug("连接人数小于设定的值 玩家可以进入游戏");
+                } else {
+                    Grasscutter.getLogger().warn("登录并发数过高 连接人数大于设定的值:{} 玩家不可以进入游戏 请稍后再试", ACCOUNT.loginMaxConnNum);
+                    response.retcode = -201;
+                    response.message = "当前登录并发数过高 请稍后再试(点击右下角登录图标)";
+                    return response;
+                }
+            }
+
+            /* 处理同一IP在限定时间内访问次数过多 */
+            ipRequestTimes.putIfAbsent(address, new LinkedList<>());
+            synchronized (ipRequestTimes.get(address)) {
+                Queue<Long> requestTimes = ipRequestTimes.get(address);
+                while (!requestTimes.isEmpty() && (currentTime - requestTimes.peek() > ACCOUNT.ipBlackListTimeWindow)) {
+                    requestTimes.poll();
+                }
+                // 检查同一IP的请求次数是否超过限制
+                if ((requestTimes.size() < ACCOUNT.ipBlackListCount) || SERVER.isDevServer) {
+                    requestTimes.add(currentTime);
+                    Grasscutter.getLogger().debug("IP {} 的请求次数小于限制值", address);
+                } else {
+                    Grasscutter.getLogger().warn("IP {} 在时间窗口内请求次数过多 玩家不可以进入游戏 已暂时被服务器拉黑", address);
+                    response.retcode = -202;
+                    response.message = "您的IP请求次数过多 已暂时被服务器拉黑 请稍后再试";
+                    return response;
+                }
+            }
 
             // Set response data.
-            if (successfulLogin) {
+            if (successfulLoginRetcode == 0) {
                 response.message = "OK";
                 response.data.open_id = account.getId();
                 response.data.combo_id = "157795300";
@@ -272,9 +366,9 @@ public final class DefaultAuthenticators {
                 loggerMessage = translate("messages.dispatch.account.combo_token_success", address);
 
             } else {
+                // 会话密钥错误
                 response.retcode = -201;
-                response.message = translate("messages.dispatch.account.session_key_error");
-
+                response.message = successfulLoginRetcode + " 会话密钥错误";
                 // Log the failure.
                 loggerMessage = translate("messages.dispatch.account.combo_token_error", address);
             }
@@ -288,6 +382,10 @@ public final class DefaultAuthenticators {
     public static class ExternalAuthentication implements ExternalAuthenticator {
         @Override
         public void handleLogin(AuthenticationRequest request) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("handleLogin 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");
@@ -295,6 +393,10 @@ public final class DefaultAuthenticators {
 
         @Override
         public void handleAccountCreation(AuthenticationRequest request) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("handleAccountCreation 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");
@@ -302,6 +404,10 @@ public final class DefaultAuthenticators {
 
         @Override
         public void handlePasswordReset(AuthenticationRequest request) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("handlePasswordReset 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");
@@ -312,6 +418,10 @@ public final class DefaultAuthenticators {
     public static class OAuthAuthentication implements OAuthAuthenticator {
         @Override
         public void handleLogin(AuthenticationRequest request) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("-1 handleTokenProcess 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");
@@ -319,6 +429,10 @@ public final class DefaultAuthenticators {
 
         @Override
         public void handleRedirection(AuthenticationRequest request, ClientType type) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("-2 handleTokenProcess 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");
@@ -326,6 +440,10 @@ public final class DefaultAuthenticators {
 
         @Override
         public void handleTokenProcess(AuthenticationRequest request) {
+            if (request.getContext() == null) {
+                Grasscutter.getLogger().error("-3 handleTokenProcess 执行出错 getContext==null");
+                return;
+            }
             request
                     .getContext()
                     .result("Authentication is not available with the default authentication method.");

@@ -14,7 +14,10 @@ public final class PacketWindSeedClientNotify extends BasePacket {
         super(PacketOpcodes.WindSeedType1Notify);
 
         var packet =
-                WindSeedType1Notify.newBuilder().setPayload(ByteString.copyFrom(compiledLua)).build();
+            WindSeedType1Notify
+                .newBuilder()
+                .setPayload(ByteString.copyFrom(compiledLua))
+                .build();
 
         this.setData(packet);
     }

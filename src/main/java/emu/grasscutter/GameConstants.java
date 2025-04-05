@@ -3,12 +3,13 @@ package emu.grasscutter;
 import emu.grasscutter.game.world.Position;
 import emu.grasscutter.utils.Utils;
 import emu.grasscutter.utils.objects.SparseSet;
+import static emu.grasscutter.config.Configuration.SERVER;
 
 import java.util.Arrays;
 
 public final class GameConstants {
-    public static String VERSION = "4.0.0";
-    public static int[] VERSION_PARTS = {4, 0, 0};
+    public static String VERSION = SERVER.gameVersion;
+    public static int[] VERSION_PARTS;
     public static boolean DEBUG = false;
 
     public static final int DEFAULT_TEAMS = 4;
@@ -24,14 +25,31 @@ public final class GameConstants {
     public static final int BATTLE_PASS_POINT_PER_WEEK = 10000;
     public static final int BATTLE_PASS_LEVEL_PRICE = 150;
     public static final int BATTLE_PASS_CURRENT_INDEX = 2;
+
+    static {
+        String[] versionParts = VERSION.split("\\.");
+        if (versionParts.length != 3) {
+            throw new IllegalArgumentException("版本字符串格式不正确: " + VERSION);
+        }
+        try {
+            VERSION_PARTS = new int[]{
+                Integer.parseInt(versionParts[0]),
+                Integer.parseInt(versionParts[1]),
+                Integer.parseInt(versionParts[2])
+            };
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("版本字符串包含非数字字符: " + VERSION, e);
+        }
+    }
+
     // Default entity ability hashes.
     public static final String[] DEFAULT_ABILITY_STRINGS = {
-        "Avatar_DefaultAbility_VisionReplaceDieInvincible",
+        "Avatar_DefaultAbility_VisionReplaceDieInvincible", //角色死亡导致切换，下一个上场的角色短暂无敌
         "Avatar_DefaultAbility_AvartarInShaderChange",
-        "Avatar_SprintBS_Invincible",
-        "Avatar_Freeze_Duration_Reducer",
-        "Avatar_Attack_ReviveEnergy",
-        "Avatar_Component_Initializer",
+        "Avatar_SprintBS_Invincible",                       // 冲刺时的无敌帧
+        "Avatar_Freeze_Duration_Reducer",                   // 角色固定对冰冻效果时间减免（试做）
+        "Avatar_Attack_ReviveEnergy",                       // 角色普攻与重击回能( 表现方面的配置需要等回能表现统一优化)
+        "Avatar_Component_Initializer",                     // 3.0钩爪用
         "Avatar_FallAnthem_Achievement_Listener",
         "GrapplingHookSkill_Ability",
         "Avatar_PlayerBoy_DiveStamina_Reduction",

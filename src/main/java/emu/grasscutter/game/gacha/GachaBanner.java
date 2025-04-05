@@ -70,14 +70,14 @@ public class GachaBanner {
 
     @Getter
     private boolean autoStripRateUpFromFallback =
-            true; // Ensures that featured items won't "double dip" into the losing pool
+        true; // Ensures that featured items won't "double dip" into the losing pool
 
     private int[][] poolBalanceWeights4 = {
         {1, 255}, {17, 255}, {21, 10455}
     }; // Used to ensure that players won't go too many rolls without getting something from pool 1
     // (avatar) or pool 2 (weapon)
     private int[][] poolBalanceWeights5 = {{1, 30}, {147, 150}, {181, 10230}};
-    @Getter private int wishMaxProgress = 2;
+    @Getter private int wishMaxProgress = 0;
 
     // Deprecated fields that were tolerated in early May 2022 but have apparently still being
     // circulating in new custom configs
@@ -96,12 +96,12 @@ public class GachaBanner {
 
     private void warnDeprecated(String name, String replacement) {
         Grasscutter.getLogger()
-                .error(
-                        "Deprecated field found in Banners config: "
-                                + name
-                                + " was replaced back in early May 2022, use "
-                                + replacement
-                                + " instead. You MUST remove this field from your config.");
+            .error(
+                "Deprecated field found in Banners config: "
+                    + name
+                    + " was replaced back in early May 2022, use "
+                    + replacement
+                    + " instead. You MUST remove this field from your config.");
         this.deprecated = true;
     }
 
@@ -118,10 +118,10 @@ public class GachaBanner {
 
         // Handle default values
         if (this.previewPrefabPath != null
-                && this.previewPrefabPath.equals("UI_Tab_" + this.prefabPath))
+            && this.previewPrefabPath.equals("UI_Tab_" + this.prefabPath))
             Grasscutter.getLogger()
-                    .error(
-                            "Redundant field found in Banners config: previewPrefabPath does not need to be specified if it is identical to prefabPath prefixed with \"UI_Tab_\".");
+                .error(
+                    "Redundant field found in Banners config: previewPrefabPath does not need to be specified if it is identical to prefabPath prefixed with \"UI_Tab_\".");
         if (this.previewPrefabPath == null || this.previewPrefabPath.isEmpty())
             this.previewPrefabPath = "UI_Tab_" + this.prefabPath;
         if (this.gachaType < 0) this.gachaType = this.bannerType.gachaType;
@@ -135,6 +135,9 @@ public class GachaBanner {
             this.fallbackItems5Pool1 = this.bannerType.fallbackItems5Pool1;
         if (this.fallbackItems5Pool2 == null)
             this.fallbackItems5Pool2 = this.bannerType.fallbackItems5Pool2;
+        // Set max wish progress based on wish type, otherwise its 0
+        if (this.bannerType.equals(BannerType.WEAPON)) this.wishMaxProgress = 2;
+        if (this.bannerType.equals(BannerType.CHRONICLE)) this.wishMaxProgress = 1;
     }
 
     public ItemParamData getCost(int numRolls) {
@@ -150,7 +153,7 @@ public class GachaBanner {
     }
 
     public boolean hasEpitomized() {
-        return bannerType.equals(BannerType.WEAPON);
+        return bannerType.equals(BannerType.WEAPON) || bannerType.equals(BannerType.CHRONICLE);
     }
 
     public int getWeight(int rarity, int pity) {
@@ -179,59 +182,60 @@ public class GachaBanner {
         String sessionKey = player.getAccount().getSessionKey();
 
         String record =
-                "http"
-                        + (HTTP_ENCRYPTION.useInRouting ? "s" : "")
-                        + "://"
-                        + lr(HTTP_INFO.accessAddress, HTTP_INFO.bindAddress)
-                        + ":"
-                        + lr(HTTP_INFO.accessPort, HTTP_INFO.bindPort)
-                        + "/gacha?s="
-                        + sessionKey
-                        + "&gachaType="
-                        + gachaType;
+            "http"
+                + (HTTP_ENCRYPTION.useInRouting ? "s" : "")
+                + "://"
+                + lr(HTTP_INFO.accessAddress, HTTP_INFO.bindAddress)
+                + ":"
+                + lr(HTTP_INFO.accessPort, HTTP_INFO.bindPort)
+                + "/gacha?s="
+                + sessionKey
+                + "&gachaType="
+                + gachaType;
         String details =
-                "http"
-                        + (HTTP_ENCRYPTION.useInRouting ? "s" : "")
-                        + "://"
-                        + lr(HTTP_INFO.accessAddress, HTTP_INFO.bindAddress)
-                        + ":"
-                        + lr(HTTP_INFO.accessPort, HTTP_INFO.bindPort)
-                        + "/gacha/details?s="
-                        + sessionKey
-                        + "&scheduleId="
-                        + scheduleId;
+            "http"
+                + (HTTP_ENCRYPTION.useInRouting ? "s" : "")
+                + "://"
+                + lr(HTTP_INFO.accessAddress, HTTP_INFO.bindAddress)
+                + ":"
+                + lr(HTTP_INFO.accessPort, HTTP_INFO.bindPort)
+                + "/gacha/details?s="
+                + sessionKey
+                + "&scheduleId="
+                + scheduleId;
 
         // Grasscutter.getLogger().info("record = " + record);
         PlayerGachaBannerInfo gachaInfo = player.getGachaInfo().getBannerInfo(this);
         int leftGachaTimes =
-                switch (gachaTimesLimit) {
-                    case Integer.MAX_VALUE -> Integer.MAX_VALUE;
-                    default -> Math.max(gachaTimesLimit - gachaInfo.getTotalPulls(), 0);
-                };
+            switch (gachaTimesLimit) {
+                case Integer.MAX_VALUE -> Integer.MAX_VALUE;
+                default -> Math.max(gachaTimesLimit - gachaInfo.getTotalPulls(), 0);
+            };
         GachaInfo.Builder info =
-                GachaInfo.newBuilder()
-                        .setGachaType(this.getGachaType())
-                        .setScheduleId(this.getScheduleId())
-                        .setBeginTime(this.getBeginTime())
-                        .setEndTime(this.getEndTime())
-                        .setCostItemId(this.costItemId)
-                        .setCostItemNum(this.costItemAmount)
-                        .setTenCostItemId(this.costItemId10)
-                        .setTenCostItemNum(this.costItemAmount10)
-                        .setGachaPrefabPath(this.getPrefabPath())
-                        .setGachaPreviewPrefabPath(this.getPreviewPrefabPath())
-                        .setGachaProbUrl(details)
-                        .setGachaProbUrlOversea(details)
-                        .setGachaRecordUrl(record)
-                        .setGachaRecordUrlOversea(record)
-                        .setLeftGachaTimes(leftGachaTimes)
-                        .setGachaTimesLimit(gachaTimesLimit)
-                        .setGachaSortId(this.getSortId());
+            GachaInfo.newBuilder()
+                .setGachaType(this.getGachaType())
+                .setScheduleId(this.getScheduleId())
+                .setBeginTime(this.getBeginTime())
+                .setEndTime(this.getEndTime())
+                .setCostItemId(this.costItemId)
+                .setCostItemNum(this.costItemAmount)
+                .setTenCostItemId(this.costItemId10)
+                .setTenCostItemNum(this.costItemAmount10)
+                .setGachaPrefabPath(this.getPrefabPath())
+                .setGachaPreviewPrefabPath(this.getPreviewPrefabPath())
+                .setGachaProbUrl(details)
+                .setGachaProbUrlOversea(details)
+                .setGachaRecordUrl(record)
+                .setGachaRecordUrlOversea(record)
+                .setLeftGachaTimes(leftGachaTimes)
+                .setGachaTimesLimit(gachaTimesLimit)
+                .setGachaSortId(this.getSortId());
 
         if (hasEpitomized()) {
             info.setWishItemId(gachaInfo.getWishItemId())
-                    .setWishProgress(gachaInfo.getFailedChosenItemPulls())
-                    .setWishMaxProgress(this.getWishMaxProgress());
+                .setIsNewWish(gachaInfo.getWishItemId() == 0) // ask player set if not set yet
+                .setWishProgress(gachaInfo.getFailedChosenItemPulls())
+                .setWishMaxProgress(this.getWishMaxProgress());
         }
 
         if (this.getTitlePath() != null) {
@@ -244,6 +248,8 @@ public class GachaBanner {
             for (int id : getRateUpItems5()) {
                 upInfo.addItemIdList(id);
                 info.addDisplayUp5ItemList(id);
+                // NEEDED for new chronicle wish or else selector bugs
+                if (hasEpitomized()) info.addDisplayChronicle5ItemList(id);
             }
 
             info.addGachaUpInfoList(upInfo);
@@ -267,59 +273,68 @@ public class GachaBanner {
 
     public enum BannerType {
         STANDARD(
-                200,
-                224,
-                DEFAULT_WEIGHTS_4,
-                DEFAULT_WEIGHTS_5,
-                50,
-                50,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_1,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_2),
+            200,
+            224,
+            DEFAULT_WEIGHTS_4,
+            DEFAULT_WEIGHTS_5,
+            50,
+            50,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_1,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_2),
         BEGINNER(
-                100,
-                224,
-                DEFAULT_WEIGHTS_4,
-                DEFAULT_WEIGHTS_5,
-                50,
-                50,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_1,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_2),
+            100,
+            224,
+            DEFAULT_WEIGHTS_4,
+            DEFAULT_WEIGHTS_5,
+            50,
+            50,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_1,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_2),
         EVENT(
-                301,
-                223,
-                DEFAULT_WEIGHTS_4,
-                DEFAULT_WEIGHTS_5_CHARACTER,
-                50,
-                50,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_1,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_2), // Legacy value for CHARACTER
+            301,
+            223,
+            DEFAULT_WEIGHTS_4,
+            DEFAULT_WEIGHTS_5_CHARACTER,
+            50,
+            50,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_1,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_2), // Legacy value for CHARACTER
         CHARACTER(
-                301,
-                223,
-                DEFAULT_WEIGHTS_4,
-                DEFAULT_WEIGHTS_5_CHARACTER,
-                50,
-                50,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_1,
-                EMPTY_POOL),
+            301,
+            223,
+            DEFAULT_WEIGHTS_4,
+            DEFAULT_WEIGHTS_5_CHARACTER,
+            50,
+            50,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_1,
+            EMPTY_POOL),
         CHARACTER2(
-                400,
-                223,
-                DEFAULT_WEIGHTS_4,
-                DEFAULT_WEIGHTS_5_CHARACTER,
-                50,
-                50,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_1,
-                EMPTY_POOL),
+            400,
+            223,
+            DEFAULT_WEIGHTS_4,
+            DEFAULT_WEIGHTS_5_CHARACTER,
+            50,
+            50,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_1,
+            EMPTY_POOL),
         WEAPON(
-                302,
-                223,
-                DEFAULT_WEIGHTS_4_WEAPON,
-                DEFAULT_WEIGHTS_5_WEAPON,
-                75,
-                75,
-                EMPTY_POOL,
-                DEFAULT_FALLBACK_ITEMS_5_POOL_2);
+            302,
+            223,
+            DEFAULT_WEIGHTS_4_WEAPON,
+            DEFAULT_WEIGHTS_5_WEAPON,
+            75,
+            75,
+            EMPTY_POOL,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_2),
+        CHRONICLE(
+            500,
+            223,
+            DEFAULT_WEIGHTS_4_WEAPON,
+            DEFAULT_WEIGHTS_5_WEAPON,
+            50,
+            50,
+            EMPTY_POOL,
+            DEFAULT_FALLBACK_ITEMS_5_POOL_2);
 
         public final int gachaType;
         public final int costItemId;
@@ -331,14 +346,14 @@ public class GachaBanner {
         public final int[] fallbackItems5Pool2;
 
         BannerType(
-                int gachaType,
-                int costItemId,
-                int[][] weights4,
-                int[][] weights5,
-                int eventChance4,
-                int eventChance5,
-                int[] fallbackItems5Pool1,
-                int[] fallbackItems5Pool2) {
+            int gachaType,
+            int costItemId,
+            int[][] weights4,
+            int[][] weights5,
+            int eventChance4,
+            int eventChance5,
+            int[] fallbackItems5Pool1,
+            int[] fallbackItems5Pool2) {
             this.gachaType = gachaType;
             this.costItemId = costItemId;
             this.weights4 = weights4;

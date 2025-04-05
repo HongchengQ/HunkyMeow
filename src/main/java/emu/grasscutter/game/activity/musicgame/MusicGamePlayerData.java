@@ -42,7 +42,7 @@ public class MusicGamePlayerData {
 
         public MusicGameRecordOuterClass.MusicGameRecord toProto() {
             return MusicGameRecordOuterClass.MusicGameRecord.newBuilder()
-                    .setIsUnlock(true)
+//                    .setIsUnlock(true)
                     .setMaxCombo(maxCombo)
                     .setMaxScore(maxScore)
                     .build();
@@ -63,7 +63,7 @@ public class MusicGamePlayerData {
             return UgcMusicBriefInfoOuterClass.UgcMusicBriefInfo.newBuilder()
                     //                .setCanShare(true)
                     //                .setCreateTime(musicGameBeatmap.getCreateTime())
-                    .setMusicId(musicGameBeatmap.getMusicId())
+//                    .setMusicId(musicGameBeatmap.getMusicId())
                     .setMaxScore(musicGameBeatmap.getMaxScore())
                     //                .setPosition(musicGameBeatmap.getSavePosition())
                     //                .setMusicNoteCount(musicGameBeatmap.getMusicNoteCount())

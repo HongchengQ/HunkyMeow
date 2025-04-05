@@ -23,10 +23,13 @@ public class HandlerSetPlayerBornDataReq extends PacketHandler {
         // Sanity checks
         int avatarId = req.getAvatarId();
         int startingSkillDepot;
+        int headImage;
         if (avatarId == GameConstants.MAIN_CHARACTER_MALE) {
             startingSkillDepot = 504;
+            headImage = 1;
         } else if (avatarId == GameConstants.MAIN_CHARACTER_FEMALE) {
             startingSkillDepot = 704;
+            headImage = 2;
         } else {
             return;
         }
@@ -47,16 +50,14 @@ public class HandlerSetPlayerBornDataReq extends PacketHandler {
         if (player.getAvatars().getAvatarCount() == 0) {
             Avatar mainCharacter = new Avatar(avatarId);
 
-            // Check if the default Anemo skill should be given.
-            if (!GAME_OPTIONS.questing.enabled) {
-                mainCharacter.setSkillDepotData(
-                        GameData.getAvatarSkillDepotDataMap().get(startingSkillDepot));
-            }
+            // 开局给主角解锁技能 这里在开启剧情的情况下直接给会导致主角能量条一直是满的
+            // 但是有时候任务给主角元素会失效 所以还是要开启这个
+            mainCharacter.setSkillDepotData(GameData.getAvatarSkillDepotDataMap().get(startingSkillDepot));
 
             // Manually handle adding to team
             player.addAvatar(mainCharacter, false);
             player.setMainCharacterId(avatarId);
-            player.setHeadImage(avatarId);
+            player.setHeadImage(headImage);
             player
                     .getTeamManager()
                     .getCurrentSinglePlayerTeamInfo()
@@ -69,6 +70,7 @@ public class HandlerSetPlayerBornDataReq extends PacketHandler {
 
         // Login done
         session.getPlayer().onLogin();
+        session.getPlayer().onPlayerBorn();
 
         // Born resp packet
         session.send(new BasePacket(PacketOpcodes.SetPlayerBornDataRsp));

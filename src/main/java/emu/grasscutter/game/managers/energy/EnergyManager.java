@@ -8,6 +8,7 @@ import emu.grasscutter.data.*;
 import emu.grasscutter.data.excels.ItemData;
 import emu.grasscutter.data.excels.avatar.AvatarSkillDepotData;
 import emu.grasscutter.data.excels.monster.MonsterData.HpDrops;
+import emu.grasscutter.game.ability.AbilityManager;
 import emu.grasscutter.game.avatar.Avatar;
 import emu.grasscutter.game.entity.*;
 import emu.grasscutter.game.player.*;
@@ -25,6 +26,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+
 import lombok.Getter;
 
 public class EnergyManager extends BasePlayerManager {
@@ -196,7 +198,7 @@ public class EnergyManager extends BasePlayerManager {
 
         // If the player wins the roll, we increase the avatar's energy and reset the probability.
         if (roll < currentProbability) {
-            avatar.addEnergy(1.0f, PropChangeReason.PROP_CHANGE_REASON_ABILITY, true);
+            avatar.addEnergy(1.0f, PropChangeReason.PropChangeReason_PROP_CHANGE_ABILITY, true);
             this.avatarNormalProbabilities.put(avatar, weaponType.getEnergyGainInitialProbability());
         }
         // Otherwise, we increase the probability for the next hit.
@@ -267,7 +269,7 @@ public class EnergyManager extends BasePlayerManager {
         // If the cast skill was a burst, consume energy.
         if ((avatar.getSkillDepot() != null && skillId == avatar.getSkillDepot().getEnergySkill())
                 || (skillData != null && skillData.getCostElemVal() > 0)) {
-            avatar.getAsEntity().clearEnergy(ChangeEnergyReason.CHANGE_ENERGY_REASON_SKILL_START);
+            avatar.getAsEntity().clearEnergy(ChangeEnergyReason.ChangeEnergyReason_CHANGE_ENERGY_SKILL_START);
         }
     }
 
@@ -411,7 +413,7 @@ public class EnergyManager extends BasePlayerManager {
     public void setEnergyUsage(boolean energyUsage) {
         this.energyUsage = energyUsage;
         if (!energyUsage) { // Refill team energy if usage is disabled
-            this.refillTeamEnergy(PropChangeReason.PROP_CHANGE_REASON_GM, true);
+            this.refillTeamEnergy(PropChangeReason.PropChangeReason_PROP_CHANGE_GM, true);
         }
     }
 }

@@ -6,11 +6,14 @@ import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.world.World;
 import emu.grasscutter.net.packet.BasePacket;
 import emu.grasscutter.net.proto.ChatInfoOuterClass;
+import emu.grasscutter.net.proto.SystemHintOuterClass;
+import emu.grasscutter.net.proto.SystemHintTypeOuterClass;
 import emu.grasscutter.server.game.GameServer;
 import emu.grasscutter.server.packet.send.PacketDelTeamEntityNotify;
 import emu.grasscutter.server.packet.send.PacketPlayerChatNotify;
 import emu.grasscutter.server.packet.send.PacketPlayerGameTimeNotify;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -29,17 +32,17 @@ public class HomeWorld extends World {
 
     @Override
     public boolean onTick() {
-        if (this.moduleManager == null) {
-            return false;
-        }
+        var host = this.getHost();
+        if (this.moduleManager == null) return false;
+        if (host == null || host.getScene() == null || host.getWorld() == null) return true;
         this.moduleManager.tick();
 
-        if (this.getTickCount() % 10 == 0) {
+        if (this.getPlayers() != null && this.getTickCount() % 10 == 0) {
             this.getPlayers().forEach(p -> p.sendPacket(new PacketPlayerGameTimeNotify(p)));
         }
 
         if (this.isInHome(this.getHost()) && this.getTickCount() % 60 == 0) {
-            this.getHost().updatePlayerGameTime(this.getCurrentWorldTime());
+            host.updatePlayerGameTime(this.getCurrentWorldTime());
         }
 
         this.tickCount++;
@@ -61,7 +64,7 @@ public class HomeWorld extends World {
 
     public int getActiveIndoorSceneId() {
         return this.isRealmIdValid()
-                ? this.getSceneById(this.getActiveOutdoorSceneId()).getSceneItem().getRoomSceneId()
+                ? Objects.requireNonNull(this.getSceneById(this.getActiveOutdoorSceneId())).getSceneItem().getRoomSceneId()
                 : -1;
     }
 
@@ -110,9 +113,9 @@ public class HomeWorld extends World {
                         new PacketPlayerChatNotify(
                                 player,
                                 0,
-                                ChatInfoOuterClass.ChatInfo.SystemHint.newBuilder()
+                                SystemHintOuterClass.SystemHint.newBuilder()
                                         .setType(
-                                                ChatInfoOuterClass.ChatInfo.SystemHintType.SYSTEM_HINT_TYPE_CHAT_ENTER_WORLD
+                                                SystemHintTypeOuterClass.SystemHintType.SYSTEM_HINT_TYPE_CHAT_ENTER_WORLD
                                                         .getNumber())
                                         .build()));
             }
@@ -120,7 +123,9 @@ public class HomeWorld extends World {
 
         // Add to scene
         var scene = this.getSceneById(player.getSceneId());
-        scene.addPlayer(player);
+        if (scene != null) {
+            scene.addPlayer(player);
+        }
 
         // Info packet for other players
         if (this.getPlayers().size() > 1) {
@@ -161,9 +166,9 @@ public class HomeWorld extends World {
                 new PacketPlayerChatNotify(
                         player,
                         0,
-                        ChatInfoOuterClass.ChatInfo.SystemHint.newBuilder()
+                        SystemHintOuterClass.SystemHint.newBuilder()
                                 .setType(
-                                        ChatInfoOuterClass.ChatInfo.SystemHintType.SYSTEM_HINT_TYPE_CHAT_LEAVE_WORLD
+                                        SystemHintTypeOuterClass.SystemHintType.SYSTEM_HINT_TYPE_CHAT_LEAVE_WORLD
                                                 .getNumber())
                                 .build()));
     }

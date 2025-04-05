@@ -15,21 +15,19 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Getter;
+
 import java.util.Iterator;
 import java.util.List;
 
 public class AvatarStorage extends BasePlayerManager implements Iterable<Avatar> {
-    private final Int2ObjectMap<Avatar> avatars;
+    @Getter private final Int2ObjectMap<Avatar> avatars;
     private final Long2ObjectMap<Avatar> avatarsGuid;
 
     public AvatarStorage(Player player) {
         super(player);
         this.avatars = new Int2ObjectOpenHashMap<>();
         this.avatarsGuid = new Long2ObjectOpenHashMap<>();
-    }
-
-    public Int2ObjectMap<Avatar> getAvatars() {
-        return avatars;
     }
 
     public int getAvatarCount() {

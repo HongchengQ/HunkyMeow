@@ -1,5 +1,6 @@
 package emu.grasscutter.data.excels;
 
+import com.google.gson.annotations.SerializedName;
 import emu.grasscutter.data.*;
 import emu.grasscutter.data.common.ItemParamData;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.List;
 public class EnvAnimalGatherConfigData extends GameResource {
     private int animalId;
     private String entityType;
-    private List<ItemParamData> gatherItemId;
+    @SerializedName(value = "gatherItemList", alternate = "gatherItemId")
+    private List<ItemParamData> gatherItemList;
     private String excludeWeathers;
     private int aliveTime;
     private int escapeTime;
@@ -30,6 +32,10 @@ public class EnvAnimalGatherConfigData extends GameResource {
     }
 
     public ItemParamData getGatherItem() {
-        return gatherItemId.size() > 0 ? gatherItemId.get(0) : null;
+        if (gatherItemList == null || gatherItemList.isEmpty()) {
+            return null;
+        }
+
+        return gatherItemList.getFirst();
     }
 }

@@ -16,8 +16,9 @@ public class PacketQueryCodexMonsterBeKilledNumRsp extends BasePacket {
                     if (player.getCodex().getUnlockedAnimal().containsKey(animal)) {
                         proto
                                 .addCodexIdList(animal)
-                                .addBeKilledNumList(player.getCodex().getUnlockedAnimal().get(animal))
-                                .addBeCapturedNumList(0);
+//                                .addBeKilledNumList(player.getCodex().getUnlockedAnimal().get(animal))
+//                                .addBeCapturedNumList(0);
+                        ;
                     }
                 });
 

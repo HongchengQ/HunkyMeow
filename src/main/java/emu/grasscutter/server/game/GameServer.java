@@ -32,6 +32,8 @@ import emu.grasscutter.game.talk.TalkSystem;
 import emu.grasscutter.game.tower.TowerSystem;
 import emu.grasscutter.game.world.World;
 import emu.grasscutter.game.world.WorldDataSystem;
+import emu.grasscutter.net.INetworkTransport;
+import emu.grasscutter.net.impl.NetworkTransportImpl;
 import emu.grasscutter.net.packet.PacketHandler;
 import emu.grasscutter.net.proto.SocialDetailOuterClass.SocialDetail;
 import emu.grasscutter.server.dispatch.DispatchClient;
@@ -47,14 +49,22 @@ import java.net.*;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
-import kcp.highway.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.*;
 
 @Getter
-public final class GameServer extends KcpServer implements Iterable<Player> {
+@Slf4j
+public final class GameServer implements Iterable<Player> {
+    /**
+     * This can be set by plugins to change the network transport implementation.
+     */
+    @Setter private static Class<? extends INetworkTransport> transport = NetworkTransportImpl.class;
+
     // Game server base
     private final InetSocketAddress address;
+    private final INetworkTransport netTransport;
+
     private final GameServerPacketHandler packetHandler;
     private final Map<Integer, Player> players;
     private final Set<World> worlds;
@@ -86,6 +96,9 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
 
     private ChatSystemHandler chatManager;
 
+    private static final ScheduledExecutorService schedulerExecutor =
+        Executors.newSingleThreadScheduledExecutor();
+
     /**
      * @return The URI for the dispatch server.
      */
@@ -106,6 +119,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
             this.taskMap = null;
 
             this.address = null;
+            this.netTransport = null;
             this.packetHandler = null;
             this.dispatchClient = null;
             this.players = null;
@@ -131,16 +145,20 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
             return;
         }
 
-        var channelConfig = new ChannelConfig();
-        channelConfig.nodelay(true, GAME_INFO.kcpInterval, 2, true);
-        channelConfig.setMtu(1400);
-        channelConfig.setSndwnd(256);
-        channelConfig.setRcvwnd(256);
-        channelConfig.setTimeoutMillis(30 * 1000); // 30s
-        channelConfig.setUseConvChannel(true);
-        channelConfig.setAckNoDelay(false);
+        // Create the network transport.
+        INetworkTransport transport;
+        try {
+            transport = GameServer.transport
+                .getDeclaredConstructor()
+                .newInstance();
+        } catch (Exception ex) {
+            log.error("Failed to create network transport.", ex);
+            transport = new NetworkTransportImpl();
+        }
 
-        this.init(GameSessionManager.getListener(), channelConfig, address);
+        // Initialize the transport.
+        this.netTransport = transport;
+        this.netTransport.start(this.address = address);
 
         EnergyManager.initialize();
         StaminaManager.initialize();
@@ -149,7 +167,6 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         CombineManger.initialize();
 
         // Game Server base
-        this.address = address;
         this.packetHandler = new GameServerPacketHandler(PacketHandler.class);
         this.dispatchClient = new DispatchClient(GameServer.getDispatchUrl());
         this.players = new ConcurrentHashMap<>();
@@ -184,7 +201,7 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
 
     private static InetSocketAddress getAdapterInetSocketAddress() {
         InetSocketAddress inetSocketAddress;
-        if (GAME_INFO.bindAddress.equals("")) {
+        if (GAME_INFO.bindAddress.isEmpty()) {
             inetSocketAddress = new InetSocketAddress(GAME_INFO.bindPort);
         } else {
             inetSocketAddress = new InetSocketAddress(GAME_INFO.bindAddress, GAME_INFO.bindPort);
@@ -285,22 +302,36 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         return DatabaseHelper.getAccountByName(username);
     }
 
-    public synchronized void onTick() {
-        var tickStart = Instant.now();
+    public void onTick() {
+        Instant tickStart = Instant.now();
+        final long timeoutMillis = 2000; // 允许的最大执行时间 单位毫秒
 
-        // Tick worlds and home worlds.
-        this.worlds.removeIf(World::onTick);
+        try {
+            // Tick worlds and home worlds.
+            this.worlds.removeIf(World::onTick);
 
-        // Tick players.
-        this.players.values().forEach(Player::onTick);
+            // Tick players.
+            this.players.values().forEach(Player::onTick);
 
-        // Tick scheduler.
-        this.getScheduler().runTasks();
+            // Tick scheduler.
+            this.getScheduler().runTasks();
 
-        // Call server tick event.
+        } catch (Exception e) {
+            Grasscutter.getLogger().warn("World/Player onTick 发生异常", e);
+        } finally {
+            var duration = Duration.between(tickStart, Instant.now()).toMillis();
+            if (duration > timeoutMillis) {
+                Grasscutter.getLogger().warn(
+                    "onTick()执行时间超过 {}ms，实际耗时 {}ms，当前世界对象 {}，当前玩家对象 {}",
+                    timeoutMillis, duration, this.worlds.size(), this.players.size());
+            }
+        }
+
+        // 触发事件
         ServerTickEvent event = new ServerTickEvent(tickStart, Instant.now());
         event.call();
     }
+
 
     public void registerWorld(World world) {
         this.getWorlds().add(world);
@@ -322,22 +353,14 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
             this.dispatchClient.connect();
         }
 
-        // Schedule game loop.
-        Timer gameLoop = new Timer();
-        gameLoop.scheduleAtFixedRate(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        try {
-                            onTick();
-                        } catch (Exception e) {
-                            Grasscutter.getLogger().error(translate("messages.game.game_update_error"), e);
-                        }
-                    }
-                },
-                new Date(),
-                1000L);
-        Grasscutter.getLogger().info(translate("messages.status.free_software"));
+        schedulerExecutor.scheduleAtFixedRate(() -> {
+            try {
+                onTick();
+            } catch (Exception e) {
+                Grasscutter.getLogger().error(translate("messages.game.game_update_error"), e);
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+
         Grasscutter.getLogger()
                 .info(translate("messages.game.address_bind", GAME_INFO.accessAddress, address.getPort()));
         ServerStartEvent event = new ServerStartEvent(ServerEvent.Type.GAME, OffsetDateTime.now());
@@ -353,19 +376,6 @@ public final class GameServer extends KcpServer implements Iterable<Player> {
         this.getWorlds().forEach(World::save);
 
         Utils.sleep(1000L); // Wait 1 second for operations to finish.
-        this.stop(); // Stop the server.
-
-        try {
-            var threadPool = GameSessionManager.getLogicThread();
-
-            // Shutdown network thread.
-            threadPool.shutdownGracefully();
-            // Wait for the network thread to finish.
-            if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
-                Grasscutter.getLogger().error("Logic thread did not terminate!");
-            }
-        } catch (InterruptedException ignored) {
-        }
     }
 
     @NotNull @Override

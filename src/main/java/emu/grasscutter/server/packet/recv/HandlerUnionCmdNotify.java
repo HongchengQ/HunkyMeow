@@ -2,6 +2,7 @@ package emu.grasscutter.server.packet.recv;
 
 import static emu.grasscutter.config.Configuration.*;
 
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.Grasscutter.ServerDebugMode;
 import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.UnionCmdNotifyOuterClass.UnionCmdNotify;
@@ -23,11 +24,17 @@ public class HandlerUnionCmdNotify extends PacketHandler {
                     && !SERVER.debugBlacklist.contains(cmd.getMessageId())) {
                 session.logPacket("RECV in Union", cmdOpcode, cmdPayload);
             }
-            // debugLevel ALL ignores UnionCmdNotify, so we will also ignore the contained opcodes
-            session
+
+            // 只处理特定数据包 防止递归处理 UnionCmdNotify 数据包 避免栈溢出炸服
+            if (cmdOpcode != PacketOpcodes.UnionCmdNotify) {
+                session
                     .getServer()
                     .getPacketHandler()
                     .handle(session, cmd.getMessageId(), EMPTY_BYTE_ARRAY, cmd.getBody().toByteArray());
+            } else {
+                // 正常来说不会走到这里 一些炸服器会发送特殊的 UnionCmdNotify 数据包 使服务端栈溢出导致炸服
+                Grasscutter.getLogger().warn("检测到 UnionCmdNotify 为防止栈溢出导致炸服 已屏蔽");
+            }
         }
 
         // Update

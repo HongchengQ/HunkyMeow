@@ -3,6 +3,7 @@ package emu.grasscutter.game.avatar;
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
 import dev.morphia.annotations.*;
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.GameConstants;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.OpenConfigEntry;
@@ -15,7 +16,8 @@ import emu.grasscutter.data.excels.avatar.AvatarSkillDepotData.InherentProudSkil
 import emu.grasscutter.data.excels.reliquary.*;
 import emu.grasscutter.data.excels.trial.TrialAvatarTemplateData;
 import emu.grasscutter.data.excels.weapon.*;
-import emu.grasscutter.database.DatabaseHelper;
+import emu.grasscutter.net.proto.GrantReasonOuterClass;
+import emu.grasscutter.utils.objects.DatabaseObject;
 import emu.grasscutter.game.entity.*;
 import emu.grasscutter.game.inventory.*;
 import emu.grasscutter.game.player.Player;
@@ -39,7 +41,7 @@ import lombok.*;
 import org.bson.types.ObjectId;
 
 @Entity(value = "avatars", useDiscriminator = false)
-public class Avatar {
+public class Avatar implements DatabaseObject<Avatar> {
     @Transient @Getter private final Int2ObjectMap<GameItem> equips;
     @Transient @Getter private final Int2FloatOpenHashMap fightProperties;
     @Transient @Getter private final Int2FloatOpenHashMap fightPropOverrides;
@@ -88,7 +90,7 @@ public class Avatar {
     @Getter @Setter private int trialAvatarId = 0;
     // cannot store to db if grant reason is not integer
     @Getter @Setter
-    private int grantReason = TrialAvatarGrantRecord.GrantReason.GRANT_REASON_INVALID.getNumber();
+    private int grantReason = GrantReasonOuterClass.GrantReason.GRANT_REASON_INVALID.getNumber();
 
     @Getter @Setter private int fromParentQuestId = 0;
     // so far no outer class or prop value has information of this, but from packet:
@@ -530,6 +532,8 @@ public class Avatar {
                         ? this.getFightProperty(this.getSkillDepot().getElementType().getCurEnergyProp())
                         : 0f;
 
+        float hpDebt = this.getFightProperty(FightProperty.FIGHT_PROP_CUR_HP_DEBTS);
+
         // Clear properties
         this.getFightProperties().clear();
 
@@ -670,8 +674,11 @@ public class Avatar {
                     continue;
                 }
                 if (openData.getNeedAvatarPromoteLevel() <= this.getPromoteLevel()) {
+//                    Grasscutter.getLogger().debug("固有天赋等级所需足够 {}",openData.getProudSkillGroupId());
                     int proudSkillId = (openData.getProudSkillGroupId() * 100) + 1;
+//                    Grasscutter.getLogger().debug("proudSkillId: {}",proudSkillId);
                     if (GameData.getProudSkillDataMap().containsKey(proudSkillId)) {
+//                        Grasscutter.getLogger().debug("成功添加 {}", proudSkillId);
                         this.getProudSkillList().add(proudSkillId);
                     }
                 }
@@ -720,6 +727,11 @@ public class Avatar {
         this.setFightProperty(
                 FightProperty.FIGHT_PROP_CUR_HP,
                 this.getFightProperty(FightProperty.FIGHT_PROP_MAX_HP) * hpPercent);
+
+        // Set HP Debts
+        this.setFightProperty(
+                FightProperty.FIGHT_PROP_CUR_HP_DEBTS,
+                hpDebt);
 
         // Packet
         if (getPlayer() != null && getPlayer().hasSentLoginPackets()) {
@@ -989,8 +1001,23 @@ public class Avatar {
         return entity != null ? entity.getId() : 0;
     }
 
+    @Override
+    public int getObjectPlayerUid() {
+        return this.ownerId;
+    }
+
+    /**
+     * Saves this object to the database.
+     * 实时数据保存
+     * 这里必须要有实时更新 否则玩家的 avatar 数据会混乱
+     */
     public void save() {
-        DatabaseHelper.saveAvatar(this);
+        try {
+            DatabaseObject.super.save();    // 单线程实时更新数据 注意不要多线程 否则数据会混乱
+            // this.deferSave();            // 延迟数据保存更新
+        } catch (Throwable e) {
+            Grasscutter.getLogger().error("玩家 (UID {}) 数据库保存失败.", getPlayer().getUid(), e);
+        }
     }
 
     public AvatarInfo toProto() {
@@ -1125,7 +1152,7 @@ public class Avatar {
      * @param questId The ID of the quest that granted the avatar.
      */
     public void setTrialAvatarInfo(
-            int level, int avatarId, TrialAvatarGrantRecord.GrantReason grantReason, int questId) {
+        int level, int avatarId, GrantReasonOuterClass.GrantReason grantReason, int questId) {
         this.setLevel(level);
         this.setPromoteLevel(getMinPromoteLevel(level));
         this.setTrialAvatarId(avatarId);
@@ -1245,7 +1272,7 @@ public class Avatar {
                             this.getEquips().put(relic.getEquipSlot(), relic);
                         });
 
-        // Add costume if avatar has a costume.
+        // 如果 avatar 有服装，则添加服装。
         if (GAME_OPTIONS.trialCostumes) {
             GameData.getAvatarCostumeDataItemIdMap()
                     .values()

@@ -1,6 +1,7 @@
 package emu.grasscutter.data.excels;
 
 import dev.morphia.annotations.Transient;
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.*;
 import emu.grasscutter.data.common.*;
 import it.unimi.dsi.fastutil.objects.*;
@@ -55,8 +56,11 @@ public class ProudSkillData extends GameResource {
 
         this.addProps = parsed.toArray(new FightPropData[0]);
 
-        for (int i = 0; i < paramList.length; i++) {
-            this.paramListMap.put(Integer.toString(i + 1), paramList[i]);
+        // 不知道为什么有时候是null 不过对游戏实际效果没有影响
+        if (paramList != null) {
+            for (int i = 0; i < paramList.length; i++) {
+                this.paramListMap.put(Integer.toString(i + 1), paramList[i]);
+            }
         }
     }
 }

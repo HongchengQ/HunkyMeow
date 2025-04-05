@@ -32,7 +32,7 @@ public class HandlerCombatInvocationsNotify extends PacketHandler {
         for (CombatInvokeEntry entry : notif.getInvokeListList()) {
             // Handle combat invoke
             switch (entry.getArgumentType()) {
-                case COMBAT_TYPE_ARGUMENT_EVT_BEING_HIT -> {
+                case CombatTypeArgument_COMBAT_EVT_BEING_HIT -> {
                     EvtBeingHitInfo hitInfo = EvtBeingHitInfo.parseFrom(entry.getCombatData());
                     AttackResult attackResult = hitInfo.getAttackResult();
                     Player player = session.getPlayer();
@@ -46,8 +46,8 @@ public class HandlerCombatInvocationsNotify extends PacketHandler {
                     player.getAttackResults().add(attackResult);
                     player.getEnergyManager().handleAttackHit(hitInfo);
                 }
-                case COMBAT_TYPE_ARGUMENT_ENTITY_MOVE -> {
-                    // Handle movement
+                case CombatTypeArgument_ENTITY_MOVE -> {
+                    // 处理移动
                     EntityMoveInfo moveInfo = EntityMoveInfo.parseFrom(entry.getCombatData());
                     GameEntity entity = session.getPlayer().getScene().getEntityById(moveInfo.getEntityId());
                     if (entity != null
@@ -56,7 +56,7 @@ public class HandlerCombatInvocationsNotify extends PacketHandler {
                         MotionInfo motionInfo = moveInfo.getMotionInfo();
                         MotionState motionState = motionInfo.getState();
 
-                        // Call entity move event.
+                        // 调用实体移动事件。
                         EntityMoveEvent event =
                                 new EntityMoveEvent(
                                         entity,
@@ -75,33 +75,30 @@ public class HandlerCombatInvocationsNotify extends PacketHandler {
                                 .getStaminaManager()
                                 .handleCombatInvocationsNotify(session, moveInfo, entity);
 
-                        // TODO: handle MOTION_FIGHT landing which has a different damage factor
-                        // 		Also, for plunge attacks, LAND_SPEED is always -30 and is not useful.
-                        //  	May need the height when starting plunge attack.
+//                        TODO：处理具有不同伤害系数的MOTION_FIGHT着陆
+//                        此外，对于下落攻击，LAND_SPEED始终为 -30，没有用。开始跳跌攻击时可能需要高度。
 
-                        // MOTION_LAND_SPEED and MOTION_FALL_ON_GROUND arrive in different packets.
-                        // Cache land speed for later use.
-                        if (motionState == MotionState.MOTION_STATE_LAND_SPEED) {
+//                        MOTION_LAND_SPEED 和 MOTION_FALL_ON_GROUND 以不同的包装形式到达。缓存陆地速度以备后用。
+                        if (motionState == MotionState.MotionState_MOTION_LAND_SPEED) {
                             cachedLandingSpeed = motionInfo.getSpeed().getY();
                             cachedLandingTimeMillisecond = System.currentTimeMillis();
                             monitorLandingEvent = true;
                         }
                         if (monitorLandingEvent) {
-                            if (motionState == MotionState.MOTION_STATE_FALL_ON_GROUND) {
+                            if (motionState == MotionState.MotionState_MOTION_FALL_ON_GROUND) {
                                 monitorLandingEvent = false;
                                 handleFallOnGround(session, entity, motionState);
                             }
                         }
 
-                        // as long as one of these two packets be forwarded to client, the animation of avatar
-                        // will be interrupted
-                        if (motionState == MotionState.MOTION_STATE_NOTIFY
-                                || motionState == MotionState.MOTION_STATE_FIGHT) {
+//                        只要将这两个数据包中的一个转发给 client，avatar 的动画将被打断
+                        if (motionState == MotionState.MotionState_MOTION_NOTIFY
+                                || motionState == MotionState.MotionState_MOTION_FIGHT) {
                             continue;
                         }
                     }
                 }
-                case COMBAT_TYPE_ARGUMENT_ANIMATOR_PARAMETER_CHANGED -> {
+                case CombatTypeArgument_COMBAT_ANIMATOR_PARAMETER_CHANGED -> {
                     EvtAnimatorParameterInfo paramInfo =
                             EvtAnimatorParameterInfo.parseFrom(entry.getCombatData());
                     if (paramInfo.getIsServerCache()) {
@@ -185,7 +182,7 @@ public class HandlerCombatInvocationsNotify extends PacketHandler {
             session
                     .getPlayer()
                     .getStaminaManager()
-                    .killAvatar(session, entity, PlayerDieTypeOuterClass.PlayerDieType.PLAYER_DIE_TYPE_FALL);
+                    .killAvatar(session, entity, PlayerDieTypeOuterClass.PlayerDieType.PlayerDieType_PLAYER_DIE_FALL);
         }
         cachedLandingSpeed = 0;
     }
