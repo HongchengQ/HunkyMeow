@@ -3,6 +3,10 @@ package emu.grasscutter.game.ability;
 import com.google.protobuf.*;
 import emu.grasscutter.*;
 import emu.grasscutter.data.GameData;
+import emu.grasscutter.game.entity.EntityMonster;
+import emu.grasscutter.game.entity.EntityVehicle;
+import emu.grasscutter.net.proto.VehicleInteractTypeOuterClass.VehicleInteractType;
+import emu.grasscutter.net.proto.VisionTypeOuterClass;
 import emu.grasscutter.data.binout.*;
 import emu.grasscutter.data.binout.AbilityModifier.AbilityModifierAction;
 import emu.grasscutter.game.ability.actions.*;
@@ -11,19 +15,28 @@ import emu.grasscutter.game.entity.EntityAvatar;
 import emu.grasscutter.game.entity.GameEntity;
 import emu.grasscutter.game.player.*;
 import emu.grasscutter.game.props.FightProperty;
+import emu.grasscutter.net.proto.AbilityInvokeArgumentOuterClass.AbilityInvokeArgument;
 import emu.grasscutter.net.proto.AbilityInvokeEntryOuterClass.AbilityInvokeEntry;
 import emu.grasscutter.net.proto.AbilityMetaAddAbilityOuterClass.AbilityMetaAddAbility;
 import emu.grasscutter.net.proto.AbilityMetaModifierChangeOuterClass.AbilityMetaModifierChange;
 import emu.grasscutter.net.proto.AbilityMetaReInitOverrideMapOuterClass.AbilityMetaReInitOverrideMap;
 import emu.grasscutter.net.proto.AbilityMetaSetKilledStateOuterClass.AbilityMetaSetKilledState;
-import emu.grasscutter.net.proto.AbilityScalarTypeOuterClass.AbilityScalarType;
 import emu.grasscutter.net.proto.AbilityScalarValueEntryOuterClass.AbilityScalarValueEntry;
+import emu.grasscutter.net.proto.ChangeHpDebtsOuterClass;
+import emu.grasscutter.net.proto.ForwardTypeOuterClass.ForwardType;
 import emu.grasscutter.net.proto.ModifierActionOuterClass.ModifierAction;
+import emu.grasscutter.net.proto.PropChangeReasonOuterClass;
 import emu.grasscutter.server.event.player.PlayerUseSkillEvent;
+import emu.grasscutter.server.packet.send.PacketEntityFightPropChangeReasonNotify;
+import emu.grasscutter.server.packet.send.PacketEntityFightPropUpdateNotify;
 import io.netty.util.concurrent.FastThreadLocalThread;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import emu.grasscutter.server.packet.send.PacketSceneEntityAppearNotify;
+import emu.grasscutter.server.packet.send.PacketVehicleInteractRsp;
 import lombok.Getter;
+import lombok.Setter;
 
 public final class AbilityManager extends BasePlayerManager {
     private static final HashMap<AbilityModifierAction.Type, AbilityActionHandler> actionHandlers =
@@ -31,6 +44,7 @@ public final class AbilityManager extends BasePlayerManager {
     private static final HashMap<AbilityMixinData.Type, AbilityMixinHandler> mixinHandlers =
             new HashMap<>();
 
+    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     public static final ExecutorService eventExecutor;
 
     static {
@@ -48,8 +62,12 @@ public final class AbilityManager extends BasePlayerManager {
     }
 
     @Getter private boolean abilityInvulnerable = false;
+    @Getter @Setter
+    private AtomicLong lastExecutionTime = new AtomicLong(0L);
     private int burstCasterId;
     private int burstSkillId;
+    @Getter private int HPDebtsSkillId;
+    @Getter private int HPDebtsCasterId;
 
     public AbilityManager(Player player) {
         super(player);
@@ -83,14 +101,12 @@ public final class AbilityManager extends BasePlayerManager {
         boolean skillInvincibility = modifier.state == AbilityModifier.State.Invincible;
         if (modifier.onAdded != null) {
             skillInvincibility |=
-                    Arrays.stream(modifier.onAdded)
-                                    .filter(
-                                            action ->
-                                                    action.type == AbilityModifierAction.Type.AttachAbilityStateResistance
-                                                            && action.resistanceListID == 11002)
-                                    .toList()
-                                    .size()
-                            > 0;
+                !Arrays.stream(modifier.onAdded)
+                    .filter(
+                        action ->
+                            action.type == AbilityModifierAction.Type.AttachAbilityStateResistance
+                                && action.resistanceListID == 11002)
+                    .toList().isEmpty();
         }
 
         if (this.burstCasterId == entityId
@@ -222,20 +238,19 @@ public final class AbilityManager extends BasePlayerManager {
         }
 
         switch (invoke.getArgumentType()) {
-            case ABILITY_INVOKE_ARGUMENT_META_OVERRIDE_PARAM -> this.handleOverrideParam(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_REINIT_OVERRIDEMAP -> this.handleReinitOverrideMap(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_MODIFIER_CHANGE -> this.handleModifierChange(invoke);
-            case ABILITY_INVOKE_ARGUMENT_MIXIN_COST_STAMINA -> this.handleMixinCostStamina(invoke);
-            case ABILITY_INVOKE_ARGUMENT_ACTION_GENERATE_ELEM_BALL -> this.handleGenerateElemBall(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_GLOBAL_FLOAT_VALUE -> this.handleGlobalFloatValue(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_MODIFIER_DURABILITY_CHANGE -> this
-                    .handleModifierDurabilityChange(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_ADD_NEW_ABILITY -> this.handleAddNewAbility(invoke);
-            case ABILITY_INVOKE_ARGUMENT_META_SET_KILLED_SETATE -> this.handleKillState(invoke);
+            case AbilityInvokeArgument_ABILITY_META_OVERRIDE_PARAM -> this.handleOverrideParam(invoke);
+            case AbilityInvokeArgument_ABILITY_META_REINIT_OVERRIDEMAP -> this.handleReinitOverrideMap(invoke);
+            case AbilityInvokeArgument_ABILITY_META_MODIFIER_CHANGE -> this.handleModifierChange(invoke);
+            case AbilityInvokeArgument_ABILITY_MIXIN_COST_STAMINA -> this.handleMixinCostStamina(invoke);
+            case AbilityInvokeArgument_ABILITY_ACTION_GENERATE_ELEM_BALL -> this.handleGenerateElemBall(invoke);
+            case AbilityInvokeArgument_ABILITY_META_GLOBAL_FLOAT_VALUE -> this.handleGlobalFloatValue(invoke);
+            case AbilityInvokeArgument_ABILITY_META_MODIFIER_DURABILITY_CHANGE -> this.handleModifierDurabilityChange(invoke);
+            case AbilityInvokeArgument_ABILITY_META_ADD_NEW_ABILITY -> this.handleAddNewAbility(invoke);
+            case AbilityInvokeArgument_ABILITY_META_SET_KILLED_SETATE -> this.handleKillState(invoke);
             default -> {
                 if (DebugConstants.LOG_MISSING_ABILITIES) {
                     Grasscutter.getLogger()
-                            .trace("Missing invoke handler for ability {}.", invoke.getArgumentType().name());
+                        .trace("Missing invoke handler for ability {}.", invoke.getArgumentType().name());
                 }
             }
         }
@@ -326,6 +341,9 @@ public final class AbilityManager extends BasePlayerManager {
             return;
         }
 
+        this.HPDebtsSkillId = skillId;
+        this.HPDebtsCasterId = casterId;
+
         // Invoke PlayerUseSkillEvent.
         var event = new PlayerUseSkillEvent(player, skillData, currentAvatar.getAvatar());
         if (!event.call()) return;
@@ -361,12 +379,6 @@ public final class AbilityManager extends BasePlayerManager {
     }
 
     private void setAbilityOverrideValue(Ability ability, AbilityScalarValueEntry valueChange) {
-        if (valueChange.getValueType() != AbilityScalarType.ABILITY_SCALAR_TYPE_FLOAT) {
-            Grasscutter.getLogger().trace("Scalar type not supported: {}", valueChange.getValueType());
-
-            return;
-        }
-
         if (!valueChange.getKey().hasStr()) {
             Grasscutter.getLogger().trace("TODO: Calculate all the ability value hashes");
 
@@ -424,7 +436,6 @@ public final class AbilityManager extends BasePlayerManager {
             setAbilityOverrideValue(ability, variableChange);
         }
     }
-
     private void handleModifierChange(AbilityInvokeEntry invoke) throws Exception {
         // TODO:
         var modChange = AbilityMetaModifierChange.parseFrom(invoke.getAbilityData());
@@ -547,7 +558,7 @@ public final class AbilityManager extends BasePlayerManager {
         if (entity == null) return;
 
         var entry = AbilityScalarValueEntry.parseFrom(invoke.getAbilityData());
-        if (entry == null || !entry.hasFloatValue()) return;
+        if (entry == null) return;
 
         String key = null;
         if (entry.getKey().hasStr()) key = entry.getKey().getStr();
@@ -557,17 +568,10 @@ public final class AbilityManager extends BasePlayerManager {
         if (key == null) return;
 
         if (key.startsWith("SGV_")) return; // Server does not allow to change this variables I think
-        switch (entry.getValueType().getNumber()) {
-            case AbilityScalarType.ABILITY_SCALAR_TYPE_FLOAT_VALUE -> {
-                if (!Float.isNaN(entry.getFloatValue()))
-                    entity.getGlobalAbilityValues().put(key, entry.getFloatValue());
-            }
-            case AbilityScalarType.ABILITY_SCALAR_TYPE_UINT_VALUE -> entity
-                    .getGlobalAbilityValues()
-                    .put(key, (float) entry.getUintValue());
-            default -> {
-                return;
-            }
+        if (!Float.isNaN(entry.getFloatValue())) {
+            entity.getGlobalAbilityValues().put(key, entry.getFloatValue());
+        } else {
+            return;
         }
 
         entity.onAbilityValueUpdate();

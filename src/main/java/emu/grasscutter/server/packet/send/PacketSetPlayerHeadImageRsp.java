@@ -11,9 +11,9 @@ public class PacketSetPlayerHeadImageRsp extends BasePacket {
         super(PacketOpcodes.SetPlayerHeadImageRsp);
 
         SetPlayerHeadImageRsp proto =
-                SetPlayerHeadImageRsp.newBuilder()
-                        .setProfilePicture(ProfilePicture.newBuilder().setAvatarId(player.getHeadImage()))
-                        .build();
+            SetPlayerHeadImageRsp.newBuilder()
+                .setProfilePicture(ProfilePicture.newBuilder().setProfilePictureId(player.getHeadImage()))
+                .build();
 
         this.setData(proto);
     }

@@ -24,12 +24,12 @@ public class MusicGameActivityHandler extends ActivityHandler {
 
         activityInfo.setMusicGameInfo(
                 MusicGameActivityDetailInfoOuterClass.MusicGameActivityDetailInfo.newBuilder()
-                        .putAllMusicGameRecordMap(
-                                musicGamePlayerData.getMusicGameRecord().values().stream()
-                                        .collect(
-                                                Collectors.toMap(
-                                                        MusicGamePlayerData.MusicGameRecord::getMusicId,
-                                                        MusicGamePlayerData.MusicGameRecord::toProto)))
+//                        .putAllMusicGameRecordMap(
+//                                musicGamePlayerData.getMusicGameRecord().values().stream()
+//                                        .collect(
+//                                                Collectors.toMap(
+//                                                        MusicGamePlayerData.MusicGameRecord::getMusicId,
+//                                                        MusicGamePlayerData.MusicGameRecord::toProto)))
                         //
                         // .addAllPersonCustomBeatmap(musicGamePlayerData.getPersonalCustomBeatmapRecord().values().stream()
                         //                .map(MusicGamePlayerData.CustomBeatmapRecord::toPersonalBriefProto)

@@ -1,20 +1,26 @@
 package emu.grasscutter.game.player;
 
-import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
+import static emu.grasscutter.config.Configuration.GAME_INFO;
 import static emu.grasscutter.scripts.constants.EventType.EVENT_UNLOCK_TRANS_POINT;
 
+import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.binout.ScenePointEntry;
 import emu.grasscutter.data.excels.OpenStateData;
 import emu.grasscutter.data.excels.OpenStateData.OpenStateCondType;
 import emu.grasscutter.game.props.ActionReason;
+import emu.grasscutter.game.props.PlayerProperty;
 import emu.grasscutter.game.quest.enums.*;
+import emu.grasscutter.net.proto.GrantReasonOuterClass;
+import emu.grasscutter.net.proto.PropChangeReasonOuterClass;
 import emu.grasscutter.net.proto.RetcodeOuterClass.Retcode;
 import emu.grasscutter.scripts.data.ScriptArgs;
 import emu.grasscutter.server.packet.send.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 // @Entity
 public final class PlayerProgressManager extends BasePlayerDataManager {
@@ -59,10 +65,12 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
                                             // working chat.
                                             || s.getId() == 1)
                     .map(OpenStateData::getId)
+                    /*玄学 测试注释掉这里OPEN_STATE_PAIMON可能就不会卡0了 但没有经过正式环境检验
                     .filter(s -> !BLACKLIST_OPEN_STATES.contains(s)) // Filter out states in the blacklist.
                     .filter(
                             s ->
                                     !IGNORED_OPEN_STATES.contains(s)) // Filter out states in the default ignore list.
+                    */
                     .collect(Collectors.toSet());
 
     public PlayerProgressManager(Player player) {
@@ -83,8 +91,15 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
         // Add statue quests if necessary.
         this.addStatueQuestsOnLogin();
 
-        if (!GAME_OPTIONS.questing.enabled) {
-            // Auto-unlock the first statue and map area.
+        final List<Integer> sceneAreas = IntStream.range(1, 1000).boxed().toList();
+        if (GAME_INFO.defaultUnlockAllMap) {
+            // 解锁全图
+            for (int i = 3; i <= 11; i++) {
+                this.player.getUnlockedSceneAreas(i).addAll(sceneAreas);
+            }
+            GameData.getScenePointsPerScene().forEach((sceneId, scenePoints) -> this.player.getUnlockedScenePoints(sceneId).addAll(scenePoints));
+        } else {
+            // 只解锁出生点锚点和星落湖神像
             this.player.getUnlockedScenePoints(3).add(7);
             this.player.getUnlockedSceneAreas(3).add(1);
             // Allow the player to visit all areas.
@@ -244,7 +259,12 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
         // Check whether the unlocked point exists and whether it is still locked.
         ScenePointEntry scenePointEntry = GameData.getScenePointEntryById(sceneId, pointId);
 
-        if (scenePointEntry == null || this.player.getUnlockedScenePoints(sceneId).contains(pointId)) {
+        if (scenePointEntry == null) {
+            Grasscutter.getLogger().error("锚点数据为空 无法解锁锚点");
+            return false;
+        } else if (this.player.getUnlockedScenePoints(sceneId).contains(pointId)) {
+            Grasscutter.getLogger().error("玩家尝试重复解锁已解锁的锚点 服务器已拒绝" +
+                "可能是某个proto不正确 请尝试将 defaultUnlockAllMap 关闭");
             return false;
         }
 
@@ -257,7 +277,7 @@ public final class PlayerProgressManager extends BasePlayerDataManager {
 
         // this.player.sendPacket(new
         // PacketPlayerPropChangeReasonNotify(this.player.getProperty(PlayerProperty.PROP_PLAYER_EXP),
-        // PlayerProperty.PROP_PLAYER_EXP, PropChangeReason.PROP_CHANGE_REASON_PLAYER_ADD_EXP));
+        // PlayerProperty.PROP_PLAYER_EXP, PropChangeReason.PropChangeReason_PROP_CHANGE_PLAYER_ADD_EXP));
 
         // Fire quest trigger for trans point unlock.
         this.player

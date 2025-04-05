@@ -10,6 +10,8 @@ import emu.grasscutter.net.proto.MPLevelEntityInfoOuterClass.MPLevelEntityInfo;
 import emu.grasscutter.net.proto.PlayerEnterSceneInfoNotifyOuterClass.PlayerEnterSceneInfoNotify;
 import emu.grasscutter.net.proto.TeamEnterSceneInfoOuterClass.TeamEnterSceneInfo;
 
+import java.util.Objects;
+
 public class PacketPlayerEnterSceneInfoNotify extends BasePacket {
 
     public PacketPlayerEnterSceneInfoNotify(Player player) {
@@ -19,7 +21,7 @@ public class PacketPlayerEnterSceneInfoNotify extends BasePacket {
 
         PlayerEnterSceneInfoNotify.Builder proto =
                 PlayerEnterSceneInfoNotify.newBuilder()
-                        .setCurAvatarEntityId(player.getTeamManager().getCurrentAvatarEntity().getId())
+                        .setCurAvatarEntityId(Objects.requireNonNull(player.getTeamManager().getCurrentAvatarEntity()).getId())
                         .setEnterSceneToken(player.getEnterSceneToken());
 
         proto.setTeamEnterInfo(

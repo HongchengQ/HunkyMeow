@@ -34,11 +34,11 @@ public final class QuestManager extends BasePlayerManager {
 
     public static final ExecutorService eventExecutor =
             new ThreadPoolExecutor(
-                    4,
-                    4,
+                    6,
+                    6,
                     60,
                     TimeUnit.SECONDS,
-                    new LinkedBlockingDeque<>(1000),
+                    new LinkedBlockingDeque<>(5000),
                     FastThreadLocalThread::new,
                     new ThreadPoolExecutor.AbortPolicy());
 
@@ -221,11 +221,14 @@ public final class QuestManager extends BasePlayerManager {
         this.player.sendPacket(new PacketGivingRecordNotify(this.getGivingRecords()));
     }
 
-    public void onLogin() {
+    public void onPlayerBorn() {
         if (this.isQuestingEnabled()) {
             this.enableQuests();
             this.sendGivingRecords();
         }
+    }
+
+    public void onLogin() {
 
         List<GameMainQuest> activeQuests = getActiveMainQuests();
         List<GameQuest> activeSubs = new ArrayList<>(activeQuests.size());
@@ -490,7 +493,7 @@ public final class QuestManager extends BasePlayerManager {
     }
 
     public void triggerEvent(QuestCond condType, String paramStr, int... params) {
-        Grasscutter.getLogger().trace("Trigger Event {}, {}, {}", condType, paramStr, params);
+        Grasscutter.getLogger().trace("-2 Trigger Event {}, {}, {}", condType, paramStr, params);
         var potentialQuests = GameData.getQuestDataByConditions(condType, params[0], paramStr);
         if (potentialQuests == null) {
             return;
@@ -558,12 +561,16 @@ public final class QuestManager extends BasePlayerManager {
     }
 
     public void triggerEvent(QuestContent condType, String paramStr, int... params) {
-        Grasscutter.getLogger().trace("Trigger Event {}, {}, {}", condType, paramStr, params);
+        if (condType == null || paramStr == null) {
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+
+        Grasscutter.getLogger().trace("-1 Trigger Event {}, {}, {}", condType, paramStr, params);
 
         List<GameMainQuest> checkMainQuests =
-                this.getMainQuests().values().stream()
-                        .filter(i -> i.getState() != ParentQuestState.PARENT_QUEST_STATE_FINISHED)
-                        .toList();
+            this.getMainQuests().values().stream()
+                .filter(i -> i.getState() != ParentQuestState.PARENT_QUEST_STATE_FINISHED)
+                .toList();
         for (GameMainQuest mainQuest : checkMainQuests) {
             mainQuest.tryFailSubQuests(condType, paramStr, params);
             mainQuest.tryFinishSubQuests(condType, paramStr, params);

@@ -29,7 +29,7 @@ public class SceneMeta {
         CompiledScript cs = ScriptLoader.getScript("Scene/" + sceneId + "/scene" + sceneId + ".lua");
 
         if (cs == null) {
-            Grasscutter.getLogger().warn("No script found for scene " + sceneId);
+            Grasscutter.getLogger().warn("No script found for scene {}", sceneId);
             return null;
         }
 
@@ -50,6 +50,11 @@ public class SceneMeta {
                     ScriptLoader.getSerializer().toList(Integer.class, this.context.get("blocks"));
             List<SceneBlock> blocks =
                     ScriptLoader.getSerializer().toList(SceneBlock.class, this.context.get("block_rects"));
+
+            if (blockIds == null || blocks == null || blocks.isEmpty() || blockIds.isEmpty()) {
+                Grasscutter.getLogger().debug("Scene: {} 跳过运行脚本block, 因为 block 或 blockId 为空.", sceneId);
+                return null;
+            }
 
             for (int i = 0; i < blocks.size(); i++) {
                 SceneBlock block = blocks.get(i);

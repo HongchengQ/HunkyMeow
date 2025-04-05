@@ -16,7 +16,7 @@ import emu.grasscutter.utils.*;
 public class ActionSummon extends AbilityActionHandler {
     @Override
     public synchronized boolean execute(
-            Ability ability, AbilityModifierAction action, ByteString abilityData, GameEntity target) {
+        Ability ability, AbilityModifierAction action, ByteString abilityData, GameEntity target) {
         EPKDEHOJFLI summonPosRot = null;
         try {
             // In game version 4.0, summoned entity's
@@ -27,7 +27,7 @@ public class ActionSummon extends AbilityActionHandler {
             summonPosRot = EPKDEHOJFLI.parseFrom(abilityData);
         } catch (InvalidProtocolBufferException e) {
             Grasscutter.getLogger()
-                    .error("Failed to parse abilityData: {}", Utils.bytesToHex(abilityData.toByteArray()));
+                .error("Failed to parse abilityData: {}", Utils.bytesToHex(abilityData.toByteArray()));
             return false;
         }
 
@@ -53,14 +53,14 @@ public class ActionSummon extends AbilityActionHandler {
             scene.getPlayers().get(0).sendPacket(new PacketMonsterSummonTagNotify(ownerEntity));
 
             Grasscutter.getLogger()
-                    .trace(
-                            "Spawned entityId {} monsterId {} pos {} rot {}, target { {} }, action { {} }",
-                            entity.getId(),
-                            monsterId,
-                            pos,
-                            rot,
-                            target,
-                            action);
+                .trace(
+                    "Spawned entityId {} monsterId {} pos {} rot {}, target { {} }, action { {} }",
+                    entity.getId(),
+                    monsterId,
+                    pos,
+                    rot,
+                    target,
+                    action);
 
             return true;
         } else {

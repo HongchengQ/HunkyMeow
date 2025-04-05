@@ -78,9 +78,10 @@ public class EntityVehicle extends EntityBaseGadget {
                         .setAbilityInfo(AbilitySyncStateInfo.newBuilder())
                         .setRendererChangedInfo(EntityRendererChangedInfo.newBuilder())
                         .setAiInfo(
-                                SceneEntityAiInfo.newBuilder()
-                                        .setIsAiOpen(true)
-                                        .setBornPos(getPosition().toProto()))
+                            SceneEntityAiInfo.newBuilder()
+                                .setIsAiOpen(true)
+//                                .setBornPos(getPosition().toProto())  // 新版本没这个字段了
+                        )
                         .setBornPos(getPosition().toProto())
                         .build();
 
@@ -94,7 +95,7 @@ public class EntityVehicle extends EntityBaseGadget {
         SceneEntityInfo.Builder entityInfo =
                 SceneEntityInfo.newBuilder()
                         .setEntityId(getId())
-                        .setEntityType(ProtEntityType.PROT_ENTITY_TYPE_GADGET)
+                        .setEntityType(ProtEntityType.ProtEntityType_PROT_ENTITY_GADGET)
                         .setMotionInfo(
                                 MotionInfo.newBuilder()
                                         .setPos(getPosition().toProto())

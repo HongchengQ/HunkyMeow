@@ -13,20 +13,20 @@ public class PacketTowerLevelStarCondNotify extends BasePacket {
 
         if (1 <= lostStar && lostStar <= 3) {
             proto.addCondDataList(
-                    TowerLevelStarCondData.newBuilder()
-                            // If these are still obfuscated in the next client version,
-                            // just set all int fields to the star (1 <= star <= 3)
-                            // that failed and set all boolean fields to true.
-                            .setNGHNFHCLFBH(lostStar)
-                            .setIBGHBFANCBK(true)
-                            .setOILLLBMMABH(true)
-                            .setOMOECEGOALC(lostStar)
-                            .build());
+                TowerLevelStarCondData.newBuilder()
+                    // If these are still obfuscated in the next client version,
+                    // just set all int fields to the star (1 <= star <= 3)
+                    // that failed and set all boolean fields to true.
+                    .setNGHNFHCLFBH(lostStar)
+                    .setIBGHBFANCBK(true)
+                    .setOILLLBMMABH(true)
+                    .setOMOECEGOALC(lostStar)
+                    .build());
         } else {
             proto
-                    .addCondDataList(TowerLevelStarCondData.newBuilder().build())
-                    .addCondDataList(TowerLevelStarCondData.newBuilder().build())
-                    .addCondDataList(TowerLevelStarCondData.newBuilder().build());
+                .addCondDataList(TowerLevelStarCondData.newBuilder().build())
+                .addCondDataList(TowerLevelStarCondData.newBuilder().build())
+                .addCondDataList(TowerLevelStarCondData.newBuilder().build());
         }
 
         this.setData(proto.build());

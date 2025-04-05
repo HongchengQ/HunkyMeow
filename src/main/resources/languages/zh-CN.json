@@ -38,7 +38,7 @@
         "account_login_create_error": "[Dispatch] 客户端 %s 登录失败：账号创建失败",
         "account_login_exist_error": "[Dispatch] 客户端 %s 登录失败：账号不存在",
         "account_cache_error": "游戏账号缓存信息错误",
-        "session_key_error": "会话密钥错误",
+        "session_key_error": "会话密钥错误 请重新登录",
         "username_error": "未找到用户名",
         "username_create_error": "用户名不存在，登录失败",
         "password_error": "登录失败，请确认账号/密码是否正确",

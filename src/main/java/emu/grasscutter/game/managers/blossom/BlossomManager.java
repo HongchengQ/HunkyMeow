@@ -89,26 +89,26 @@ public class BlossomManager {
                                 break;
                             }
                             var rand = Utils.randomRange(1, 100);
-                            if (rand > 85 && remain >= 50) { // 15% ,generate strong monster
+                            if (rand > 85 && remain >= 50) { // 15% ,生成强大的怪物
                                 monsters.addAll(getRandomMonstersID(2, 1));
                                 volume += 50;
-                            } else if (rand > 50 && remain >= 20) { // 35% ,generate normal monster
+                            } else if (rand > 50 && remain >= 20) { // 35% ,生成普通怪物
                                 monsters.addAll(getRandomMonstersID(1, 1));
                                 volume += 20;
-                            } else { // 50% ,generate weak monster
+                            } else { // 50% ,生成弱小的怪物
                                 monsters.addAll(getRandomMonstersID(0, 1));
                                 volume += 10;
                             }
                         }
 
-                        Grasscutter.getLogger().info("Blossom Monsters:" + monsters);
+                        Grasscutter.getLogger().info("Blossom Monsters:{}", monsters);
 
                         activity = new BlossomActivity(entityGadget, monsters, -1, worldLevel);
                         blossomActivities.add(activity);
                     }
                     entityGadget.updateState(201);
                     scene.setChallenge(activity.getChallenge());
-                    scene.removeEntity(entityGadget, VisionTypeOuterClass.VisionType.VISION_TYPE_REMOVE);
+                    scene.removeEntity(entityGadget, VisionTypeOuterClass.VisionType.VisionType_VISION_REMOVE);
                     activity.start();
                     return true;
                 });
@@ -118,7 +118,7 @@ public class BlossomManager {
 
     public void notifyIcon() {
         final int wl = getWorldLevel();
-        final int worldLevel = (wl < 0) ? 0 : ((wl > 8) ? 8 : wl);
+        final int worldLevel = (wl < 0) ? 0 : (Math.min(wl, 8));
         final var worldLevelData = GameData.getWorldLevelDataMap().get(worldLevel);
         final int monsterLevel = (worldLevelData != null) ? worldLevelData.getMonsterLevel() : 1;
         List<BlossomBriefInfoOuterClass.BlossomBriefInfo> blossoms = new ArrayList<>();

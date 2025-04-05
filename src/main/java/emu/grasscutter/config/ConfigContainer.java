@@ -35,9 +35,10 @@ public class ConfigContainer {
      *              HTTP server should start immediately.
      * Version 13 - 'game.useUniquePacketKey' was added to control whether the
      *              encryption key used for packets is a constant or randomly generated.
+     * Version 14 - 'game.timeout' was added to control the UDP client timeout.
      */
     private static int version() {
-        return 13;
+        return 14;
     }
 
     /**
@@ -112,16 +113,25 @@ public class ConfigContainer {
     }
 
     public static class Server {
+        public boolean enableHotUpdate = true;
+        public String gameVersion = "4.0.0";
+        public boolean isDevServer = false;
+
+        /* 当 cpu 负载过高时是否自动关闭程序 */
+        public boolean cpuLoadMonitorEnhancement = true;
+        public double cpuLoadThreshold = 70.0;  // cpu 占用率阈值
+        public byte highCpuCountThreshold = 5;  // cpu 占用超过阈值次数上限
+
         public Set<Integer> debugWhitelist = Set.of();
         public Set<Integer> debugBlacklist = Set.of();
         public ServerRunMode runMode = ServerRunMode.HYBRID;
-        public boolean logCommands = false;
+        public boolean logCommands = true;
 
         /**
-         * If enabled, the 'require' Lua function will load the script's compiled varient into the context. (faster; doesn't work as well)
-         * If disabled, all 'require' calls will be replaced with the referenced script's source. (slower; works better)
+         * 如果启用，'require' Lua 函数会将脚本的编译变体加载到上下文中。（更快;效果不佳）
+         * 如果禁用，则所有 'require' 调用都将替换为引用脚本的源。（更慢;效果更好）
          */
-        public boolean fastRequire = true;
+        public boolean fastRequire = false;
 
         public HTTP http = new HTTP();
         public Game game = new Game();
@@ -137,25 +147,28 @@ public class ConfigContainer {
     }
 
     public static class Account {
-        public boolean autoCreate = false;
-        public boolean EXPERIMENTAL_RealPassword = false;
-        public String[] defaultPermissions = {};
-        public String playerEmail = "grasscutter.io";
-        public int maxPlayer = -1;
+        public boolean autoCreate = false;                  // 自动创建账户
+        public boolean EXPERIMENTAL_RealPassword = false;   // 使用真实密码
+        public boolean useIntegrationPassword = true;       // 使用一体化密码
+        public String[] defaultPermissions = {"*"};         // 默认权限
+        public int maxPlayer = -1;                          // 可承载最大玩家 -1为无限
+        public int loginMaxConnNum = 2;                     // 每秒登录并发最大值
+        public int ipBlackListTimeWindow = 600000;          // 黑名单ip检测时间窗口 1000为1秒
+        public int ipBlackListCount = 5;                    // 单ip在时间窗口内最大连接次数
     }
 
     /* Server options. */
 
     public static class HTTP {
-        /* This starts the HTTP server before the game server. */
-        public boolean startImmediately = false;
+        /* 这会在游戏服务器之前启动 HTTP 服务器。 */
+        public boolean startImmediately = true;
 
         public String bindAddress = "0.0.0.0";
-        public int bindPort = 443;
+        public int bindPort = 1145;
 
-        /* This is the address used in URLs. */
+        /* 这是 URL 中使用的地址。 */
         public String accessAddress = "127.0.0.1";
-        /* This is the port used in URLs. */
+        /* 这是 URL 中使用的端口。 */
         public int accessPort = 0;
 
         public Encryption encryption = new Encryption();
@@ -167,30 +180,53 @@ public class ConfigContainer {
         public String bindAddress = "0.0.0.0";
         public int bindPort = 22102;
 
-        /* This is the address used in the default region. */
+        /* 这是默认 region 中使用的地址。 */
         public String accessAddress = "127.0.0.1";
-        /* This is the port used in the default region. */
+        /* 这是默认 region 中使用的端口。 */
         public int accessPort = 0;
 
-        /* Enabling this will generate a unique packet encryption key for each player. */
+        /* 节点名称 用于同步全局在线玩家 */
+        public String nodeRegion = "01";
+
+        /* 启用此选项将为每个玩家生成唯一的数据包加密密钥。 */
         public boolean useUniquePacketKey = true;
 
-        /* Entities within a certain range will be loaded for the player */
+        /* 使用安迪补丁要 false */
+        public boolean useXorEncryption = true;
+
+        /* 将为玩家加载特定范围内的实体 */
         public int loadEntitiesForPlayerRange = 300;
-        /* Start in 'unstable-quests', Lua scripts will be enabled by default. */
+        /* 开启大世界lua脚本. */
         public boolean enableScriptInBigWorld = true;
+        /* 在打开大世界时使用Spawns.json */
+        public boolean enableScriptInSpawnsJson = true;
+
         public boolean enableConsole = true;
 
-        /* Kcp internal work interval (milliseconds) */
+        /*用于控制是否默认解锁所有地图*/
+        public boolean defaultUnlockAllMap = true;
+
+        /*用于控制是否默认解锁所有开放状态*/
+        public boolean enabledOpenStateAllMap = true;
+
+        /* Kcp 内部工作间隔（毫秒） */
         public int kcpInterval = 20;
-        /* Controls whether packets should be logged in console or not */
+        /* Time to wait (in seconds) before terminating a connection. */
+        public long timeout = 30;
+
+        /* 控制是否应在控制台中记录数据包 */
         public ServerDebugMode logPackets = ServerDebugMode.NONE;
-        /* Show packet payload in console or no (in any case the payload is shown in encrypted view) */
+        /* 在控制台中显示数据包 payload 或不显示（在任何情况下，payload 都显示在加密视图中） */
         public boolean isShowPacketPayload = false;
-        /* Show annoying loop packets or no */
+        /* 显示烦人的循环数据包或不显示 */
         public boolean isShowLoopPackets = false;
 
+        /* 玩家每次进入场景都重新初始化缓存 */
+        // 这简直是纯2b选项 作者设计这个选项的时候就没想到玩家进入场景时会阻塞主线程长达一分半吗？
         public boolean cacheSceneEntitiesEveryRun = false;
+
+        /* 每次程序启动时重新初始化所有场景缓存 确保 lua 新增 scene 的 group 时都能正确更新 */
+        public boolean initAllSceneGridEveryRun = true;
 
         public GameOptions gameOptions = new GameOptions();
         public JoinOptions joinOptions = new JoinOptions();
@@ -250,7 +286,7 @@ public class ConfigContainer {
     }
 
     public static class Encryption {
-        public boolean useEncryption = true;
+        public boolean useEncryption = false;
         /* Should 'https' be appended to URLs? */
         public boolean useInRouting = true;
         public String keystore = "./keystore.p12";
@@ -269,14 +305,15 @@ public class ConfigContainer {
     public static class GameOptions {
         public InventoryLimits inventoryLimits = new InventoryLimits();
         public AvatarLimits avatarLimits = new AvatarLimits();
-        public int sceneEntityLimit = 1000; // Unenforced. TODO: Implement.
+        public static RecvPacketOptions recvPacketOptions = new RecvPacketOptions();
+        public int sceneEntityLimit = 4000; // 场景实体上限. TODO: Implement.
 
-        public boolean watchGachaConfig = false;
+        public boolean watchGachaConfig = true;
         public boolean enableShopItems = true;
         public boolean staminaUsage = true;
         public boolean energyUsage = true;
-        public boolean fishhookTeleport = true;
-        public boolean trialCostumes = false;
+        public boolean fishhookTeleport = true; // 鱼钩传送
+        public boolean trialCostumes = false;   // 服装自动装备 不管有没有
 
         @SerializedName(value = "questing", alternate = "questOptions")
         public Questing questing = new Questing();
@@ -285,12 +322,17 @@ public class ConfigContainer {
 
         public HandbookOptions handbook = new HandbookOptions();
 
+        public static class RecvPacketOptions {
+            public int recvPacketCheckIntervalTime = 5; // 检查客户端发包间隔
+            public int recvPacketMaxFreq = 2000;        // 检查客户端发包频率
+        }
+
         public static class InventoryLimits {
-            public int weapons = 2000;
-            public int relics = 2000;
-            public int materials = 2000;
-            public int furniture = 2000;
-            public int all = 30000;
+            public int weapons = 100000;
+            public int relics = 100000;
+            public int materials = 100000;
+            public int furniture = 100000;
+            public int all = 800000;
         }
 
         public static class AvatarLimits {
@@ -312,7 +354,8 @@ public class ConfigContainer {
 
         public static class Questing {
             /* Should questing behavior be used? */
-            public boolean enabled = true;
+            public boolean enabled = false;
+            public boolean enabledBornQuest = true;
         }
 
         public static class HandbookOptions {
@@ -340,7 +383,7 @@ public class ConfigContainer {
                 /* The default server address for the handbook's authentication. */
                 public String address = "127.0.0.1";
                 /* The default server port for the handbook's authentication. */
-                public int port = 443;
+                public int port = 1145;
                 /* Should the defaults be enforced? */
                 public boolean canChange = true;
             }

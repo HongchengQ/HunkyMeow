@@ -2,6 +2,7 @@ package emu.grasscutter.game.world;
 
 import static emu.grasscutter.server.event.player.PlayerTeleportEvent.TeleportType.SCRIPT;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import emu.grasscutter.Grasscutter;
 import emu.grasscutter.data.GameData;
 import emu.grasscutter.data.excels.dungeon.DungeonData;
@@ -16,8 +17,8 @@ import emu.grasscutter.game.props.SceneType;
 import emu.grasscutter.game.quest.enums.QuestContent;
 import emu.grasscutter.game.world.data.TeleportProperties;
 import emu.grasscutter.net.packet.BasePacket;
-import emu.grasscutter.net.proto.ChatInfoOuterClass.ChatInfo.SystemHint;
-import emu.grasscutter.net.proto.ChatInfoOuterClass.ChatInfo.SystemHintType;
+import emu.grasscutter.net.proto.SystemHintOuterClass.SystemHint;
+import emu.grasscutter.net.proto.SystemHintTypeOuterClass.SystemHintType;
 import emu.grasscutter.net.proto.EnterTypeOuterClass.EnterType;
 import emu.grasscutter.scripts.data.SceneConfig;
 import emu.grasscutter.server.event.player.PlayerTeleportEvent;
@@ -33,12 +34,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import javax.annotation.Nullable;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +50,7 @@ public class World implements Iterable<Player> {
     @Getter private EntityWorld entity;
     private int nextEntityId = 0;
     private int nextPeerId = 0;
+    @Setter
     private int worldLevel;
 
     @Getter private boolean isMultiplayer = false;
@@ -61,13 +61,15 @@ public class World implements Iterable<Player> {
     @Getter private boolean isPaused = false;
     @Getter private long currentWorldTime;
 
+    // 1. 副本传送 为了解决使用命令进入副本退出时不自然的传送过渡
+    // 2. 联机房主退出后附属玩家回到自己世界
     private static final ExecutorService eventExecutor =
             new ThreadPoolExecutor(
                     4,
                     4,
                     60,
                     TimeUnit.SECONDS,
-                    new LinkedBlockingDeque<>(1000),
+                    new LinkedBlockingDeque<>(2000),
                     FastThreadLocalThread::new,
                     new ThreadPoolExecutor.AbortPolicy());
 
@@ -125,11 +127,7 @@ public class World implements Iterable<Player> {
         return worldLevel;
     }
 
-    public void setWorldLevel(int worldLevel) {
-        this.worldLevel = worldLevel;
-    }
-
-    protected synchronized void setHost(Player host) {
+    protected void setHost(Player host) {
         this.host = host;
     }
 
@@ -163,12 +161,29 @@ public class World implements Iterable<Player> {
 
     /**
      * Gets the next entity ID for the specified entity type.
+     * 不要使用同步锁 否则会造成概率性的线程死锁(与removePlayer)
      *
      * @param idType The entity type.
      * @return The next entity ID.
      */
-    public synchronized int getNextEntityId(EntityIdType idType) {
+    public int getNextEntityId(EntityIdType idType) {
         return (idType.getId() << 24) + ++this.nextEntityId;
+    }
+
+    /**
+     *  为了解决 getNextEntityId 不使用同步锁造成的问题
+     *  这里也可能会导致线程死锁 当怪物召唤儿子这个功能没有修好前不要启用它
+     *
+     * @param idType The entity type.
+     * @return The next entity ID.
+     */
+    public synchronized int getNextEntityMonsterId(EntityIdType idType) {
+        if (idType == EntityIdType.MONSTER) {
+            return (idType.getId() << 24) + ++this.nextEntityId;
+        } else {
+            Grasscutter.getLogger().warn("getNextEntityMonsterId 被非 Monster类型 使用");
+            return 0;
+        }
     }
 
     public synchronized void addPlayer(Player player) {
@@ -214,7 +229,9 @@ public class World implements Iterable<Player> {
 
         // Add to scene
         Scene scene = this.getSceneById(player.getSceneId());
-        scene.addPlayer(player);
+        if (scene != null) {
+            scene.addPlayer(player);
+        }
 
         // Info packet for other players
         if (this.getPlayers().size() > 1) {
@@ -266,7 +283,9 @@ public class World implements Iterable<Player> {
         // Add to scene
         player.setSceneId(newSceneId);
         Scene scene = this.getSceneById(player.getSceneId());
-        scene.addPlayer(player);
+        if (scene != null) {
+            scene.addPlayer(player);
+        }
 
         // Info packet for other players
         if (this.getPlayers().size() > 1) {
@@ -293,28 +312,49 @@ public class World implements Iterable<Player> {
 
         // Remove from scene
         Scene scene = this.getSceneById(player.getSceneId());
-        scene.removePlayer(player);
+        if (scene != null) {
+            scene.removePlayer(player);
+        }
 
         // Info packet for other players
-        if (this.getPlayers().size() > 0) {
+        if (!this.getPlayers().isEmpty()) {
             this.updatePlayerInfos(player);
         }
 
         // Disband world if host leaves
         if (this.getHost() == player) {
             List<Player> kicked = new ArrayList<>(this.getPlayers());
-            for (Player victim : kicked) {
-                World world = new World(victim);
-                world.addPlayer(victim);
+            List<Future<?>> futures = new ArrayList<>();
 
-                victim.sendPacket(
-                        new PacketPlayerEnterSceneNotify(
+            for (Player victim : kicked) {
+                Future<?> future = eventExecutor.submit(() -> {
+                    try {
+                        World newWorld = new World(victim);
+                        newWorld.addPlayer(victim); // 注意：addPlayer 是同步方法，但此处线程安全
+                        victim.sendPacket(
+                            new PacketPlayerEnterSceneNotify(
                                 victim,
-                                EnterType.ENTER_TYPE_SELF,
+                                EnterType.EnterType_ENTER_SELF,
                                 EnterReason.TeamKick,
                                 victim.getSceneId(),
-                                victim.getPosition()));
+                                victim.getPosition()
+                            )
+                        );
+                    } catch (Exception e) {
+                        Grasscutter.getLogger().error("Failed to transfer player {}", victim, e);
+                    }
+                });
+                futures.add(future);
             }
+
+            // 等待所有任务完成（根据业务需求选择是否等待）
+//            for (Future<?> future : futures) {
+//                try {
+//                    future.get();
+//                } catch (Exception e) {
+//                    Grasscutter.getLogger().error("Transfer task failed", e);
+//                }
+//            }
         } else {
             this.broadcastPacket(
                     new PacketPlayerChatNotify(
@@ -404,20 +444,20 @@ public class World implements Iterable<Player> {
                         .teleportType(teleportType)
                         .enterReason(enterReason)
                         .teleportTo(teleportTo)
-                        .enterType(EnterType.ENTER_TYPE_JUMP);
+                        .enterType(EnterType.EnterType_ENTER_JUMP);
 
         val sceneData = GameData.getSceneDataMap().get(sceneId);
         if (dungeonData != null) {
             teleportProps
                     .teleportTo(dungeonData.getStartPosition())
                     .teleportRot(dungeonData.getStartRotation());
-            teleportProps.enterType(EnterType.ENTER_TYPE_DUNGEON).enterReason(EnterReason.DungeonEnter);
+            teleportProps.enterType(EnterType.EnterType_ENTER_DUNGEON).enterReason(EnterReason.DungeonEnter);
             teleportProps.dungeonId(dungeonData.getId());
         } else if (player.getSceneId() == sceneId) {
-            teleportProps.enterType(EnterType.ENTER_TYPE_GOTO);
+            teleportProps.enterType(EnterType.EnterType_ENTER_GOTO);
         } else if (sceneData != null && sceneData.getSceneType() == SceneType.SCENE_HOME_WORLD) {
             // Home
-            teleportProps.enterType(EnterType.ENTER_TYPE_SELF_HOME).enterReason(EnterReason.EnterHome);
+            teleportProps.enterType(EnterType.EnterType_ENTER_SELF_HOME).enterReason(EnterReason.EnterHome);
         }
 
         return transferPlayerToScene(player, teleportProps.build());
@@ -568,7 +608,11 @@ public class World implements Iterable<Player> {
      */
     public boolean onTick() {
         // Check if there are players in this world.
-        if (this.getPlayerCount() == 0) return true;
+        var host = this.getHost();
+        if (this.getScenes() == null || host == null || host.getScene() == null || host.getWorld() == null)
+            return true;
+        if (this.getPlayerCount() == 0)
+            return true;
         // Tick all associated scenes.
         this.getScenes()
                 .forEach(
@@ -583,7 +627,7 @@ public class World implements Iterable<Player> {
 
         // store updated world time every 60 seconds. (in-game hour)
         if (this.tickCount % 60 == 0 && !this.timeLocked) {
-            this.getHost().updatePlayerGameTime(this.currentWorldTime);
+            host.updatePlayerGameTime(this.currentWorldTime);
         }
 
         this.tickCount++;

@@ -15,7 +15,6 @@ public class DatabaseCounter {
     }
 
     public int getNextId() {
-        int id = ++count;
-        return id;
+        return ++count;
     }
 }

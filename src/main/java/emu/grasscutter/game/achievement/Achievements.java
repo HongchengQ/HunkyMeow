@@ -9,7 +9,7 @@ import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.inventory.GameItem;
 import emu.grasscutter.game.player.Player;
 import emu.grasscutter.game.props.ActionReason;
-import emu.grasscutter.net.proto.AchievementOuterClass.Achievement.Status;
+import emu.grasscutter.net.proto.StatusOuterClass.Status;
 import emu.grasscutter.server.event.player.PlayerCompleteAchievementEvent;
 import emu.grasscutter.server.packet.send.*;
 import java.util.*;

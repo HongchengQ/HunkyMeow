@@ -11,9 +11,12 @@ import emu.grasscutter.scripts.data.*;
 import emu.grasscutter.server.game.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.Getter;
 import org.luaj.vm2.LuaError;
 
 public class WorldDataSystem extends BaseGameSystem {
+    @Getter
     private final Map<String, ChestInteractHandler> chestInteractHandlerMap; // chestType-Handler
     private final Map<String, SceneGroup> sceneInvestigationGroupMap; // <sceneId_groupId, Group>
 
@@ -44,15 +47,11 @@ public class WorldDataSystem extends BaseGameSystem {
         }
     }
 
-    public Map<String, ChestInteractHandler> getChestInteractHandlerMap() {
-        return chestInteractHandlerMap;
-    }
-
     public RewardPreviewData getRewardByBossId(int monsterId) {
         var investigationMonsterData =
                 GameData.getInvestigationMonsterDataMap().values().parallelStream()
                         .filter(imd -> imd.getMonsterIdList() != null && !imd.getMonsterIdList().isEmpty())
-                        .filter(imd -> imd.getMonsterIdList().get(0) == monsterId)
+                        .filter(imd -> imd.getMonsterIdList().contains(monsterId))
                         .findFirst();
 
         return investigationMonsterData
@@ -93,8 +92,8 @@ public class WorldDataSystem extends BaseGameSystem {
             return null;
         }
 
-        var groupId = imd.getGroupIdList().get(0);
-        var monsterId = imd.getMonsterIdList().get(0);
+        var groupId = imd.getGroupIdList().getFirst();
+        var monsterId = imd.getMonsterIdList().getFirst();
         var sceneId = imd.getCityData().getSceneId();
         var group = getInvestigationGroup(sceneId, groupId);
 
@@ -117,16 +116,16 @@ public class WorldDataSystem extends BaseGameSystem {
                 .setGroupId(groupId)
                 .setMonsterId(monsterId)
                 .setLevel(getMonsterLevel(monster.get(), player.getWorld()))
-                .setIsAlive(true)
+//                .setIsAlive(true)
                 .setNextRefreshTime(Integer.MAX_VALUE)
-                .setRefreshInterval(Integer.MAX_VALUE)
+//                .setRefreshInterval(Integer.MAX_VALUE)
                 .setPos(monster.get().pos.toProto());
 
         if ("Boss".equals(imd.getMonsterCategory())) {
             var bossChest = group.searchBossChestInGroup();
             if (bossChest.isPresent()) {
-                builder.setResin(bossChest.get().resin);
-                builder.setMaxBossChestNum(bossChest.get().take_num);
+//                builder.setResin(bossChest.get().resin);
+//                builder.setMaxBossChestNum(bossChest.get().take_num);
             }
         }
         return builder.build();

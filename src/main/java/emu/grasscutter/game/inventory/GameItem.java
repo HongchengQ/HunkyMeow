@@ -28,6 +28,7 @@ import org.bson.types.ObjectId;
 @Entity(value = "items", useDiscriminator = false)
 public class GameItem {
     @Id private ObjectId id;
+    @Getter
     @Indexed private int ownerId;
     @Getter @Setter private int itemId;
     @Getter @Setter private int count;
@@ -110,10 +111,6 @@ public class GameItem {
             default:
                 this.count = Math.min(count, data.getStackLimit());
         }
-    }
-
-    public int getOwnerId() {
-        return ownerId;
     }
 
     public void setOwner(Player player) {
@@ -277,9 +274,9 @@ public class GameItem {
                         .setGuid(this.getGuid())
                         .setLevel(this.getLevel())
                         .setGadgetId(this.getItemData().getGadgetId())
-                        .setAbilityInfo(AbilitySyncStateInfo.newBuilder().setIsInited(getAffixes().size() > 0));
+                        .setAbilityInfo(AbilitySyncStateInfo.newBuilder().setIsInited(!getAffixes().isEmpty()));
 
-        if (this.getAffixes() != null && this.getAffixes().size() > 0) {
+        if (this.getAffixes() != null && !this.getAffixes().isEmpty()) {
             for (int affix : this.getAffixes()) {
                 weaponInfo.putAffixMap(affix, this.getRefinement());
             }
@@ -289,14 +286,11 @@ public class GameItem {
     }
 
     public SceneReliquaryInfo createSceneReliquaryInfo() {
-        SceneReliquaryInfo relicInfo =
-                SceneReliquaryInfo.newBuilder()
-                        .setItemId(this.getItemId())
-                        .setGuid(this.getGuid())
-                        .setLevel(this.getLevel())
-                        .build();
-
-        return relicInfo;
+        return SceneReliquaryInfo.newBuilder()
+                .setItemId(this.getItemId())
+                .setGuid(this.getGuid())
+                .setLevel(this.getLevel())
+                .build();
     }
 
     public Weapon toWeaponProto() {
@@ -306,7 +300,7 @@ public class GameItem {
                         .setExp(this.getExp())
                         .setPromoteLevel(this.getPromoteLevel());
 
-        if (this.getAffixes() != null && this.getAffixes().size() > 0) {
+        if (this.getAffixes() != null && !this.getAffixes().isEmpty()) {
             for (int affix : this.getAffixes()) {
                 weapon.putAffixMap(affix, this.getRefinement());
             }
@@ -354,10 +348,11 @@ public class GameItem {
 
     public ItemHint toItemHintProto() {
         return ItemHint.newBuilder()
-                .setItemId(getItemId())
-                .setCount(getCount())
-                .setIsNew(this.isNewItem())
-                .build();
+            .setItemId(getItemId())
+            .setGuid(this.getGuid())
+            .setCount(getCount())
+            .setIsNew(this.isNewItem())
+            .build();
     }
 
     public ItemParam toItemParam() {

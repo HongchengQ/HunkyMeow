@@ -42,13 +42,17 @@ import emu.grasscutter.server.scheduler.ServerTaskScheduler;
 import emu.grasscutter.utils.algorithms.KahnsSort;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.*;
 
+import static emu.grasscutter.config.Configuration.GAME_INFO;
+
 public class Scene {
+    // 异步 指令定时删除gadget用
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
     @Getter private final World world;
     @Getter private final SceneData sceneData;
     @Getter private final List<Player> players;
@@ -82,6 +86,8 @@ public class Scene {
     @Getter private GameEntity sceneEntity;
     @Getter private final ServerTaskScheduler scheduler;
 
+    @Getter private transient SceneBuild sceneBuild;
+
     public Scene(World world, SceneData sceneData) {
         this.world = world;
         this.sceneData = sceneData;
@@ -105,6 +111,7 @@ public class Scene {
         this.unlockedForces = new HashSet<>();
         this.sceneEntity = new EntityScene(this);
         this.scheduler = new ServerTaskScheduler();
+        this.sceneBuild = new SceneBuild();
     }
 
     public int getId() {
@@ -246,6 +253,9 @@ public class Scene {
         player.setScene(this);
 
         this.setupPlayerAvatars(player);
+
+        // 读取数据库生成建筑物
+        this.sceneBuild.createAllGadget(player);
     }
 
     public synchronized void removePlayer(Player player) {
@@ -271,7 +281,7 @@ public class Scene {
                 .filter(gameEntity -> gameEntity instanceof EntityVehicle)
                 .map(gameEntity -> (EntityVehicle) gameEntity)
                 .filter(entityVehicle -> entityVehicle.getOwner().equals(player))
-                .forEach(entityVehicle -> this.removeEntity(entityVehicle, VisionType.VISION_TYPE_REMOVE));
+                .forEach(entityVehicle -> this.removeEntity(entityVehicle, VisionType.VisionType_VISION_REMOVE));
 
         // Deregister scene if not in use
         if (this.getPlayerCount() <= 0 && !this.dontDestroyWhenEmpty) {
@@ -318,15 +328,15 @@ public class Scene {
 
     private synchronized void removePlayerAvatars(Player player) {
         var team = player.getTeamManager().getActiveTeam();
-        // removeEntities(team, VisionType.VISION_TYPE_REMOVE);  // List<SubType> isn't cool apparently
+        // removeEntities(team, VisionType.VisionType_VISION_REMOVE);  // List<SubType> isn't cool apparently
         // :(
-        team.forEach(e -> removeEntity(e, VisionType.VISION_TYPE_REMOVE));
+        team.forEach(e -> removeEntity(e, VisionType.VisionType_VISION_REMOVE));
         team.clear();
     }
 
     public void spawnPlayer(Player player) {
         var teamManager = player.getTeamManager();
-        if (this.isInScene(teamManager.getCurrentAvatarEntity())) {
+        if (this.isInScene(Objects.requireNonNull(teamManager.getCurrentAvatarEntity()))) {
             return;
         }
 
@@ -384,7 +394,7 @@ public class Scene {
     }
 
     public void addEntities(Collection<? extends GameEntity> entities) {
-        addEntities(entities, VisionType.VISION_TYPE_BORN);
+        addEntities(entities, VisionType.VisionType_VISION_BORN);
     }
 
     public void updateEntity(GameEntity entity) {
@@ -428,7 +438,7 @@ public class Scene {
     }
 
     public void removeEntity(GameEntity entity) {
-        this.removeEntity(entity, VisionType.VISION_TYPE_DIE);
+        this.removeEntity(entity, VisionType.VisionType_VISION_DIE);
     }
 
     public synchronized void removeEntity(GameEntity entity, VisionType visionType) {
@@ -436,6 +446,18 @@ public class Scene {
         if (removed != null) {
             this.broadcastPacket(new PacketSceneEntityDisappearNotify(removed, visionType));
         }
+    }
+
+    // spawn指令生成gadget时使用 X秒后执行删除 用于测试
+    public void removeEntityXSecondsLater(GameEntity entity, int seconds) {
+        executor.schedule(() -> {
+            // removeEntity(GameEntity entity, VisionType visionType) 有个锁 不敢动
+            GameEntity removed = this.removeEntityDirectly(entity);
+            if (removed != null) {
+                this.broadcastPacket(new PacketSceneEntityDisappearNotify(removed, VisionType.VisionType_VISION_DIE));
+                this.broadcastPacket(new PacketSceneEntityDisappearNotify(removed, VisionType.VisionType_VISION_REMOVE));
+            }
+        }, seconds, TimeUnit.SECONDS);
     }
 
     public void removeEntities(List<GameEntity> entity, VisionType visionType) {
@@ -454,10 +476,10 @@ public class Scene {
         this.removeEntityDirectly(oldEntity);
         this.addEntityDirectly(newEntity);
         this.broadcastPacket(
-                new PacketSceneEntityDisappearNotify(oldEntity, VisionType.VISION_TYPE_REPLACE));
+                new PacketSceneEntityDisappearNotify(oldEntity, VisionType.VisionType_VISION_REPLACE));
         this.broadcastPacket(
                 new PacketSceneEntityAppearNotify(
-                        newEntity, VisionType.VISION_TYPE_REPLACE, oldEntity.getId()));
+                        newEntity, VisionType.VisionType_VISION_REPLACE, oldEntity.getId()));
     }
 
     public void showOtherEntities(Player player) {
@@ -470,7 +492,7 @@ public class Scene {
                                         !(gameEntity instanceof Rebornable rebornable) || !rebornable.isInCD())
                         .toList();
 
-        player.sendPacket(new PacketSceneEntityAppearNotify(entities, VisionType.VISION_TYPE_MEET));
+        player.sendPacket(new PacketSceneEntityAppearNotify(entities, VisionType.VisionType_VISION_MEET));
     }
 
     public void handleAttack(AttackResult result) {
@@ -535,8 +557,8 @@ public class Scene {
                                 "Can not solve monster drop: drop_id = {}, drop_tag = {}. Falling back to legacy drop system.",
                                 monster.getMetaMonster().drop_id,
                                 monster.getMetaMonster().drop_tag);
-                world.getServer().getDropSystemLegacy().callDrop(monster);
             }
+            world.getServer().getDropSystemLegacy().callDrop(monster);
         }
 
         if (target instanceof EntityGadget gadget) {
@@ -570,7 +592,12 @@ public class Scene {
             this.getScheduler().runTasks();
         }
 
-        if (this.getScriptManager().isInit()) {
+        boolean isInit = this.getScriptManager().isInit();
+        if (GAME_INFO.enableScriptInSpawnsJson && GAME_INFO.enableScriptInBigWorld) {
+            // lua脚本与Spawns.json同时使用
+            this.checkSpawns();
+            if (isInit) this.checkGroups();
+        } else if (isInit && !GAME_INFO.enableScriptInSpawnsJson) {
             // this.checkBlocks();
             this.checkGroups();
         } else {
@@ -697,7 +724,7 @@ public class Scene {
                         .teleportTo(targetPos)
                         .teleportRot(targetRot)
                         .teleportType(PlayerTeleportEvent.TeleportType.INTERNAL)
-                        .enterType(EnterTypeOuterClass.EnterType.ENTER_TYPE_GOTO)
+                        .enterType(EnterTypeOuterClass.EnterType.EnterType_ENTER_GOTO)
                         .enterReason(
                                 dungeonManager != null ? EnterReason.DungeonReviveOnWaypoint : EnterReason.Revival);
 
@@ -768,16 +795,23 @@ public class Scene {
     }
 
     public int getLevelForMonster(int configId, int defaultLevel) {
-        if (getDungeonManager() != null) {
+        if (this.getDungeonManager() != null) {
             return getDungeonManager().getLevelForMonster(configId);
-        } else if (getWorld().getWorldLevel() > 0) {
-            var worldLevelData = GameData.getWorldLevelDataMap().get(getWorld().getWorldLevel());
-
-            if (worldLevelData != null) {
-                return worldLevelData.getMonsterLevel();
-            }
         }
-        return defaultLevel;
+
+        var worldLevelData = GameData.getWorldLevelDataMap().get(getWorld().getWorldLevel());
+        if (getWorld().getWorldLevel() <= 0 || worldLevelData == null) {
+            return defaultLevel;
+        }
+
+        int worldMonsterLevel = worldLevelData.getMonsterLevel();
+        if (!GAME_INFO.enableScriptInBigWorld) {
+            // 不使用 lua (用json时) 怪物等级就是res里固定的
+            // 例如八级世界等级就返回90级怪物
+            return worldMonsterLevel;
+        }
+
+        return worldMonsterLevel + defaultLevel;
     }
 
     public void checkNpcGroup() {
@@ -844,7 +878,7 @@ public class Scene {
                     monster.setSpawnEntry(entry);
 
                     entity = monster;
-                } else if (entry.getGadgetId() > 0) {
+                } else if (!GAME_INFO.enableScriptInSpawnsJson && entry.getGadgetId() > 0) {
                     EntityGadget gadget =
                             new EntityGadget(this, entry.getGadgetId(), entry.getPos(), entry.getRot());
                     gadget.setGroupId(entry.getGroup().getGroupId());
@@ -882,15 +916,15 @@ public class Scene {
             }
         }
 
-        if (toAdd.size() > 0) {
+        if (!toAdd.isEmpty()) {
             toAdd.forEach(this::addEntityDirectly);
-            this.broadcastPacket(new PacketSceneEntityAppearNotify(toAdd, VisionType.VISION_TYPE_BORN));
+            this.broadcastPacket(new PacketSceneEntityAppearNotify(toAdd, VisionType.VisionType_VISION_BORN));
         }
 
-        if (toRemove.size() > 0) {
+        if (!toRemove.isEmpty()) {
             toRemove.forEach(this::removeEntityDirectly);
             this.broadcastPacket(
-                    new PacketSceneEntityDisappearNotify(toRemove, VisionType.VISION_TYPE_REMOVE));
+                    new PacketSceneEntityDisappearNotify(toRemove, VisionType.VisionType_VISION_REMOVE));
             blossomManager.recycleGadgetEntity(toRemove);
         }
     }
@@ -904,11 +938,11 @@ public class Scene {
     }
 
     public Set<Integer> getPlayerActiveGroups(Player player) {
-        // consider the borders' entities of blocks, so we check if contains by index
+        // 考虑块的边界实体，因此我们检查是否按索引包含
         Position playerPosition = player.getPosition();
         Set<Integer> activeGroups = new HashSet<>();
         for (int i = 0; i < 4; i++) {
-            Grid grid = getScriptManager().getGroupGrids().get(i);
+            Grid grid = getScriptManager().getSceneGroupGrids().get(i);
 
             activeGroups.addAll(grid.getNearbyGroups(i, playerPosition));
         }
@@ -916,12 +950,11 @@ public class Scene {
         return activeGroups;
     }
 
-    public boolean loadBlock(SceneBlock block) {
-        if (this.loadedBlocks.contains(block)) return false;
+    public void loadBlock(SceneBlock block) {
+        if (this.loadedBlocks.contains(block)) return;
 
         this.onLoadBlock(block, this.players);
         this.loadedBlocks.add(block);
-        return true;
     }
 
     public void checkGroups() {
@@ -1011,6 +1044,9 @@ public class Scene {
 
         KahnsSort.Graph graph = new KahnsSort.Graph(nodes, groupList);
         List<Integer> dynamicGroupsOrdered = KahnsSort.doSort(graph);
+        if (dynamicGroupsOrdered == null) {
+            return;
+        }
 
         // Now we can start unloading and loading groups :D
         dynamicGroupsOrdered.forEach(
@@ -1110,10 +1146,10 @@ public class Scene {
                         .filter(e -> e != null && (e.getBlockId() == block.id && e.getGroupId() == group_id))
                         .toList();
 
-        if (toRemove.size() > 0) {
+        if (!toRemove.isEmpty()) {
             toRemove.forEach(this::removeEntityDirectly);
             this.broadcastPacket(
-                    new PacketSceneEntityDisappearNotify(toRemove, VisionType.VISION_TYPE_REMOVE));
+                    new PacketSceneEntityDisappearNotify(toRemove, VisionType.VisionType_VISION_REMOVE));
         }
 
         var group = block.groups.get(group_id);
@@ -1176,7 +1212,7 @@ public class Scene {
 
         this.broadcastPacketToOthers(
                 gadget.getOwner(),
-                new PacketSceneEntityDisappearNotify(gadget, VisionType.VISION_TYPE_DIE));
+                new PacketSceneEntityDisappearNotify(gadget, VisionType.VisionType_VISION_DIE));
     }
 
     // Broadcasting
@@ -1253,7 +1289,7 @@ public class Scene {
                     sceneNpcBornEntries.add(i);
                 });
 
-        if (sceneNpcBornEntries.size() > 0) {
+        if (!sceneNpcBornEntries.isEmpty()) {
             this.broadcastPacket(new PacketGroupSuiteNotify(sceneNpcBornEntries));
             Grasscutter.getLogger().trace("Loaded Npc Group Suite {}", sceneNpcBornEntries);
         }
@@ -1313,7 +1349,7 @@ public class Scene {
             if (gadget.getContent() instanceof GadgetWorktop worktop) {
                 boolean shouldDelete = worktop.onSelectWorktopOption(req);
                 if (shouldDelete) {
-                    entity.getScene().removeEntity(entity, VisionType.VISION_TYPE_REMOVE);
+                    entity.getScene().removeEntity(entity, VisionType.VisionType_VISION_REMOVE);
                 }
             }
         }

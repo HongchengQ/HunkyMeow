@@ -39,7 +39,7 @@ public final class SceneGroupInstance {
         this.cachedVariables = new ConcurrentHashMap<>();
 
         this.isCached =
-                false; // This is true when the group is not loaded on scene but caches suite data
+                false; // 当组未加载到场景中但缓存套件数据时，情况是正确的
     }
 
     @Deprecated // Morphia only!

@@ -36,7 +36,7 @@ public enum PlayerProperty {
     PROP_PLAYER_MP_SETTING_TYPE(
             10017, 0, 2), // Do you allow other players to join your game? [0=no 1=direct 2=approval]
     PROP_IS_MP_MODE_AVAILABLE(10018, 0, 1), // 0 if in quest or something that disables MP [0, 1]
-    PROP_PLAYER_WORLD_LEVEL(10019, 0, 8), // [0, 8]
+    PROP_PLAYER_WORLD_LEVEL(10019, 0, 9), // [0, 9]
     PROP_PLAYER_RESIN(
             10020, 0, 2000), // Original Resin [0, 2000] - note that values above 160 require refills
     PROP_PLAYER_WAIT_SUB_HCOIN(10022),

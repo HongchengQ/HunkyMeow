@@ -25,7 +25,9 @@ public class HandlerBuyGoodsReq extends PacketHandler {
 
         // Don't trust your users' input
         var player = session.getPlayer();
-        List<Integer> targetShopGoodsId = List.of(buyGoodsReq.getGoods().getGoodsId());
+        List<Integer> targetShopGoodsId =
+            new ArrayList<>();
+//            List.of(buyGoodsReq.getGoods().getGoodsId());
         for (int goodsId : targetShopGoodsId) {
             Optional<ShopInfo> sg2 =
                     configShop.stream().filter(x -> x.getGoodsId() == goodsId).findFirst();
@@ -71,7 +73,7 @@ public class HandlerBuyGoodsReq extends PacketHandler {
                             buyGoodsReq.getShopType(),
                             player.getGoodsLimit(sg.getGoodsId()).getHasBoughtInPeriod(),
                             Stream.of(buyGoodsReq.getGoods())
-                                    .filter(x -> x.getGoodsId() == goodsId)
+//                                    .filter(x -> x.getGoodsId() == goodsId)
                                     .findFirst()
                                     .get()));
         }

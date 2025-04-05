@@ -10,7 +10,7 @@ public class PacketAvatarChangeCostumeNotify extends BasePacket {
         super(PacketOpcodes.AvatarChangeCostumeNotify);
 
         AvatarChangeCostumeNotify proto =
-                AvatarChangeCostumeNotify.newBuilder().setEntityInfo(entity.toProto()).build();
+            AvatarChangeCostumeNotify.newBuilder().setEntityInfo(entity.toProto()).build();
 
         this.setData(proto);
     }

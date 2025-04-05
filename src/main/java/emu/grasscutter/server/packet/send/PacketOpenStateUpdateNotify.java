@@ -6,6 +6,7 @@ import emu.grasscutter.game.player.*;
 import emu.grasscutter.net.packet.*;
 import emu.grasscutter.net.proto.OpenStateUpdateNotifyOuterClass.OpenStateUpdateNotify;
 
+import static emu.grasscutter.config.Configuration.GAME_INFO;
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
 
 /*
@@ -20,6 +21,10 @@ public class PacketOpenStateUpdateNotify extends BasePacket {
         OpenStateUpdateNotify.Builder proto = OpenStateUpdateNotify.newBuilder();
 
         GameData.getOpenStateList().stream().map(OpenStateData::getId).forEach(id -> {
+            if (GAME_INFO.enabledOpenStateAllMap) {
+                proto.putOpenStateMap(id, 1);   // 将所有OpenState的状态改为1 也就是全部打开 与/unlockall效果相同
+                proto.putOpenStateMap(48, 1);   // 把地图大边界状态改为0
+            }
             if ((id == 45) && !GAME_OPTIONS.resinOptions.resinUsage) {
                 proto.putOpenStateMap(45, 0);  // Remove resin from map
                 return;

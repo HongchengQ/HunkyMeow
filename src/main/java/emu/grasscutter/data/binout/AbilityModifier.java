@@ -56,6 +56,7 @@ public class AbilityModifier implements Serializable {
             AddChargeBarValue,
             AddClimateMeter,
             AddElementDurability,
+            AddHPDebts,
             AddGlobalValue,
             AddGlobalValueToTarget,
             AddRegionalPlayVarValue,
@@ -274,12 +275,12 @@ public class AbilityModifier implements Serializable {
 
         @SerializedName(
                 value = "amount",
-                alternate = {"LNFMOCKIAGK", "PDLLIFICICJ", "cdRatio"})
+                alternate = {"LNFMOCKIAGK", "PDLLIFICICJ", "LKDJMGOJHAH"})
         public DynamicFloat amount = DynamicFloat.ZERO;
 
         @SerializedName(
                 value = "amountByTargetCurrentHPRatio",
-                alternate = {"GMFELAKANEF"})
+                alternate = {"GMFELAKANEF", "KECHKKGGAPF"})
         public DynamicFloat amountByCasterAttackRatio = DynamicFloat.ZERO;
 
         @SerializedName(value = "unknown2")
@@ -287,7 +288,7 @@ public class AbilityModifier implements Serializable {
 
         @SerializedName(
                 value = "amountByCasterMaxHPRatio",
-                alternate = {"PKPBLCNMPIG", "HFNJHOGGFKB", "GEJGGCIOLKN"})
+                alternate = {"PKPBLCNMPIG", "HFNJHOGGFKB", "GEJGGCIOLKN", "MEEACMKOLJF", "OLMENJCGGJJ","EJGDELKANMO"})
         public DynamicFloat amountByCasterMaxHPRatio = DynamicFloat.ZERO;
 
         public DynamicFloat amountByGetDamage = DynamicFloat.ZERO;

@@ -57,13 +57,13 @@ public class EntityAvatar extends GameEntity {
             if (weapon != null) {
                 if (!(weapon.getWeaponEntity() != null && weapon.getWeaponEntity().getScene() == scene)) {
                     weapon.setWeaponEntity(
-                            new EntityWeapon(this.getPlayer().getScene(), weapon.getItemData().getGadgetId()));
+                        new EntityWeapon(this.getPlayer().getScene(), weapon.getItemData().getGadgetId()));
                     scene.getWeaponEntities().put(weapon.getWeaponEntity().getId(), weapon.getWeaponEntity());
                 }
             }
         } else {
             Grasscutter.getLogger()
-                    .error("Unable to create EntityAvatar instance; provided scene is null.");
+                .error("Unable to create EntityAvatar instance; provided scene is null.");
         }
 
         this.initAbilities();
@@ -113,9 +113,9 @@ public class EntityAvatar extends GameEntity {
     public void onDeath(int killerId) {
         super.onDeath(killerId); // Invoke super class's onDeath() method.
 
-        this.killedType = PlayerDieType.PLAYER_DIE_TYPE_KILL_BY_MONSTER;
+        this.killedType = PlayerDieType.PlayerDieType_PLAYER_DIE_KILL_BY_MONSTER;
         this.killedBy = killerId;
-        clearEnergy(ChangeEnergyReason.CHANGE_ENERGY_REASON_NONE);
+        clearEnergy(ChangeEnergyReason.ChangeEnergyReason_CHANGE_ENERGY_NONE);
     }
 
     public void onDeath(PlayerDieType dieType, int killerId) {
@@ -123,7 +123,7 @@ public class EntityAvatar extends GameEntity {
 
         this.killedType = dieType;
         this.killedBy = killerId;
-        clearEnergy(ChangeEnergyReason.CHANGE_ENERGY_REASON_NONE);
+        clearEnergy(ChangeEnergyReason.ChangeEnergyReason_CHANGE_ENERGY_NONE);
     }
 
     @Override
@@ -152,15 +152,15 @@ public class EntityAvatar extends GameEntity {
         float healed = super.heal(amount, mute);
         if (healed > 0f) {
             getScene()
-                    .broadcastPacket(
-                            new PacketEntityFightPropChangeReasonNotify(
-                                    this,
-                                    FightProperty.FIGHT_PROP_CUR_HP,
-                                    healed,
-                                    mute
-                                            ? PropChangeReason.PROP_CHANGE_REASON_NONE
-                                            : PropChangeReason.PROP_CHANGE_REASON_ABILITY,
-                                    ChangeHpReason.CHANGE_HP_REASON_ADD_ABILITY));
+                .broadcastPacket(
+                    new PacketEntityFightPropChangeReasonNotify(
+                        this,
+                        FightProperty.FIGHT_PROP_CUR_HP,
+                        healed,
+                        mute
+                            ? PropChangeReason.PropChangeReason_PROP_CHANGE_NONE
+                            : PropChangeReason.PropChangeReason_PROP_CHANGE_ABILITY,
+                        ChangeHpReason.ChangeHpReason_CHANGE_HP_ADD_ABILITY));
         }
 
         return healed;
@@ -182,10 +182,10 @@ public class EntityAvatar extends GameEntity {
         // Send packets.
         this.getScene().broadcastPacket(new PacketEntityFightPropUpdateNotify(this, curEnergyProp));
 
-        if (reason == ChangeEnergyReason.CHANGE_ENERGY_REASON_SKILL_START) {
+        if (reason == ChangeEnergyReason.ChangeEnergyReason_CHANGE_ENERGY_SKILL_START) {
             this.getScene()
-                    .broadcastPacket(
-                            new PacketEntityFightPropChangeReasonNotify(this, curEnergyProp, -curEnergy, reason));
+                .broadcastPacket(
+                    new PacketEntityFightPropChangeReasonNotify(this, curEnergyProp, -curEnergy, reason));
         }
     }
 
@@ -231,10 +231,10 @@ public class EntityAvatar extends GameEntity {
             this.avatar.setCurrentEnergy(curEnergyProp, newEnergy);
 
             this.getScene()
-                    .broadcastPacket(new PacketAvatarFightPropUpdateNotify(this.getAvatar(), curEnergyProp));
+                .broadcastPacket(new PacketAvatarFightPropUpdateNotify(this.getAvatar(), curEnergyProp));
             this.getScene()
-                    .broadcastPacket(
-                            new PacketEntityFightPropChangeReasonNotify(this, curEnergyProp, newEnergy, reason));
+                .broadcastPacket(
+                    new PacketEntityFightPropChangeReasonNotify(this, curEnergyProp, newEnergy, reason));
         }
     }
 
@@ -242,21 +242,21 @@ public class EntityAvatar extends GameEntity {
         val avatar = this.getAvatar();
         val player = this.getPlayer();
         SceneAvatarInfo.Builder avatarInfo =
-                SceneAvatarInfo.newBuilder()
-                        .setUid(player.getUid())
-                        .setAvatarId(avatar.getAvatarId())
-                        .setGuid(avatar.getGuid())
-                        .setPeerId(player.getPeerId())
-                        .addAllTalentIdList(avatar.getTalentIdList())
-                        .setCoreProudSkillLevel(avatar.getCoreProudSkillLevel())
-                        .putAllSkillLevelMap(avatar.getSkillLevelMap())
-                        .setSkillDepotId(avatar.getSkillDepotId())
-                        .addAllInherentProudSkillList(avatar.getProudSkillList())
-                        .putAllProudSkillExtraLevelMap(avatar.getProudSkillBonusMap())
-                        .addAllTeamResonanceList(player.getTeamManager().getTeamResonances())
-                        .setWearingFlycloakId(avatar.getFlyCloak())
-                        .setCostumeId(avatar.getCostume())
-                        .setBornTime(avatar.getBornTime());
+            SceneAvatarInfo.newBuilder()
+                .setUid(player.getUid())
+                .setAvatarId(avatar.getAvatarId())
+                .setGuid(avatar.getGuid())
+                .setPeerId(player.getPeerId())
+                .addAllTalentIdList(avatar.getTalentIdList())
+                .setCoreProudSkillLevel(avatar.getCoreProudSkillLevel())
+                .putAllSkillLevelMap(avatar.getSkillLevelMap())
+                .setSkillDepotId(avatar.getSkillDepotId())
+                .addAllInherentProudSkillList(avatar.getProudSkillList())
+                .putAllProudSkillExtraLevelMap(avatar.getProudSkillBonusMap())
+                .addAllTeamResonanceList(player.getTeamManager().getTeamResonances())
+                .setWearingFlycloakId(avatar.getFlyCloak())
+                .setCostumeId(avatar.getCostume())
+                .setBornTime(avatar.getBornTime());
 
         for (GameItem item : avatar.getEquips().values()) {
             if (item.getItemData().getEquipType() == EquipType.EQUIP_WEAPON) {
@@ -273,24 +273,26 @@ public class EntityAvatar extends GameEntity {
     @Override
     public SceneEntityInfo toProto() {
         EntityAuthorityInfo authority =
-                EntityAuthorityInfo.newBuilder()
-                        .setAbilityInfo(AbilitySyncStateInfo.newBuilder())
-                        .setRendererChangedInfo(EntityRendererChangedInfo.newBuilder())
-                        .setAiInfo(
-                                SceneEntityAiInfo.newBuilder().setIsAiOpen(true).setBornPos(Vector.newBuilder()))
-                        .setBornPos(Vector.newBuilder())
-                        .build();
+            EntityAuthorityInfo.newBuilder()
+                .setAbilityInfo(AbilitySyncStateInfo.newBuilder())
+                .setRendererChangedInfo(EntityRendererChangedInfo.newBuilder())
+                .setAiInfo(
+                    SceneEntityAiInfo.newBuilder().setIsAiOpen(true)
+//                        .setBornPos(Vector.newBuilder())  // 高版本没这个字段
+                )
+                .setBornPos(Vector.newBuilder())
+                .build();
 
         SceneEntityInfo.Builder entityInfo =
-                SceneEntityInfo.newBuilder()
-                        .setEntityId(getId())
-                        .setEntityType(ProtEntityType.PROT_ENTITY_TYPE_AVATAR)
-                        .addAnimatorParaList(AnimatorParameterValueInfoPair.newBuilder())
-                        .setEntityClientData(EntityClientData.newBuilder())
-                        .setEntityAuthorityInfo(authority)
-                        .setLastMoveSceneTimeMs(this.getLastMoveSceneTimeMs())
-                        .setLastMoveReliableSeq(this.getLastMoveReliableSeq())
-                        .setLifeState(this.getLifeState().getValue());
+            SceneEntityInfo.newBuilder()
+                .setEntityId(getId())
+                .setEntityType(ProtEntityType.ProtEntityType_PROT_ENTITY_AVATAR)
+                .addAnimatorParaList(AnimatorParameterValueInfoPair.newBuilder())
+                .setEntityClientData(EntityClientData.newBuilder())
+                .setEntityAuthorityInfo(authority)
+                .setLastMoveSceneTimeMs(this.getLastMoveSceneTimeMs())
+                .setLastMoveReliableSeq(this.getLastMoveReliableSeq())
+                .setLifeState(this.getLifeState().getValue());
 
         if (this.getScene() != null) {
             entityInfo.setMotionInfo(this.getMotionInfo());
@@ -299,11 +301,11 @@ public class EntityAvatar extends GameEntity {
         this.addAllFightPropsToEntityInfo(entityInfo);
 
         PropPair pair =
-                PropPair.newBuilder()
-                        .setType(PlayerProperty.PROP_LEVEL.getId())
-                        .setPropValue(
-                                ProtoHelper.newPropValue(PlayerProperty.PROP_LEVEL, getAvatar().getLevel()))
-                        .build();
+            PropPair.newBuilder()
+                .setType(PlayerProperty.PROP_LEVEL.getId())
+                .setPropValue(
+                    ProtoHelper.newPropValue(PlayerProperty.PROP_LEVEL, getAvatar().getLevel()))
+                .build();
         entityInfo.addPropList(pair);
 
         entityInfo.setAvatar(this.getSceneAvatarInfo());
@@ -320,45 +322,45 @@ public class EntityAvatar extends GameEntity {
         if (data.getAbilities() != null) {
             for (int id : data.getAbilities()) {
                 AbilityEmbryo emb =
-                        AbilityEmbryo.newBuilder()
-                                .setAbilityId(++embryoId)
-                                .setAbilityNameHash(id)
-                                .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
-                                .build();
+                    AbilityEmbryo.newBuilder()
+                        .setAbilityId(++embryoId)
+                        .setAbilityNameHash(id)
+                        .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
+                        .build();
                 abilityControlBlock.addAbilityEmbryoList(emb);
             }
         }
         // Add default abilities
         for (int id : GameConstants.DEFAULT_ABILITY_HASHES) {
             AbilityEmbryo emb =
-                    AbilityEmbryo.newBuilder()
-                            .setAbilityId(++embryoId)
-                            .setAbilityNameHash(id)
-                            .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
-                            .build();
+                AbilityEmbryo.newBuilder()
+                    .setAbilityId(++embryoId)
+                    .setAbilityNameHash(id)
+                    .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
+                    .build();
             abilityControlBlock.addAbilityEmbryoList(emb);
         }
         // Add team resonances
         for (int id : this.getPlayer().getTeamManager().getTeamResonancesConfig()) {
             AbilityEmbryo emb =
-                    AbilityEmbryo.newBuilder()
-                            .setAbilityId(++embryoId)
-                            .setAbilityNameHash(id)
-                            .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
-                            .build();
+                AbilityEmbryo.newBuilder()
+                    .setAbilityId(++embryoId)
+                    .setAbilityNameHash(id)
+                    .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
+                    .build();
             abilityControlBlock.addAbilityEmbryoList(emb);
         }
         // Add skill depot abilities
         AvatarSkillDepotData skillDepot =
-                GameData.getAvatarSkillDepotDataMap().get(this.getAvatar().getSkillDepotId());
+            GameData.getAvatarSkillDepotDataMap().get(this.getAvatar().getSkillDepotId());
         if (skillDepot != null && skillDepot.getAbilities() != null) {
             for (int id : skillDepot.getAbilities()) {
                 AbilityEmbryo emb =
-                        AbilityEmbryo.newBuilder()
-                                .setAbilityId(++embryoId)
-                                .setAbilityNameHash(id)
-                                .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
-                                .build();
+                    AbilityEmbryo.newBuilder()
+                        .setAbilityId(++embryoId)
+                        .setAbilityNameHash(id)
+                        .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
+                        .build();
                 abilityControlBlock.addAbilityEmbryoList(emb);
             }
         }
@@ -366,11 +368,11 @@ public class EntityAvatar extends GameEntity {
         if (this.getAvatar().getExtraAbilityEmbryos().size() > 0) {
             for (String skill : this.getAvatar().getExtraAbilityEmbryos()) {
                 AbilityEmbryo emb =
-                        AbilityEmbryo.newBuilder()
-                                .setAbilityId(++embryoId)
-                                .setAbilityNameHash(Utils.abilityHash(skill))
-                                .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
-                                .build();
+                    AbilityEmbryo.newBuilder()
+                        .setAbilityId(++embryoId)
+                        .setAbilityNameHash(Utils.abilityHash(skill))
+                        .setAbilityOverrideNameHash(GameConstants.DEFAULT_ABILITY_NAME)
+                        .build();
                 abilityControlBlock.addAbilityEmbryoList(emb);
             }
         }
@@ -389,8 +391,8 @@ public class EntityAvatar extends GameEntity {
     public void move(Position newPosition, Position rotation) {
         // Invoke player move event.
         PlayerMoveEvent event =
-                new PlayerMoveEvent(
-                        this.getPlayer(), PlayerMoveEvent.MoveType.PLAYER, this.getPosition(), newPosition);
+            new PlayerMoveEvent(
+                this.getPlayer(), PlayerMoveEvent.MoveType.PLAYER, this.getPosition(), newPosition);
         event.call();
 
         // Set position and rotation.

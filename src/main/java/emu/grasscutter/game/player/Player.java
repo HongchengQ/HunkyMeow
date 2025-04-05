@@ -3,8 +3,11 @@ package emu.grasscutter.game.player;
 import dev.morphia.annotations.*;
 import emu.grasscutter.*;
 import emu.grasscutter.data.GameData;
+import emu.grasscutter.data.common.PointsInfo;
+import emu.grasscutter.data.common.WeatherResult;
 import emu.grasscutter.data.excels.PlayerLevelData;
 import emu.grasscutter.data.excels.world.WeatherData;
+import emu.grasscutter.database.Database;
 import emu.grasscutter.database.DatabaseHelper;
 import emu.grasscutter.game.*;
 import emu.grasscutter.game.ability.AbilityManager;
@@ -49,30 +52,39 @@ import emu.grasscutter.net.proto.SocialDetailOuterClass.SocialDetail;
 import emu.grasscutter.plugin.api.PlayerHook;
 import emu.grasscutter.scripts.ScriptLoader;
 import emu.grasscutter.scripts.data.SceneRegion;
+import emu.grasscutter.scripts.data.SceneWeatherAreas;
 import emu.grasscutter.server.event.player.*;
 import emu.grasscutter.server.game.*;
 import emu.grasscutter.server.game.GameSession.SessionState;
 import emu.grasscutter.server.packet.send.*;
 import emu.grasscutter.utils.*;
 import emu.grasscutter.utils.helpers.DateHelper;
-import emu.grasscutter.utils.objects.FieldFetch;
+import emu.grasscutter.utils.objects.*;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static emu.grasscutter.config.Configuration.SERVER;
 import static emu.grasscutter.config.Configuration.GAME_OPTIONS;
+import static emu.grasscutter.game.player.GlobalOnlinePlayer.getAllOnlinePlayers;
+import static emu.grasscutter.utils.RandomName.giveName;
+import static it.unimi.dsi.fastutil.BigArrays.incrementAndGet;
 
 @Entity(value = "players", useDiscriminator = false)
-public class Player implements PlayerHook, FieldFetch {
+public class Player implements DatabaseObject<Player>, PlayerHook, FieldFetch, Cloneable {
     @Id private int id;
     @Indexed(options = @IndexOptions(unique = true))
     @Getter private String accountId;
     @Setter private transient Account account;
     @Getter @Setter private transient GameSession session;
     @Transient private String sessionKey;
+    @Getter @Indexed private int dataVersion;
 
     @Getter private String nickname;
     @Getter private String signature;
@@ -156,7 +168,7 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter private transient PlayerProgressManager progressManager;
     @Getter private transient SatiationManager satiationManager;
     @Getter private transient TalkManager talkManager;
-
+    @Getter @Setter private transient SceneBuildStorage sceneBuilds;
     @Getter @Setter private transient Position lastCheckedPosition = null;
 
     // Manager data (Save-able to the database)
@@ -181,6 +193,8 @@ public class Player implements PlayerHook, FieldFetch {
     @Transient @Getter @Setter private SceneLoadState sceneLoadState = SceneLoadState.NONE;
     @Transient private boolean hasSentLoginPackets;
     @Transient private long nextSendPlayerLocTime = 0;
+    @Transient private long nextSendWeatherTime = 0;
+    @Transient private long nextSendPlayerLocTimeOnline = 0;
     @Getter private transient final Int2ObjectMap<EnterHomeRequest> enterHomeRequests;
 
     private transient final Int2ObjectMap<CoopRequest> coopRequests;  // Synchronized getter
@@ -194,7 +208,7 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter @Setter private int nextResinRefresh;
     @Getter @Setter private int resinBuyCount;
     @Getter @Setter private int lastDailyReset;
-    @Getter private transient MpSettingType mpSetting = MpSettingType.MP_SETTING_TYPE_ENTER_AFTER_APPLY;
+    @Getter final private transient MpSettingType mpSetting = MpSettingType.MpSettingType_MP_SETTING_ENTER_AFTER_APPLY;
     @Getter private long playerGameTime = 540000; // 9 in-game hours. Present at the start of the game.
 
     @Getter private PlayerProgress playerProgress;
@@ -203,6 +217,18 @@ public class Player implements PlayerHook, FieldFetch {
     @Getter @Setter private ElementType mainCharacterElement = ElementType.None;
 
     @Getter @Setter private Map<Integer, CityInfoData> cityInfoData; // cityId -> CityData
+
+    public boolean isNewAccountEnterGame = true;        // 是否第一次进入世界
+    public String playerLastBuildConfigGitHash = null;  // 玩家最后一次进入游戏时服务端的GitHash
+
+    // 玩家最后记录的坐标位置
+    private double lastPlayerX = 0;
+    private double lastPlayerY = 0;
+    private double lastPlayerZ = 0;
+
+    @Getter private float phlogistonValue = 100.0f; // 燃素值
+
+    @Transient @Getter private final GlobalOnlinePlayer globalOnlinePlayer = new GlobalOnlinePlayer(this);
 
     @Deprecated
     @SuppressWarnings({"rawtypes", "unchecked"}) // Morphia only!
@@ -282,6 +308,7 @@ public class Player implements PlayerHook, FieldFetch {
         this.cookingCompoundManager = new CookingCompoundManager(this);
         this.satiationManager = new SatiationManager(this);
         this.talkManager = new TalkManager(this);
+        this.sceneBuilds = new SceneBuildStorage();
     }
 
     // On player creation
@@ -291,7 +318,7 @@ public class Player implements PlayerHook, FieldFetch {
         this.account = session.getAccount();
         this.accountId = this.getAccount().getId();
         this.session = session;
-        this.nickname = "Traveler";
+        this.nickname = giveName();
         this.signature = "";
         this.teamManager = new TeamManager(this);
         this.birthday = new PlayerBirthday();
@@ -407,6 +434,15 @@ public class Player implements PlayerHook, FieldFetch {
         this.session.send(new PacketSceneAreaWeatherNotify(this));
     }
 
+    public void setPhlogistonValue(float value) {
+        if (value < 0) value = 0;
+        else if (value > 100) value = 100;
+
+        if (value == this.phlogistonValue) return;
+
+        this.phlogistonValue = value;
+    }
+
     public synchronized void setWeather(int weather) {
         this.setWeather(weather, ClimateType.CLIMATE_NONE);
     }
@@ -423,6 +459,111 @@ public class Player implements PlayerHook, FieldFetch {
         this.climate = climate;
         this.session.send(new PacketSceneAreaWeatherNotify(this));
     }
+
+    /**
+     * 射线法
+     *
+     * @param points 多边形点位
+     * @return 是否在目标点位内
+     */
+    public boolean isPointInPolygon(List<PointsInfo> points) {
+        int intersectCount = 0;
+        double x = this.position.getX();
+        double y = this.position.getZ();
+
+        for (int i = 0; i < points.size(); i++) {
+            PointsInfo p1 = points.get(i);
+            PointsInfo p2 = points.get((i + 1) % points.size());
+
+            // 检查点是否位于水平线段上
+            if (y > Math.min(p1.y, p2.y) && y <= Math.max(p1.y, p2.y) && x <= Math.max(p1.x, p2.x)) {
+                if (p1.y != p2.y) {
+                    double xinters = (y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y) + p1.x;
+                    if (p1.x == p2.x || x <= xinters) {
+                        intersectCount++;
+                    }
+                }
+            }
+        }
+        return (intersectCount % 2) != 0;
+    }
+
+    /**
+     * 查找玩家在哪些区域
+     *
+     * @return 符合条件的区域
+     */
+    public List<WeatherData> findWeatherDataForPlayerPosition() {
+        List<WeatherData> result = new ArrayList<>();
+
+        // 遍历所有的 WeatherAreaData 对象
+        List<SceneWeatherAreas> areas = SceneWeatherAreas.SceneWeatherAreasall(sceneId);
+        for (SceneWeatherAreas areaData : areas) {
+            List<PointsInfo> points = areaData.getPoints();         // json中的点位
+            boolean useHeightBorder = areaData.isUseHeightBorder(); // 是否使用高度边界
+            float bottom = areaData.getBottom();                    // 点位最低点
+            float top = areaData.getTop();                          // 点位最高点
+
+            float Y = this.position.getY();                         // 玩家高度
+            boolean isInside = isPointInPolygon(points);            // 是否在目标点位内
+
+            if (isInside) {
+                // 判断是否使用高度边界
+                if (useHeightBorder) {
+                    // 判断玩家高度是否在这两个值之间
+                    if (Y >= bottom && Y <= top) {
+                        Grasscutter.getLogger().debug("玩家在天气区域 {} 内，高度符合要求", areaData.getId());
+                        addMatchingWeatherData(result, areaData.getId());   // 根据匹配的 areaId 找到对应的 WeatherData
+                    }
+                } else {
+                    // 如果不存在 bottom 和 top 字段，则只考虑点是否在区域内
+                    Grasscutter.getLogger().debug("玩家在天气区域 {} 内，无高度要求", areaData.getId());
+                    addMatchingWeatherData(result, areaData.getId());   // 根据匹配的 areaId 找到对应的 WeatherData
+                }
+            }
+        }
+        return result; // 返回所有匹配到的 WeatherData 对象
+    }
+
+    /**
+     * 根据区域 ID 添加匹配的 WeatherData
+     *
+     * @param result 结果列表
+     * @param areaId 区域 ID
+     */
+    private void addMatchingWeatherData(List<WeatherData> result, int areaId) {
+        for (WeatherData data : GameData.getWeatherDataMap().values()) {
+            if (data.getWeatherAreaId() == areaId) {
+                result.add(data);
+            }
+        }
+    }
+
+    /**
+     *
+     * @return 优先度最高的天气id和气候类型
+     */
+    public WeatherResult getOptimalWeatherData() {
+        List<WeatherData> result = findWeatherDataForPlayerPosition(); // 获取所有符合条件的 WeatherData 对象
+
+        if (result.isEmpty()) {
+            return null; // 如果没有符合条件的结果返回 null
+        }
+
+        WeatherData optimalData = null;
+        for (WeatherData data : result) {
+            if (optimalData == null) {
+                // 首次迭代直接选择当前数据
+                optimalData = data;
+            } else if (data.getPriority() > optimalData.getPriority()) {    // 选择优先级最高的
+                optimalData = data;
+            }
+        }
+
+        return new WeatherResult(optimalData.getAreaID(), optimalData.getDefaultClimate());
+    }
+
+
 
     /**
      * Sets the player's weather and climate.
@@ -573,16 +714,13 @@ public class Player implements PlayerHook, FieldFetch {
         this.setOrFetch(PlayerProperty.PROP_PLAYER_LEVEL, 1);
         this.setOrFetch(PlayerProperty.PROP_IS_SPRING_AUTO_USE, 1);
         this.setOrFetch(PlayerProperty.PROP_SPRING_AUTO_USE_PERCENT, 50);
-        this.setOrFetch(PlayerProperty.PROP_IS_FLYABLE,
-            withQuesting ? 0 : 1);
-        this.setOrFetch(PlayerProperty.PROP_PLAYER_CAN_DIVE,
-                withQuesting ? 0 : 1);
+        this.setOrFetch(PlayerProperty.PROP_IS_FLYABLE,1);// 默认开启飞行
+        this.setOrFetch(PlayerProperty.PROP_PLAYER_CAN_DIVE,1);// 默认开启潜水
         this.setOrFetch(PlayerProperty.PROP_IS_TRANSFERABLE, 1);
-        this.setOrFetch(PlayerProperty.PROP_MAX_STAMINA,
-            withQuesting ? 10000 : 24000);
+        this.setOrFetch(PlayerProperty.PROP_MAX_STAMINA,24000);// 默认体力
         this.setOrFetch(PlayerProperty.PROP_DIVE_MAX_STAMINA,
                 withQuesting ? 10000 : 0);
-        this.setOrFetch(PlayerProperty.PROP_PLAYER_RESIN, 160);
+        this.setOrFetch(PlayerProperty.PROP_PLAYER_RESIN, 200);
 
         // The player's current stamina is always their max stamina.
         this.setProperty(PlayerProperty.PROP_CUR_PERSIST_STAMINA,
@@ -690,15 +828,16 @@ public class Player implements PlayerHook, FieldFetch {
         int currentLevel = this.getLevel();
 
         int newWorldLevel =
-            (currentLevel >= 55) ? 8 :
-                (currentLevel >= 50) ? 7 :
-                    (currentLevel >= 45) ? 6 :
-                        (currentLevel >= 40) ? 5 :
-                            (currentLevel >= 35) ? 4 :
-                                (currentLevel >= 30) ? 3 :
-                                    (currentLevel >= 25) ? 2 :
-                                        (currentLevel >= 20) ? 1 :
-                                            0;
+            (currentLevel >= 58) ? 9 :
+                (currentLevel >= 55) ? 8 :
+                    (currentLevel >= 50) ? 7 :
+                        (currentLevel >= 45) ? 6 :
+                            (currentLevel >= 40) ? 5 :
+                                (currentLevel >= 35) ? 4 :
+                                    (currentLevel >= 30) ? 3 :
+                                        (currentLevel >= 25) ? 2 :
+                                            (currentLevel >= 20) ? 1 :
+                                                0;
 
         if (newWorldLevel != currentWorldLevel) {
             this.setWorldLevel(newWorldLevel);
@@ -1070,8 +1209,12 @@ public class Player implements PlayerHook, FieldFetch {
             .setMpSettingType(this.getMpSetting())
             .setNameCardId(this.getNameCardId())
             .setSignature(this.getSignature())
-            .setProfilePicture(ProfilePicture.newBuilder().setAvatarId(this.getHeadImage()));
+            .setProfilePicture(ProfilePicture.newBuilder().setProfilePictureId(this.getHeadImage()));
 
+        // 先注释这里 因为登录时会 Cannot read field "nodeRegion" because "gop" is null
+//        if (!GlobalOnlinePlayer.checkIsCurrNode(this.getUid())) {
+//            onlineInfo.setCurPlayerNumInWorld(999);
+//        }
         if (this.getWorld() != null) {
             onlineInfo.setCurPlayerNumInWorld(getWorld().getPlayerCount());
         } else {
@@ -1125,7 +1268,7 @@ public class Player implements PlayerHook, FieldFetch {
 
         return SocialDetail.newBuilder()
             .setUid(this.getUid())
-            .setProfilePicture(ProfilePicture.newBuilder().setAvatarId(this.getHeadImage()))
+            .setProfilePicture(ProfilePicture.newBuilder().setProfilePictureId(this.getHeadImage()))
             .setNickname(this.getNickname())
             .setSignature(this.getSignature())
             .setLevel(this.getLevel())
@@ -1217,7 +1360,7 @@ public class Player implements PlayerHook, FieldFetch {
         req.getRequester().sendPacket(new PacketPlayerApplyEnterMpResultNotify(
             this,
             false,
-            PlayerApplyEnterMpResultNotifyOuterClass.PlayerApplyEnterMpResultNotify.Reason.REASON_SYSTEM_JUDGE));
+            ReasonOuterClass.Reason.Reason_SYSTEM_JUDGE));
         return true;
     }
 
@@ -1236,7 +1379,7 @@ public class Player implements PlayerHook, FieldFetch {
         return true;
     }
 
-    public synchronized void onTick() {
+    public void onTick() {
         // Check ping
         if (this.getLastPingTime() > System.currentTimeMillis() + 60000) {
             this.getSession().close();
@@ -1250,6 +1393,10 @@ public class Player implements PlayerHook, FieldFetch {
         this.getBuffManager().onTick();
         // Ping
         if (this.getWorld() != null) {
+            double currentPlayerX = this.position.getX();
+            double currentPlayerY = this.position.getY();
+            double currentPlayerZ = this.position.getZ();
+
             // RTT notify - very important to send this often
             this.sendPacket(new PacketWorldPlayerRTTNotify(this.getWorld()));
 
@@ -1259,6 +1406,20 @@ public class Player implements PlayerHook, FieldFetch {
                 this.sendPacket(new PacketWorldPlayerLocationNotify(this.getWorld()));
                 this.sendPacket(new PacketScenePlayerLocationNotify(this.getScene()));
                 this.resetSendPlayerLocTime();
+            }
+
+            // 更新玩家在全局数据库的在线信息
+            if (this.getScene() != null && time > nextSendPlayerLocTimeOnline) {
+                this.getGlobalOnlinePlayer().updatePlayerGlobalOnlineInfo(this);
+                this.resetSendPlayerLocTimeOnline();
+            }
+
+            // 玩家移动时 每5秒发一次天气更新包
+            if (this.getScene() != null && time > nextSendWeatherTime &&
+                (currentPlayerX != lastPlayerX || currentPlayerY != lastPlayerY || currentPlayerZ != lastPlayerZ)) {
+                    this.sendPacket(new PacketSceneAreaWeatherNotify(this.getPlayer()));
+                    this.resetSendWeatherTime();  // 更新天气信息的时间
+                    lastPlayerX = currentPlayerX; lastPlayerY = currentPlayerY; lastPlayerZ = currentPlayerZ;
             }
         }
 
@@ -1334,6 +1495,14 @@ public class Player implements PlayerHook, FieldFetch {
         this.nextSendPlayerLocTime = System.currentTimeMillis() + 5000;
     }
 
+    public void resetSendWeatherTime() {
+        this.nextSendWeatherTime = System.currentTimeMillis() + 5000;
+    }
+
+    public void resetSendPlayerLocTimeOnline() {
+        this.nextSendPlayerLocTimeOnline = System.currentTimeMillis() + 5000;
+    }
+
     @PostLoad
     private void onLoad() {
         this.getCodex().setPlayer(this);
@@ -1341,8 +1510,39 @@ public class Player implements PlayerHook, FieldFetch {
         this.getTeamManager().setPlayer(this);
     }
 
+    @Override
+    public int getObjectPlayerUid() {
+        return this.id;
+    }
+
+    @Override
+    public synchronized int updateDataVersion() {
+        return dataVersion++;
+    }
+
+    /**
+     * Saves this object to the database.
+     */
     public void save() {
-        DatabaseHelper.savePlayer(this);
+        this.deferSave(this);
+    }
+
+//    @Override
+//    public DatabaseObject<Player> clone() throws CloneNotSupportedException {
+//        return  (DatabaseObject<Player>) super.clone();
+//    }
+
+    /**
+     * Saves this object to the database.
+     *
+     */
+    public void save(boolean immediate) {
+        if (immediate) {
+//            DatabaseObject.super.save();
+            Database.handlePlayerOffline(this);
+        } else {
+            this.save();
+        }
     }
 
     // Called from tokenrsp
@@ -1379,6 +1579,14 @@ public class Player implements PlayerHook, FieldFetch {
         this.getPlayerProgress().setPlayer(this); // Add reference to the player.
     }
 
+    /**
+     * Invoked when the player selects their avatar.
+     */
+    public void onPlayerBorn() {
+        Grasscutter.getThreadPool().submit(
+            this.getQuestManager()::onPlayerBorn);
+    }
+
     public void onLogin() {
         // Quest - Commented out because a problem is caused if you log out while this quest is active
         /*
@@ -1393,6 +1601,8 @@ public class Player implements PlayerHook, FieldFetch {
             this.getPos().set(GameConstants.START_POSITION);
         }
         */
+
+        this.getSceneBuilds().loadFromDatabase(this);
 
         // Ensure the player has valid scenetags, allows old accounts to work
         if (this.getSceneTags().isEmpty() || this.getSceneTags() == null) {
@@ -1431,7 +1641,11 @@ public class Player implements PlayerHook, FieldFetch {
         this.getProgressManager().onPlayerLogin();
 
         session.send(new PacketFinishedParentQuestNotify(this));
-        session.send(new PacketBattlePassAllDataNotify(this));
+
+        // 只在dev环境显示纪行 (目前纪行没有完全修好 会卡住 所以干脆直接让客户端屏蔽了)
+        // 注意 第一次进入游戏时不会走到这里 而是 BattlePassCurScheduleUpdateNotify
+        if (SERVER.isDevServer) session.send(new PacketBattlePassAllDataNotify(this));
+
         session.send(new PacketQuestListNotify(this));
         session.send(new PacketQuestGlobalVarNotify(this));
         session.send(new PacketCodexDataFullNotify(this));
@@ -1487,11 +1701,18 @@ public class Player implements PlayerHook, FieldFetch {
 
     public void onLogout() {
         try {
+            // 销毁 sotsManager 线程
+            sotsManager.destroyTimerThread();
+
+            // 删除玩家在全局在线数据库的记录
+            GlobalOnlinePlayer.removeNotOnlinePlayer(this.getUid());
+
             // Clear chat history.
             this.getServer().getChatSystem().clearHistoryOnLogout(this);
 
             // stop stamina calculation
             getStaminaManager().stopSustainedStaminaHandler();
+            getStaminaManager().clearStaminaExecutor();
 
             // force to leave the dungeon (inside has a "if")
             this.getServer().getDungeonSystem().exitDungeon(this);
@@ -1509,16 +1730,14 @@ public class Player implements PlayerHook, FieldFetch {
             this.getEnterHomeRequests().clear();
 
             // Save to db
-            this.save();
+            this.save(true);
             this.getTeamManager().saveAvatars();
             this.getFriendsList().save();
 
             // Call quit event.
-            PlayerQuitEvent event = new PlayerQuitEvent(this);
-            event.call();
+            new PlayerQuitEvent(this).call();
         } catch (Throwable e) {
-            e.printStackTrace();
-            Grasscutter.getLogger().warn("Player (UID {}) save failure", getUid());
+            Grasscutter.getLogger().error("玩家 (UID {}) 执行Logout失败.", this.getUid(), e);
         } finally {
             removeFromServer();
         }
@@ -1553,7 +1772,7 @@ public class Player implements PlayerHook, FieldFetch {
     }
 
     public void unfreezeUnlockedScenePoints() {
-        unlockedScenePoints.keySet().forEach(sceneId -> unfreezeUnlockedScenePoints(sceneId));
+        unlockedScenePoints.keySet().forEach(this::unfreezeUnlockedScenePoints);
     }
 
     public int getLegendaryKey() {
@@ -1609,32 +1828,76 @@ public class Player implements PlayerHook, FieldFetch {
 
         var min = this.getPropertyMin(prop);
         var max = this.getPropertyMax(prop);
-        if (min <= value && value <= max) {
-            this.properties.put(prop.getId(), value);
-            if (sendPacket) {
-                // Send property change reasons if needed.
-                switch (prop) {
-                    case PROP_PLAYER_EXP -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
-                        PropChangeReason.PROP_CHANGE_REASON_PLAYER_ADD_EXP));
-                    case PROP_PLAYER_LEVEL -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
-                        PropChangeReason.PROP_CHANGE_REASON_LEVELUP));
-                    case PROP_MAX_STAMINA -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
-                        PropChangeReason.PROP_CHANGE_REASON_CITY_LEVELUP));
+        if (min > value || value > max) {
+            return false;
+        }
+        this.properties.put(prop.getId(), value);
+        if (sendPacket) {
+            // Send property change reasons if needed.
+            switch (prop) {
+                case PROP_PLAYER_EXP -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
+                    PropChangeReason.PropChangeReason_PROP_CHANGE_PLAYER_ADD_EXP));
+                case PROP_PLAYER_LEVEL -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
+                    PropChangeReason.PropChangeReason_PROP_CHANGE_LEVELUP));
+                case PROP_MAX_STAMINA -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
+                    PropChangeReason.PropChangeReason_PROP_CHANGE_CITY_LEVELUP));
 
                     // TODO: Handle world level changing.
                     // case PROP_PLAYER_WORLD_LEVEL -> this.sendPacket(new PacketPlayerPropChangeReasonNotify(this, prop, currentValue, value,
-                    //     PropChangeReason.PROP_CHANGE_REASON_MANUAL_ADJUST_WORLD_LEVEL));
+                    //     PropChangeReason.PropChangeReason_PROP_CHANGE_MANUAL_ADJUST_WORLD_LEVEL));
                 }
 
-                // Update player with packet.
-                this.sendPacket(new PacketPlayerPropNotify(this, prop));
-                this.sendPacket(new PacketPlayerPropChangeNotify(this, prop, value - currentValue));
-            }
-            return true;
-        } else {
-            return false;
+            // Update player with packet.
+            this.sendPacket(new PacketPlayerPropNotify(this, prop));
+            this.sendPacket(new PacketPlayerPropChangeNotify(this, prop, value - currentValue));
         }
+
+        return true;
     }
+
+    /**
+     * 通过 uid 返回 Player 对象
+     * 包括离线玩家
+     */
+    @Nullable
+    public static Player getDBPlayerByUid(int id) {
+        // Console check
+        if (id == GameConstants.SERVER_CONSOLE_UID) {
+            return null;
+        }
+
+        // Check database if character isnt here
+        return DatabaseHelper.getPlayerByUid(id);
+    }
+
+    /**
+     * 通过 uid 检查玩家是否在线
+     */
+    public static boolean checkIsOnlineByUid(int uid) {
+        return GlobalOnlinePlayer.checkIsOnline(uid);
+    }
+
+    /**
+     * 获取所有服务器在线玩家
+     */
+    public static Map<Integer, Player> getAllOnlinePlayersMap() {
+        long currTime = System.currentTimeMillis();                     // 记录函数开始执行时间
+        List<Integer> allOnlinePlayers = getAllOnlinePlayers();         // 所有在线玩家的uid表
+        int playersCount = allOnlinePlayers.size();                     // 所有在线玩家的数量
+        Map<Integer, Player> playersMap = new HashMap<>(playersCount);  // 最终要返回的map (K: Uid, V: Player对象)
+
+        for (int uid : allOnlinePlayers) {
+            Player player = getDBPlayerByUid(uid);
+            if (player != null) {
+                playersMap.put(uid, player);
+            }
+        }
+
+        Grasscutter.getLogger().info("Player.getAllOnlinePlayersMap() 获取到 {} 个对象 执行耗时: {}ms",
+            playersCount, System.currentTimeMillis() - currTime); // 先记录一下执行耗时 如果耗时比较长后面再优化
+        return playersMap;
+    }
+
 
     @Override
     public boolean equals(Object obj) {
@@ -1648,10 +1911,10 @@ public class Player implements PlayerHook, FieldFetch {
                 .formatted(this.id, this.nickname, this.account);
     }
 
+    @Getter
     public enum SceneLoadState {
         NONE(0), LOADING(1), INIT(2), LOADED(3);
 
-        @Getter
         private final int value;
 
         SceneLoadState(int value) {

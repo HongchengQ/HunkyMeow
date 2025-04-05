@@ -49,7 +49,7 @@ public final class SpawnCommand implements CommandHandler {
         parseIntParameters(args, param, intCommandHandlers);
 
         // At this point, first remaining argument MUST be the id and the rest the pos
-        if (args.size() < 1) {
+        if (args.isEmpty()) {
             sendUsageMessage(sender); // Reachable if someone does `/give lv90` or similar
             throw new IllegalArgumentException();
         }
@@ -99,6 +99,12 @@ public final class SpawnCommand implements CommandHandler {
 
         param.scene = targetPlayer.getScene();
 
+        int onetimeMaxAmount = 5;
+        if (param.amount > onetimeMaxAmount) {
+            CommandHandler.sendMessage(sender, "一次性生成数量过多 最多生成数量: " + onetimeMaxAmount);
+            param.amount = onetimeMaxAmount;
+        }
+
         if (param.scene.getEntities().size() + param.amount > GAME_OPTIONS.sceneEntityLimit) {
             param.amount =
                     Math.max(
@@ -122,6 +128,13 @@ public final class SpawnCommand implements CommandHandler {
             if (gadgetData != null) {
                 pos.addY(-3);
                 entity = createGadget(gadgetData, param, pos, targetPlayer);
+
+                applyCommonParameters(entity, param);
+                param.scene.addEntity(entity);
+                param.scene.removeEntityXSecondsLater(entity, 10);
+
+                CommandHandler.sendMessage(sender, "生成物将在10秒后自动删除");
+                continue;
             }
             if (monsterData != null) {
                 entity = createMonster(monsterData, param, pos);
@@ -200,7 +213,7 @@ public final class SpawnCommand implements CommandHandler {
     private static class SpawnParameters {
         @Setter public int id;
         @Setter public int lvl = 1;
-        @Setter public int amount = 1;
+        @Setter public int amount = 1;  // 生成数量
         @Setter public int blockId = -1;
         @Setter public int groupId = -1;
         @Setter public int configId = -1;

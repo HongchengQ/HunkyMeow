@@ -1,0 +1,1 @@
+java -jar grasscutter-1.7.4.jar -debug

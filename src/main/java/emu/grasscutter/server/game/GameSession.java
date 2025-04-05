@@ -3,22 +3,28 @@ package emu.grasscutter.server.game;
 import static emu.grasscutter.config.Configuration.*;
 import static emu.grasscutter.utils.lang.Language.translate;
 
+import com.google.protobuf.Message;
 import emu.grasscutter.Grasscutter;
-import emu.grasscutter.Grasscutter.ServerDebugMode;
 import emu.grasscutter.game.Account;
 import emu.grasscutter.game.player.Player;
+import emu.grasscutter.net.IKcpSession;
 import emu.grasscutter.net.packet.*;
 import emu.grasscutter.server.event.game.SendPacketEvent;
+import emu.grasscutter.server.packet.send.PacketAntiAddictNotify;
 import emu.grasscutter.utils.*;
 import io.netty.buffer.*;
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
-import lombok.*;
 
-public class GameSession implements GameSessionManager.KcpChannel {
-    private final GameServer server;
-    private GameSessionManager.KcpTunnel tunnel;
+import java.net.InetSocketAddress;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.*;
+import org.slf4j.Logger;
+
+public class GameSession implements IGameSession {
+    @Getter private final GameServer server;
+    private IKcpSession session;
 
     @Getter @Setter private Account account;
     @Getter private Player player;
@@ -33,8 +39,14 @@ public class GameSession implements GameSessionManager.KcpChannel {
     @Getter private long lastPingTime;
     private int lastClientSeq = 10;
 
-    public GameSession(GameServer server) {
+    private final AtomicInteger RecvPacketCount = new AtomicInteger(0);
+
+    private Timer recvPacketResetTimer;
+
+    public GameSession(GameServer server, IKcpSession session) {
         this.server = server;
+        this.session = session;
+
         this.state = SessionState.WAITING_FOR_TOKEN;
         this.lastPingTime = System.currentTimeMillis();
 
@@ -42,26 +54,31 @@ public class GameSession implements GameSessionManager.KcpChannel {
             this.encryptKey = new byte[4096];
             this.encryptSeed = Crypto.generateEncryptKeyAndSeed(this.encryptKey);
         }
+
+        /* 每x秒重置计数器 */
+        this.recvPacketResetTimer = new Timer(true);
+        this.recvPacketResetTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                RecvPacketCount.set(0);
+            }
+        }, 1000, GameOptions.recvPacketOptions.recvPacketCheckIntervalTime);   // 第一个参数为启动延时 第二个参数为计时器时间
     }
 
-    public GameServer getServer() {
-        return server;
+    public void incrementRecvPacketCounter() {
+        RecvPacketCount.incrementAndGet();
+    }
+
+    public int getRecvPacketCount() {
+        return RecvPacketCount.get();
     }
 
     public InetSocketAddress getAddress() {
-        try {
-            return tunnel.getAddress();
-        } catch (Throwable ignore) {
-            return null;
-        }
+        return this.session.getAddress();
     }
 
-    public boolean useSecretKey() {
-        return useSecretKey;
-    }
-
-    public String getAccountId() {
-        return this.getAccount().getId();
+    public Logger getLogger() {
+        return this.session.getLogger();
     }
 
     public synchronized void setPlayer(Player player) {
@@ -83,30 +100,39 @@ public class GameSession implements GameSessionManager.KcpChannel {
         return ++lastClientSeq;
     }
 
-    public void replayPacket(int opcode, String name) {
-        Path filePath = FileUtils.getPluginPath(name);
-        File p = filePath.toFile();
-
-        if (!p.exists()) return;
-
-        byte[] packet = FileUtils.read(p);
-
-        BasePacket basePacket = new BasePacket(opcode);
-        basePacket.setData(packet);
-
-        send(basePacket);
-    }
-
+    // 收包日志
     public void logPacket(String sendOrRecv, int opcode, byte[] payload) {
-        Grasscutter.getLogger()
-                .info(sendOrRecv + ": " + PacketOpcodesUtils.getOpcodeName(opcode) + " (" + opcode + ")");
-        if (GAME_INFO.isShowPacketPayload) System.out.println(Utils.bytesToHex(payload));
+        this.session.getLogger().info("{}: {} ({})", sendOrRecv, PacketOpcodesUtils.getOpcodeName(opcode), opcode);
+        if (GAME_INFO.isShowPacketPayload) this.session.getLogger().info(Utils.bytesToHex(payload));
     }
+
+    // 发包日志
+    public void logPacket(String sendOrRecv, int opcode, Message message, byte[] payload) {
+        if (payload == null || !GAME_INFO.isShowPacketPayload) {
+            // 只显示 sendOrRecv + 包名 + cmdId
+            this.session.getLogger().info("{}: {} ({}) ", sendOrRecv, PacketOpcodesUtils.getOpcodeName(opcode), opcode);
+            return;
+        } else if (message == null) {
+            // 显示 sendOrRecv + 包名 + cmdId + payload
+            this.session.getLogger().info("{}: {} ({})\n{}",
+                sendOrRecv, PacketOpcodesUtils.getOpcodeName(opcode), opcode, Utils.bytesToHex(payload));
+            return;
+        }
+
+        // 显示 sendOrRecv + 包名 + cmdId + message + payload
+        this.session.getLogger().info("{}: {} ({})\n{}{}",
+            sendOrRecv, PacketOpcodesUtils.getOpcodeName(opcode), opcode, message, Utils.bytesToHex(payload));
+    }
+
 
     public void send(BasePacket packet) {
+        if (this.session == null) {
+            Grasscutter.getLogger().debug("发送数据包失败 因为session为空");
+            return;
+        }
         // Test
         if (packet.getOpcode() <= 0) {
-            Grasscutter.getLogger().warn("Tried to send packet with missing cmd id!");
+            this.session.getLogger().warn("Attempted to send packet with unknown ID!");
             return;
         }
 
@@ -120,17 +146,17 @@ public class GameSession implements GameSessionManager.KcpChannel {
             case ALL -> {
                 if (!PacketOpcodesUtils.LOOP_PACKETS.contains(packet.getOpcode())
                         || GAME_INFO.isShowLoopPackets) {
-                    logPacket("SEND", packet.getOpcode(), packet.getData());
+                    logPacket("SEND", packet.getOpcode(), packet.getMessage(), packet.getData());
                 }
             }
             case WHITELIST -> {
                 if (SERVER.debugWhitelist.contains(packet.getOpcode())) {
-                    logPacket("SEND", packet.getOpcode(), packet.getData());
+                    logPacket("SEND", packet.getOpcode(), packet.getMessage(), packet.getData());
                 }
             }
             case BLACKLIST -> {
                 if (!SERVER.debugBlacklist.contains(packet.getOpcode())) {
-                    logPacket("SEND", packet.getOpcode(), packet.getData());
+                    logPacket("SEND", packet.getOpcode(), packet.getMessage(), packet.getData());
                 }
             }
             default -> {}
@@ -143,33 +169,44 @@ public class GameSession implements GameSessionManager.KcpChannel {
             try {
                 packet = event.getPacket();
                 var bytes = packet.build();
-                if (packet.shouldEncrypt) {
+                if (packet.shouldEncrypt && Grasscutter.getConfig().server.game.useXorEncryption) {
                     Crypto.xor(bytes, packet.useDispatchKey() ? Crypto.DISPATCH_KEY : this.encryptKey);
                 }
-                tunnel.writeData(bytes);
-            } catch (Exception ignored) {
-                Grasscutter.getLogger().debug("Unable to send packet to client.");
+                this.session.send(bytes);
+            } catch (Exception ex) {
+                this.session.getLogger().debug("Unable to send packet to client.", ex);
             }
         }
     }
 
     @Override
-    public void onConnected(GameSessionManager.KcpTunnel tunnel) {
-        this.tunnel = tunnel;
+    public void onConnected() {
         Grasscutter.getLogger().info(translate("messages.game.connect", this.getAddress().toString()));
     }
 
     @Override
-    public void handleReceive(byte[] bytes) {
+    public void onReceived(byte[] bytes) {
+        if (this.session == null) {
+            Grasscutter.getLogger().debug("接收数据包失败 因为session为空");
+            return;
+        }
+
         // Decrypt and turn back into a packet
-        Crypto.xor(bytes, useSecretKey() ? this.encryptKey : Crypto.DISPATCH_KEY);
+        if (Grasscutter.getConfig().server.game.useXorEncryption) {
+            Crypto.xor(bytes, this.useSecretKey ? this.encryptKey : Crypto.DISPATCH_KEY);
+        }
         ByteBuf packet = Unpooled.wrappedBuffer(bytes);
 
-        // Log
-        // logPacket(packet);
-        // Handle
         try {
-            boolean allDebug = GAME_INFO.logPackets == ServerDebugMode.ALL;
+            incrementRecvPacketCounter();   // 递增数据包计数器
+            // 检查数据包计数是否超过限制
+            if ((getRecvPacketCount() > GameOptions.recvPacketOptions.recvPacketMaxFreq) && !SERVER.isDevServer) {
+                String Msg = "客户端发包太频繁，连接断开";
+                Grasscutter.getLogger().error(Msg);
+                getPlayer().sendPacket(new PacketAntiAddictNotify(1, Msg));
+                close(); return;
+            }
+
             while (packet.readableBytes() > 0) {
                 // Length
                 if (packet.readableBytes() < 12) {
@@ -178,12 +215,10 @@ public class GameSession implements GameSessionManager.KcpChannel {
                 // Packet sanity check
                 int const1 = packet.readShort();
                 if (const1 != 17767) {
-                    if (allDebug) {
-                        Grasscutter.getLogger()
-                                .error("Bad Data Package Received: got {} ,expect 17767", const1);
-                    }
+                    this.session.getLogger().debug("Invalid packet header received: got {}, expected 17767", const1);
                     return; // Bad packet
                 }
+
                 // Data
                 int opcode = packet.readShort();
                 int headerLength = packet.readShort();
@@ -196,17 +231,15 @@ public class GameSession implements GameSessionManager.KcpChannel {
                 // Sanity check #2
                 int const2 = packet.readShort();
                 if (const2 != -30293) {
-                    if (allDebug) {
-                        Grasscutter.getLogger()
-                                .error("Bad Data Package Received: got {} ,expect -30293", const2);
-                    }
+                    this.session.getLogger().debug("Invalid packet footer received: got {}, expected -30293", const2);
                     return; // Bad packet
                 }
 
                 // Log packet
                 switch (GAME_INFO.logPackets) {
                     case ALL -> {
-                        if (!PacketOpcodesUtils.LOOP_PACKETS.contains(opcode) || GAME_INFO.isShowLoopPackets) {
+                        if ((!PacketOpcodesUtils.LOOP_PACKETS.contains(opcode) || GAME_INFO.isShowLoopPackets)
+                            && !PacketOpcodesUtils.LOOPUPDATE_PACKETS.contains(opcode)) {
                             logPacket("RECV", opcode, payload);
                         }
                     }
@@ -226,16 +259,23 @@ public class GameSession implements GameSessionManager.KcpChannel {
                 // Handle
                 getServer().getPacketHandler().handle(this, opcode, header, payload);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            this.session.getLogger().warn("Unable to process packet.", ex);
         } finally {
-            // byteBuf.release(); //Needn't
             packet.release();
         }
     }
 
+    public void clearTimerTask() {
+        if (this.recvPacketResetTimer != null) {
+            this.recvPacketResetTimer.cancel();
+            this.recvPacketResetTimer = null;
+        }
+    }
+
     @Override
-    public void handleClose() {
+    public void onDisconnected() {
+        clearTimerTask();
         setState(SessionState.INACTIVE);
         // send disconnection pack in case of reconnection
         Grasscutter.getLogger()
@@ -247,27 +287,32 @@ public class GameSession implements GameSessionManager.KcpChannel {
             player.onLogout();
         }
         try {
-            send(new BasePacket(PacketOpcodes.ServerDisconnectClientNotify));
-        } catch (Throwable ignore) {
-            Grasscutter.getLogger().warn("closing {} error", getAddress().getAddress().getHostAddress());
+            this.send(new BasePacket(PacketOpcodes.ServerDisconnectClientNotify));
+        } catch (Throwable ex) {
+            this.session.getLogger().warn("Failed to disconnect client.", ex);
         }
-        tunnel = null;
+
+        this.session = null;
     }
 
     public void close() {
-        tunnel.close();
+        this.session.close();
     }
 
     public boolean isActive() {
-        return getState() == SessionState.ACTIVE;
+        return this.getState() == SessionState.ACTIVE;
     }
 
     public enum SessionState {
+        NONE,
         INACTIVE,
         WAITING_FOR_TOKEN,
         WAITING_FOR_LOGIN,
         PICKING_CHARACTER,
         ACTIVE,
-        ACCOUNT_BANNED
+        ACCOUNT_BANNED,
+        WAITING_SERVER_LUA,
+        SERVER_MAX_PLAYER_OVERFLOW,
+        DB_OVERLOAD
     }
 }

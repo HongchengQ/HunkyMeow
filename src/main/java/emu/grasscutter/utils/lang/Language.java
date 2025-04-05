@@ -84,25 +84,36 @@ public final class Language {
      */
     public static String translate(String key, Object... args) {
         String translated = Grasscutter.getLanguage().get(key);
+        if (translated == null) {
+            Grasscutter.getLogger().warn("Missing translation for key: {}", key);
+            return key; // 或返回默认值，避免后续空指针
+        }
 
         for (int i = 0; i < args.length; i++) {
-            args[i] =
-                    switch (args[i].getClass().getSimpleName()) {
-                        case "String" -> args[i];
-                        case "TextStrings" -> ((TextStrings) args[i])
-                                .get(0)
-                                .replace("\\\\n", "\\n"); // TODO: Change this to server language
-                        default -> args[i].toString();
-                    };
+            Object arg = args[i];
+            switch (arg) {
+                case null -> args[i] = "nullObject"; // 防止 NPE
+                case String s -> args[i] = s; // 保留字符串类型
+                case TextStrings textStrings -> {
+                    String value = textStrings.get(0);
+                    if (value != null) {
+                        args[i] = value.replace("\\\\n", "\\n"); // 保留原始转义逻辑
+                    } else {
+                        args[i] = "nullTextStrings"; // 防止 NPE
+                    }
+                }
+                default -> args[i] = arg.toString();
+            }
         }
 
         try {
             return translated.formatted(args);
-        } catch (Exception exception) {
-            Grasscutter.getLogger().error("Failed to format string: " + key, exception);
+        } catch (Exception e) {
+            Grasscutter.getLogger().error("Failed to format string: {}", key, e);
             return translated;
         }
     }
+
 
     /**
      * Returns the translated value from the key while substituting arguments.
@@ -328,6 +339,11 @@ public final class Language {
      * @param bypassCache Should the cache be bypassed?
      */
     public static void loadTextMaps(boolean bypassCache) {
+        if (Grasscutter.getRunMode() == Grasscutter.ServerRunMode.DISPATCH_ONLY) {
+            Grasscutter.getLogger().info("跳过 loadTextMaps, 因为服务器启动类型为: DISPATCH_ONLY");
+            return;
+        }
+
         // Check system timestamps on cache and resources
         if (!bypassCache)
             try {

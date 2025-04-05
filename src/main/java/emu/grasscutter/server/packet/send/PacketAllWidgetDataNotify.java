@@ -18,15 +18,16 @@ public class PacketAllWidgetDataNotify extends BasePacket {
                         // If you want to implement this, feel free to do so. :)
                         .setLunchBoxData(LunchBoxDataOuterClass.LunchBoxData.newBuilder().build())
                         // Maybe it's a little difficult, or it makes you upset :(
-                        .addAllOneoffGatherPointDetectorDataList(List.of())
+//                        .addAllOneoffGatherPointDetectorDataList(List.of())
                         // So, goodbye, and hopefully sometime in the future o(*￣▽￣*)ブ
-                        .addAllCoolDownGroupDataList(List.of())
+//                        .addAllCoolDownGroupDataList(List.of())
                         // I'll see your PR with a title that says (・∀・(・∀・(・∀・*)
-                        .addAllAnchorPointList(List.of())
+//                        .addAllAnchorPointList(List.of())
                         // "Complete implementation of widget functionality" b（￣▽￣）d
-                        .addAllClientCollectorDataList(List.of())
+//                        .addAllClientCollectorDataList(List.of())
                         // Good luck, my boy.
-                        .addAllNormalCoolDownDataList(List.of());
+//                        .addAllNormalCoolDownDataList(List.of())
+                        ;
 
         if (player.getWidgetId()
                 == 0) { // TODO: check this logic later, it was null-checking an int before which made it
@@ -41,7 +42,7 @@ public class PacketAllWidgetDataNotify extends BasePacket {
 
             proto.addSlotList(
                     WidgetSlotDataOuterClass.WidgetSlotData.newBuilder()
-                            .setTag(WidgetSlotTagOuterClass.WidgetSlotTag.WIDGET_SLOT_TAG_ATTACH_AVATAR)
+                            .setTag(WidgetSlotTagOuterClass.WidgetSlotTag.WidgetSlotTag_WIDGET_SLOT_ATTACH_AVATAR)
                             .build());
         }
 
